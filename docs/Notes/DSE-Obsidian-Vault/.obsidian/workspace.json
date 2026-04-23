@@ -4,59 +4,119 @@
     "type": "split",
     "children": [
       {
-        "id": "d80675a0a33ab77b",
+        "id": "59ef41666a2b5b3f",
         "type": "tabs",
         "children": [
-          {
-            "id": "49f1ef329ef36e63",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Certification/1. Certification.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "1. Certification"
-            }
-          },
-          {
-            "id": "d9e63ff372d267c5",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "An aircraft that serves as a test bed for HAR, GLA, AFS.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "An aircraft that serves as a test bed for HAR, GLA, AFS"
-            }
-          },
-          {
-            "id": "c1b129883cec4d33",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "An aircraft that serves as a test bed for HAR, GLA, AFS.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "An aircraft that serves as a test bed for HAR, GLA, AFS"
-            }
-          },
           {
             "id": "42c4327e15753469",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "Budgeting and Costs/Budgets and Costs.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Budgets and Costs"
+            }
+          },
+          {
+            "id": "3eca4d3ce8b6d7db",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Budgeting and Costs/Budgets and Costs.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Budgets and Costs"
+            }
+          },
+          {
+            "id": "b91c6c98471892ba",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Budgeting and Costs/Maintenance costs.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Maintenance costs"
+            }
+          },
+          {
+            "id": "cc93a83f44c80dea",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Fuel consumption and costs.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Fuel consumption and costs"
+            }
+          },
+          {
+            "id": "11e8cfc027c7d6bc",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Budgeting and Costs/Production cost.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Production cost"
+            }
+          },
+          {
+            "id": "e2d50abc4e13d8a7",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Budgeting and Costs/Payload volume.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Payload volume"
+            }
+          },
+          {
+            "id": "33aa02bd71691422",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Budgeting and Costs/Fit in a van.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Fit in a van"
+            }
+          },
+          {
+            "id": "3ccdd6ae55bdea13",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Budgeting and Costs/Internal.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Internal"
             }
           }
         ],
@@ -222,43 +282,44 @@
       "bases:Create new base": false
     }
   },
-  "active": "42c4327e15753469",
+  "active": "cc93a83f44c80dea",
   "lastOpenFiles": [
+    "Budgeting and Costs/Budgets and Costs.md",
+    "Stability positions for the stick fixed and stick free modes.md",
+    "Budgeting and Costs/Maintenance costs.md",
+    "Fuel consumption and costs.md",
+    "Budgeting and Costs/Payload volume.md",
+    "Budgeting and Costs/Production cost.md",
+    "Budgeting and Costs/Internal.md",
+    "Budgeting and Costs/Fit in a van.md",
+    "Development Costs.md",
+    "Budgeting and Costs/Centre of gravity location.md",
+    "Budgeting and Costs/Center of gravity location.md",
+    "Lifespan/Materials.md",
+    "Lifespan/Maintenance.md",
+    "Lifespan/1. Min 15 years lifetime.md",
+    "Budgeting and Costs/Communication link budget.md",
+    "Budgeting and Costs/Thrust.md",
+    "Budgeting and Costs/Power.md",
+    "Budgeting and Costs/Weight.md",
+    "Budgeting and Costs",
+    "Untitled.canvas",
+    "Untitled.md",
+    "An aircraft that serves as a test bed for HAR, GLA, AFS.md",
     "Speed Requierment/Vulcan.md",
     "Speed Requierment/Bellow Crit Mac.md",
     "Control System/Autonomous.md",
     "Control System/Flexible.md",
     "Control System/Multi operational.md",
     "Susteinability/EOL.md",
-    "Susteinability/Manufacturing Process.md",
-    "Susteinability/Sustainability.md",
-    "Certification/Determining the Classification.md",
-    "Flight Time/Flight time of min of 30 min.md",
     "Susteinability",
-    "Control System/1. Control Systems.md",
     "Control System",
-    "Speed Requierment/1. Up to 0.75 MAC.md",
-    "MTOW/Structure/Transonic Loads.md",
-    "Stability/Stable.md",
-    "Stability/Neutral Stable.md",
-    "Stability/Unstable.md",
-    "Flight Time/SAF.md",
-    "Operations/Aircraft Dimensions.md",
-    "Operations/Cost/Cost.md",
-    "Operations/Cost/Configuration Cost.md",
-    "Operations/Cost/Recuring Costs.md",
-    "Operations/Operations.md",
-    "Flight Time/fuel.md",
-    "MTOW/Structure/Structure.md",
-    "MTOW/Payload/5 kg min.md",
-    "MTOW/Payload/5 L  min.md",
     "Flight Time",
     "Operations/Cost",
     "MTOW/Payload",
     "MTOW/Structure",
     "Recovery",
     "Operations",
-    "Stability",
-    "MTOW"
+    "Stability"
   ]
 }
