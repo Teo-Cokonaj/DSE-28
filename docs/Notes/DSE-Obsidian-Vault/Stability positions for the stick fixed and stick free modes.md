@@ -1,0 +1,2 @@
+This process will depend a lot on each configuration, airfoil, position of the wing and its dimensions as well as the tail position and characteristics
+- this budget will be expanded on once we determine what we decide what to build and the 

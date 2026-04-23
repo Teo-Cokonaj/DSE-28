@@ -1,0 +1,1 @@
+Hard 45K max limit for the unit production cost. This price only includes the production of one unit, material and procedure, not the price for development.
