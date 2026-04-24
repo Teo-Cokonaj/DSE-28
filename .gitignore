@@ -205,4 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
 *.deb
+
+# Obsidian (ignore all local vault settings)
+docs/Notes/DSE-Obsidian-Vault/.obsidian/
