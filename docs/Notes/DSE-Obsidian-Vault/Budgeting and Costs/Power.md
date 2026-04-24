@@ -1,4 +1,4 @@
--comunication system
+-communication system
 -actuators
 -FC
 -sensors
