@@ -11,7 +11,7 @@ from util.isa_calculator import dens_at_h, speed_of_sound_at_h
 
 def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, time_half_turn:float, CL_max_glide_ratio_go_around:float, 
                        glide_ratio_mach_max:float, glide_ratio_cruise:float, glide_ratio_go_around:float, airspeed_approach:float,
-                       wing_loading:float, efficiency_engine_total:float, energy_density_saf:float,  debug=False):
+                       wing_loading:float, efficiency_engine_total:float, energy_density_saf:float,  debug=False) -> float:
 
     #determining the cruise parameters
     airspeed_cruise = speed_of_sound_at_h(altitude_cruise)*CONSTANTS.MACH_CRUISE
@@ -40,6 +40,12 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, time_hal
 
     fuel_frac_go_around_local = segment_go_around.fuel_fraction(efficiency_engine_total, energy_density_saf)
     fuel_frac_go_around = fuel_frac_go_around_local*(1-fuel_frac_cruise-fuel_frac_mach_max)
+
+    if debug:
+        print("=====fuel mass fraction intermediate values====")
+        print(f"load_factor_go_around: {load_factor_go_around}")
+        print(f"airspeed_go_around: {airspeed_go_around}")
+        print(f"Fuel fractions: {fuel_frac_cruise} for cruise, {fuel_frac_mach_max} for mach max, {fuel_frac_go_around} for go-around")
 
     return fuel_frac_cruise + fuel_frac_mach_max + fuel_frac_go_around
 
