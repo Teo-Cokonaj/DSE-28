@@ -7,7 +7,7 @@ from dataclasses import dataclass
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from global_parameters import CONSTANTS
-from fuel_mass_fraction import fuel_mass_fraction
+from Class_I.fuel_mass_fraction import fuel_mass_fraction
 
 @dataclass
 class Class_I_Result:
