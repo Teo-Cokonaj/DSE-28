@@ -1,10 +1,10 @@
 import pytest as pt
 import numpy as np
 
-from src.Class_I.fuel_mass_fraction import fuel_mass_fraction
+from src.Class_I.Class_I import Class_I
 from src.global_parameters import CONSTANTS
 
-class TestFuelMassFraction:
+class TestClass_I:
     debug = False
 
     single_glide_ratio = 10.
@@ -15,6 +15,7 @@ class TestFuelMassFraction:
     efficiency_engine_total = .87
     enegy_density_saf = 42.8e6 # [J/kg]
     airspeed_approach = 60. # [m/s]
+    oem_fraction = .4
 
     #rate I turn @ go around
     time_half_turn = 60. # [s]
@@ -42,8 +43,13 @@ class TestFuelMassFraction:
 
         reference_fuel_fraction = 1-np.exp(-(range_equivalent)*CONSTANTS.G0/self.efficiency_engine_total/self.enegy_density_saf/self.single_glide_ratio)
 
-        computed_fuel_fraction = fuel_mass_fraction(self.altitude_go_around, self.altitude_cruise, self.time_half_turn, self.CL_go_around, self.single_glide_ratio, self.single_glide_ratio, 
-                                                    self.single_glide_ratio, self.airspeed_approach, self.wing_loading, self.efficiency_engine_total, self.enegy_density_saf, self.debug)
+        reference_payload_fraction = 1 - reference_fuel_fraction - self.oem_fraction
+        reference_fuel_mass = CONSTANTS.MASS_PAYLOAD*reference_fuel_fraction/reference_payload_fraction
+        reference_empty_mass = CONSTANTS.MASS_PAYLOAD*self.oem_fraction/reference_payload_fraction
+        reference_mtom = CONSTANTS.MASS_PAYLOAD/reference_payload_fraction
+
+        class_I = Class_I(self.altitude_cruise, self.altitude_go_around, self.efficiency_engine_total, self.enegy_density_saf, self.time_half_turn, self.debug)
+        class_I_result = class_I.run_estimation(self.oem_fraction, self.CL_go_around, self.single_glide_ratio, self.single_glide_ratio, self.single_glide_ratio, self.airspeed_approach, self.wing_loading)
         
         if self.debug:
             print("====REFERENCE====")
@@ -51,4 +57,9 @@ class TestFuelMassFraction:
             print(f"load_factor_go_around: {self.airspeed_go_around}")
             print(f"equivalent range: {range_equivalent}")
 
-        assert np.isclose(reference_fuel_fraction, computed_fuel_fraction), f"computed: {computed_fuel_fraction}, reference: {reference_fuel_fraction}"
+        assert np.isclose(reference_fuel_fraction, class_I_result.fuel_fraction), f"computed: {class_I_result.fuel_fraction}, reference: {reference_fuel_fraction}"
+        assert np.isclose(self.oem_fraction, class_I_result.oem_fraction), f"computed: {class_I_result.oem_fraction}, reference: {self.oem_fraction}"
+        assert np.isclose(reference_mtom, class_I_result.mtom), f"computed: {class_I_result.mtom}, reference: {reference_mtom}"
+        assert np.isclose(reference_payload_fraction, class_I_result.payload_fraction), f"computed: {class_I_result.payload_fraction}, reference: {reference_payload_fraction}"
+        assert np.isclose(reference_empty_mass, class_I_result.oem_mass), f"computed: {class_I_result.oem_mass}, reference:{reference_empty_mass}"
+        assert np.isclose(reference_fuel_mass, class_I_result.fuel_mass), f"computed: {class_I_result.fuel_mass}, reference:{reference_fuel_mass}"

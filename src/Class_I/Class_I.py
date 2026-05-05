@@ -8,23 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from global_parameters import CONSTANTS
 from Class_I.fuel_mass_fraction import fuel_mass_fraction
-
-@dataclass
-class Class_I_Result:
-    mtom: float
-    fuel_fraction: float
-    oem_fraction: float
-
-    def fuel_mass(self) -> float:
-        return self.mtom*self.fuel_fraction
-    
-    def oem_mass(self) -> float:
-        return self.mtom*self.oem_fraction
-    
-    def payload_fraction(self) -> float:
-        return 1-self.fuel_fraction-self.oem_fraction
-    
-
+from Class_I.Class_I_Result import Class_I_Result  
 
 class Class_I:
     def __init__(self, altitude_cruise:float, altitude_go_around:float, efficiency_engine_total:float, energy_density_saf:float, time_half_turn:float, debug=False):
