@@ -11,3 +11,8 @@ class Planform(Component):
         surface_wetted, characteristic_length = 0 #TODO compute from geometry
         
         super().__init__(interference_factor, surface_wetted, characteristic_length, laminar_fraction, surface_reynolds_factor)
+
+    
+    def form_factor(self, mach):
+        #TODO: implement
+        pass
