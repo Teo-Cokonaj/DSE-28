@@ -1,4 +1,11 @@
 import numpy as np
+import os
+import sys
+
+# Add the 'src' directory to the python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from util.isa_calculator import dens_at_h, speed_of_sound_at_h, viscosity_at_h
 
 class Component:
     def __init__(self, interference_factor:float, surface_wetted:float, 
@@ -18,7 +25,10 @@ class Component:
 
 
     def reynolds(self, altitude:float, mach:float):
-        density, viscosity, speed_of_sound = 0. #TODO plug in ISA
+        density = dens_at_h(altitude)
+        speed_of_sound = speed_of_sound_at_h(altitude)
+        viscosity = viscosity_at_h(altitude)
+        
         return min(density*speed_of_sound*mach*self.characteristic_length/viscosity,
             38.21*(self.characteristic_length/self.surface_reynolds_factor) ** 1.053)
 

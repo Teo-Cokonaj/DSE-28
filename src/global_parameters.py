@@ -17,6 +17,7 @@ class CONSTANTS:
     TEMPERATURE_LAPSE = -.0065 # [K/m]
     N_LANDING_ATTEMPTS = 4
     MASS_PAYLOAD = 5. # [kg]
+    DYNAMIC_VISCOSITY_SEA_LEVEL = 1.789e-5 # [kg/m/s]
     
 
 class Assumptions():
