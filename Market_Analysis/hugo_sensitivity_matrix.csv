@@ -1,0 +1,1057 @@
+Sweep Target,Sweep Value,Year,Cumulative Cash
+R&D Multiplier,0.5,0,-9875000.0
+R&D Multiplier,0.5,1,-3850883.685800601
+R&D Multiplier,0.5,2,2173232.6283987984
+R&D Multiplier,0.5,3,8197348.942598198
+R&D Multiplier,0.5,4,18192348.942598198
+R&D Multiplier,0.5,5,28187348.942598198
+R&D Multiplier,0.5,6,38182348.942598194
+R&D Multiplier,0.5,7,48177348.942598194
+R&D Multiplier,0.5,8,58172348.942598194
+R&D Multiplier,0.5,9,68167348.9425982
+R&D Multiplier,0.5,10,78162348.9425982
+R&D Multiplier,0.6,0,-10225000.0
+R&D Multiplier,0.6,1,-4341623.867069483
+R&D Multiplier,0.6,2,1541752.2658610344
+R&D Multiplier,0.6,3,7425128.398791552
+R&D Multiplier,0.6,4,17420128.39879155
+R&D Multiplier,0.6,5,27415128.39879155
+R&D Multiplier,0.6,6,37410128.39879155
+R&D Multiplier,0.6,7,47405128.39879155
+R&D Multiplier,0.6,8,57400128.39879155
+R&D Multiplier,0.6,9,67395128.39879155
+R&D Multiplier,0.6,10,77390128.39879155
+R&D Multiplier,0.7,0,-10575000.0
+R&D Multiplier,0.7,1,-4832364.048338365
+R&D Multiplier,0.7,2,910271.9033232704
+R&D Multiplier,0.7,3,6652907.854984906
+R&D Multiplier,0.7,4,16647907.854984906
+R&D Multiplier,0.7,5,26642907.854984906
+R&D Multiplier,0.7,6,36637907.85498491
+R&D Multiplier,0.7,7,46632907.85498491
+R&D Multiplier,0.7,8,56627907.85498491
+R&D Multiplier,0.7,9,66622907.85498491
+R&D Multiplier,0.7,10,76617907.85498491
+R&D Multiplier,0.8,0,-10925000.0
+R&D Multiplier,0.8,1,-5323104.229607247
+R&D Multiplier,0.8,2,278791.54078550637
+R&D Multiplier,0.8,3,5880687.31117826
+R&D Multiplier,0.8,4,15875687.31117826
+R&D Multiplier,0.8,5,25870687.31117826
+R&D Multiplier,0.8,6,35865687.31117826
+R&D Multiplier,0.8,7,45860687.31117826
+R&D Multiplier,0.8,8,55855687.31117826
+R&D Multiplier,0.8,9,65850687.31117826
+R&D Multiplier,0.8,10,75845687.31117827
+R&D Multiplier,0.9,0,-11275000.0
+R&D Multiplier,0.9,1,-5813844.410876129
+R&D Multiplier,0.9,2,-352688.82175225765
+R&D Multiplier,0.9,3,5108466.7673716135
+R&D Multiplier,0.9,4,15103466.767371614
+R&D Multiplier,0.9,5,25098466.767371614
+R&D Multiplier,0.9,6,35093466.76737161
+R&D Multiplier,0.9,7,45088466.76737161
+R&D Multiplier,0.9,8,55083466.76737161
+R&D Multiplier,0.9,9,65078466.76737161
+R&D Multiplier,0.9,10,75073466.76737161
+R&D Multiplier,1.0,0,-11625000.0
+R&D Multiplier,1.0,1,-6304584.592145012
+R&D Multiplier,1.0,2,-984169.1842900235
+R&D Multiplier,1.0,3,4336246.223564965
+R&D Multiplier,1.0,4,14331246.223564964
+R&D Multiplier,1.0,5,24326246.223564964
+R&D Multiplier,1.0,6,34321246.22356497
+R&D Multiplier,1.0,7,44316246.22356497
+R&D Multiplier,1.0,8,54311246.22356497
+R&D Multiplier,1.0,9,64306246.22356497
+R&D Multiplier,1.0,10,74301246.22356497
+R&D Multiplier,1.1,0,-11975000.0
+R&D Multiplier,1.1,1,-6795324.773413894
+R&D Multiplier,1.1,2,-1615649.5468277875
+R&D Multiplier,1.1,3,3564025.6797583187
+R&D Multiplier,1.1,4,13559025.679758318
+R&D Multiplier,1.1,5,23554025.679758318
+R&D Multiplier,1.1,6,33549025.679758318
+R&D Multiplier,1.1,7,43544025.67975832
+R&D Multiplier,1.1,8,53539025.67975832
+R&D Multiplier,1.1,9,63534025.67975832
+R&D Multiplier,1.1,10,73529025.67975831
+R&D Multiplier,1.2,0,-12325000.0
+R&D Multiplier,1.2,1,-7286064.954682776
+R&D Multiplier,1.2,2,-2247129.9093655515
+R&D Multiplier,1.2,3,2791805.1359516727
+R&D Multiplier,1.2,4,12786805.135951672
+R&D Multiplier,1.2,5,22781805.13595167
+R&D Multiplier,1.2,6,32776805.13595167
+R&D Multiplier,1.2,7,42771805.13595167
+R&D Multiplier,1.2,8,52766805.13595167
+R&D Multiplier,1.2,9,62761805.13595167
+R&D Multiplier,1.2,10,72756805.13595167
+R&D Multiplier,1.3,0,-12675000.0
+R&D Multiplier,1.3,1,-7776805.135951658
+R&D Multiplier,1.3,2,-2878610.2719033156
+R&D Multiplier,1.3,3,2019584.5921450267
+R&D Multiplier,1.3,4,12014584.592145026
+R&D Multiplier,1.3,5,22009584.592145026
+R&D Multiplier,1.3,6,32004584.592145026
+R&D Multiplier,1.3,7,41999584.592145026
+R&D Multiplier,1.3,8,51994584.592145026
+R&D Multiplier,1.3,9,61989584.592145026
+R&D Multiplier,1.3,10,71984584.59214503
+R&D Multiplier,1.4,0,-13025000.0
+R&D Multiplier,1.4,1,-8267545.31722054
+R&D Multiplier,1.4,2,-3510090.6344410796
+R&D Multiplier,1.4,3,1247364.0483383806
+R&D Multiplier,1.4,4,11242364.04833838
+R&D Multiplier,1.4,5,21237364.04833838
+R&D Multiplier,1.4,6,31232364.04833838
+R&D Multiplier,1.4,7,41227364.04833838
+R&D Multiplier,1.4,8,51222364.04833838
+R&D Multiplier,1.4,9,61217364.04833838
+R&D Multiplier,1.4,10,71212364.04833838
+R&D Multiplier,1.5,0,-13375000.0
+R&D Multiplier,1.5,1,-8758285.49848942
+R&D Multiplier,1.5,2,-4141570.9969788427
+R&D Multiplier,1.5,3,475143.50453173555
+R&D Multiplier,1.5,4,10470143.504531736
+R&D Multiplier,1.5,5,20465143.504531734
+R&D Multiplier,1.5,6,30460143.504531734
+R&D Multiplier,1.5,7,40455143.50453173
+R&D Multiplier,1.5,8,50450143.50453173
+R&D Multiplier,1.5,9,60445143.50453173
+R&D Multiplier,1.5,10,70440143.50453174
+R&D Multiplier,1.6,0,-13725000.0
+R&D Multiplier,1.6,1,-9249025.679758303
+R&D Multiplier,1.6,2,-4773051.359516607
+R&D Multiplier,1.6,3,-297077.03927491046
+R&D Multiplier,1.6,4,9697922.96072509
+R&D Multiplier,1.6,5,19692922.96072509
+R&D Multiplier,1.6,6,29687922.96072509
+R&D Multiplier,1.6,7,39682922.96072509
+R&D Multiplier,1.6,8,49677922.96072509
+R&D Multiplier,1.6,9,59672922.96072509
+R&D Multiplier,1.6,10,69667922.9607251
+R&D Multiplier,1.7,0,-14075000.0
+R&D Multiplier,1.7,1,-9739765.861027185
+R&D Multiplier,1.7,2,-5404531.722054371
+R&D Multiplier,1.7,3,-1069297.5830815565
+R&D Multiplier,1.7,4,8925702.416918444
+R&D Multiplier,1.7,5,18920702.41691844
+R&D Multiplier,1.7,6,28915702.41691844
+R&D Multiplier,1.7,7,38910702.41691844
+R&D Multiplier,1.7,8,48905702.41691844
+R&D Multiplier,1.7,9,58900702.41691844
+R&D Multiplier,1.7,10,68895702.41691844
+R&D Multiplier,1.8,0,-14425000.0
+R&D Multiplier,1.8,1,-10230506.042296067
+R&D Multiplier,1.8,2,-6036012.084592135
+R&D Multiplier,1.8,3,-1841518.1268882025
+R&D Multiplier,1.8,4,8153481.8731117975
+R&D Multiplier,1.8,5,18148481.8731118
+R&D Multiplier,1.8,6,28143481.8731118
+R&D Multiplier,1.8,7,38138481.8731118
+R&D Multiplier,1.8,8,48133481.8731118
+R&D Multiplier,1.8,9,58128481.8731118
+R&D Multiplier,1.8,10,68123481.8731118
+R&D Multiplier,1.9,0,-14775000.0
+R&D Multiplier,1.9,1,-10721246.223564949
+R&D Multiplier,1.9,2,-6667492.447129899
+R&D Multiplier,1.9,3,-2613738.6706948485
+R&D Multiplier,1.9,4,7381261.3293051515
+R&D Multiplier,1.9,5,17376261.32930515
+R&D Multiplier,1.9,6,27371261.32930515
+R&D Multiplier,1.9,7,37366261.32930515
+R&D Multiplier,1.9,8,47361261.32930515
+R&D Multiplier,1.9,9,57356261.32930515
+R&D Multiplier,1.9,10,67351261.32930514
+R&D Multiplier,2.0,0,-15125000.0
+R&D Multiplier,2.0,1,-11211986.40483383
+R&D Multiplier,2.0,2,-7298972.809667663
+R&D Multiplier,2.0,3,-3385959.2145014945
+R&D Multiplier,2.0,4,6609040.785498505
+R&D Multiplier,2.0,5,16604040.785498505
+R&D Multiplier,2.0,6,26599040.785498507
+R&D Multiplier,2.0,7,36594040.78549851
+R&D Multiplier,2.0,8,46589040.78549851
+R&D Multiplier,2.0,9,56584040.78549851
+R&D Multiplier,2.0,10,66579040.78549851
+Cert Multiplier,0.5,0,-7687500.0
+Cert Multiplier,0.5,1,-783757.5528700873
+Cert Multiplier,0.5,2,6119984.894259825
+Cert Multiplier,0.5,3,13023727.341389738
+Cert Multiplier,0.5,4,23018727.341389738
+Cert Multiplier,0.5,5,33013727.341389738
+Cert Multiplier,0.5,6,43008727.34138974
+Cert Multiplier,0.5,7,53003727.34138974
+Cert Multiplier,0.5,8,62998727.34138974
+Cert Multiplier,0.5,9,72993727.34138975
+Cert Multiplier,0.5,10,82988727.34138975
+Cert Multiplier,0.6,0,-8475000.0
+Cert Multiplier,0.6,1,-1887922.9607250728
+Cert Multiplier,0.6,2,4699154.078549854
+Cert Multiplier,0.6,3,11286231.117824782
+Cert Multiplier,0.6,4,21281231.11782478
+Cert Multiplier,0.6,5,31276231.11782478
+Cert Multiplier,0.6,6,41271231.11782478
+Cert Multiplier,0.6,7,51266231.11782478
+Cert Multiplier,0.6,8,61261231.11782478
+Cert Multiplier,0.6,9,71256231.11782478
+Cert Multiplier,0.6,10,81251231.11782478
+Cert Multiplier,0.7,0,-9262500.0
+Cert Multiplier,0.7,1,-2992088.3685800573
+Cert Multiplier,0.7,2,3278323.2628398854
+Cert Multiplier,0.7,3,9548734.89425983
+Cert Multiplier,0.7,4,19543734.89425983
+Cert Multiplier,0.7,5,29538734.89425983
+Cert Multiplier,0.7,6,39533734.894259825
+Cert Multiplier,0.7,7,49528734.894259825
+Cert Multiplier,0.7,8,59523734.894259825
+Cert Multiplier,0.7,9,69518734.89425983
+Cert Multiplier,0.7,10,79513734.89425983
+Cert Multiplier,0.8,0,-10050000.0
+Cert Multiplier,0.8,1,-4096253.776435042
+Cert Multiplier,0.8,2,1857492.4471299164
+Cert Multiplier,0.8,3,7811238.670694875
+Cert Multiplier,0.8,4,17806238.670694873
+Cert Multiplier,0.8,5,27801238.670694873
+Cert Multiplier,0.8,6,37796238.67069487
+Cert Multiplier,0.8,7,47791238.67069487
+Cert Multiplier,0.8,8,57786238.67069487
+Cert Multiplier,0.8,9,67781238.67069487
+Cert Multiplier,0.8,10,77776238.67069487
+Cert Multiplier,0.9,0,-10837500.0
+Cert Multiplier,0.9,1,-5200419.184290026
+Cert Multiplier,0.9,2,436661.63141994737
+Cert Multiplier,0.9,3,6073742.447129921
+Cert Multiplier,0.9,4,16068742.44712992
+Cert Multiplier,0.9,5,26063742.44712992
+Cert Multiplier,0.9,6,36058742.44712992
+Cert Multiplier,0.9,7,46053742.44712992
+Cert Multiplier,0.9,8,56048742.44712992
+Cert Multiplier,0.9,9,66043742.44712992
+Cert Multiplier,0.9,10,76038742.44712992
+Cert Multiplier,1.0,0,-11625000.0
+Cert Multiplier,1.0,1,-6304584.592145012
+Cert Multiplier,1.0,2,-984169.1842900235
+Cert Multiplier,1.0,3,4336246.223564965
+Cert Multiplier,1.0,4,14331246.223564964
+Cert Multiplier,1.0,5,24326246.223564964
+Cert Multiplier,1.0,6,34321246.22356497
+Cert Multiplier,1.0,7,44316246.22356497
+Cert Multiplier,1.0,8,54311246.22356497
+Cert Multiplier,1.0,9,64306246.22356497
+Cert Multiplier,1.0,10,74301246.22356497
+Cert Multiplier,1.1,0,-12412500.0
+Cert Multiplier,1.1,1,-7408749.999999996
+Cert Multiplier,1.1,2,-2404999.9999999925
+Cert Multiplier,1.1,3,2598750.000000011
+Cert Multiplier,1.1,4,12593750.000000011
+Cert Multiplier,1.1,5,22588750.00000001
+Cert Multiplier,1.1,6,32583750.00000001
+Cert Multiplier,1.1,7,42578750.000000015
+Cert Multiplier,1.1,8,52573750.000000015
+Cert Multiplier,1.1,9,62568750.000000015
+Cert Multiplier,1.1,10,72563750.00000001
+Cert Multiplier,1.2,0,-13200000.0
+Cert Multiplier,1.2,1,-8512915.407854982
+Cert Multiplier,1.2,2,-3825830.8157099625
+Cert Multiplier,1.2,3,861253.7764350567
+Cert Multiplier,1.2,4,10856253.776435057
+Cert Multiplier,1.2,5,20851253.776435055
+Cert Multiplier,1.2,6,30846253.776435055
+Cert Multiplier,1.2,7,40841253.776435055
+Cert Multiplier,1.2,8,50836253.776435055
+Cert Multiplier,1.2,9,60831253.776435055
+Cert Multiplier,1.2,10,70826253.77643505
+Cert Multiplier,1.3,0,-13987500.0
+Cert Multiplier,1.3,1,-9617080.815709965
+Cert Multiplier,1.3,2,-5246661.631419931
+Cert Multiplier,1.3,3,-876242.4471298959
+Cert Multiplier,1.3,4,9118757.552870104
+Cert Multiplier,1.3,5,19113757.552870102
+Cert Multiplier,1.3,6,29108757.552870102
+Cert Multiplier,1.3,7,39103757.5528701
+Cert Multiplier,1.3,8,49098757.5528701
+Cert Multiplier,1.3,9,59093757.5528701
+Cert Multiplier,1.3,10,69088757.5528701
+Cert Multiplier,1.4,0,-14775000.0
+Cert Multiplier,1.4,1,-10721246.223564949
+Cert Multiplier,1.4,2,-6667492.447129899
+Cert Multiplier,1.4,3,-2613738.6706948485
+Cert Multiplier,1.4,4,7381261.3293051515
+Cert Multiplier,1.4,5,17376261.32930515
+Cert Multiplier,1.4,6,27371261.32930515
+Cert Multiplier,1.4,7,37366261.32930515
+Cert Multiplier,1.4,8,47361261.32930515
+Cert Multiplier,1.4,9,57356261.32930515
+Cert Multiplier,1.4,10,67351261.32930514
+Cert Multiplier,1.5,0,-15562500.0
+Cert Multiplier,1.5,1,-11825411.631419934
+Cert Multiplier,1.5,2,-8088323.262839869
+Cert Multiplier,1.5,3,-4351234.894259803
+Cert Multiplier,1.5,4,5643765.105740197
+Cert Multiplier,1.5,5,15638765.105740197
+Cert Multiplier,1.5,6,25633765.105740197
+Cert Multiplier,1.5,7,35628765.1057402
+Cert Multiplier,1.5,8,45623765.1057402
+Cert Multiplier,1.5,9,55618765.1057402
+Cert Multiplier,1.5,10,65613765.1057402
+Cert Multiplier,1.6,0,-16350000.0
+Cert Multiplier,1.6,1,-12929577.03927492
+Cert Multiplier,1.6,2,-9509154.07854984
+Cert Multiplier,1.6,3,-6088731.117824758
+Cert Multiplier,1.6,4,3906268.8821752416
+Cert Multiplier,1.6,5,13901268.88217524
+Cert Multiplier,1.6,6,23896268.88217524
+Cert Multiplier,1.6,7,33891268.88217524
+Cert Multiplier,1.6,8,43886268.88217524
+Cert Multiplier,1.6,9,53881268.88217524
+Cert Multiplier,1.6,10,63876268.88217524
+Cert Multiplier,1.7,0,-17137500.0
+Cert Multiplier,1.7,1,-14033742.447129903
+Cert Multiplier,1.7,2,-10929984.894259807
+Cert Multiplier,1.7,3,-7826227.34138971
+Cert Multiplier,1.7,4,2168772.65861029
+Cert Multiplier,1.7,5,12163772.65861029
+Cert Multiplier,1.7,6,22158772.65861029
+Cert Multiplier,1.7,7,32153772.65861029
+Cert Multiplier,1.7,8,42148772.65861029
+Cert Multiplier,1.7,9,52143772.65861029
+Cert Multiplier,1.7,10,62138772.65861029
+Cert Multiplier,1.8,0,-17925000.0
+Cert Multiplier,1.8,1,-15137907.854984887
+Cert Multiplier,1.8,2,-12350815.709969774
+Cert Multiplier,1.8,3,-9563723.56495466
+Cert Multiplier,1.8,4,431276.43504533917
+Cert Multiplier,1.8,5,10426276.43504534
+Cert Multiplier,1.8,6,20421276.43504534
+Cert Multiplier,1.8,7,30416276.43504534
+Cert Multiplier,1.8,8,40411276.43504534
+Cert Multiplier,1.8,9,50406276.43504534
+Cert Multiplier,1.8,10,60401276.43504534
+Cert Multiplier,1.9,0,-18712500.0
+Cert Multiplier,1.9,1,-16242073.262839872
+Cert Multiplier,1.9,2,-13771646.525679745
+Cert Multiplier,1.9,3,-11301219.788519617
+Cert Multiplier,1.9,4,-1306219.7885196172
+Cert Multiplier,1.9,5,8688780.211480383
+Cert Multiplier,1.9,6,18683780.211480383
+Cert Multiplier,1.9,7,28678780.211480383
+Cert Multiplier,1.9,8,38673780.21148038
+Cert Multiplier,1.9,9,48668780.21148038
+Cert Multiplier,1.9,10,58663780.21148038
+Cert Multiplier,2.0,0,-19500000.0
+Cert Multiplier,2.0,1,-17346238.670694858
+Cert Multiplier,2.0,2,-15192477.341389716
+Cert Multiplier,2.0,3,-13038716.012084574
+Cert Multiplier,2.0,4,-3043716.0120845735
+Cert Multiplier,2.0,5,6951283.9879154265
+Cert Multiplier,2.0,6,16946283.987915426
+Cert Multiplier,2.0,7,26941283.987915426
+Cert Multiplier,2.0,8,36936283.98791543
+Cert Multiplier,2.0,9,46931283.98791543
+Cert Multiplier,2.0,10,56926283.98791543
+Revenue Multiplier,0.5,0,-11625000.0
+Revenue Multiplier,0.5,1,-12554584.59214501
+Revenue Multiplier,0.5,2,-13484169.184290022
+Revenue Multiplier,0.5,3,-14413753.776435032
+Revenue Multiplier,0.5,4,-10668753.776435032
+Revenue Multiplier,0.5,5,-6923753.7764350325
+Revenue Multiplier,0.5,6,-3178753.7764350325
+Revenue Multiplier,0.5,7,566246.2235649675
+Revenue Multiplier,0.5,8,4311246.2235649675
+Revenue Multiplier,0.5,9,8056246.2235649675
+Revenue Multiplier,0.5,10,11801246.223564968
+Revenue Multiplier,0.6,0,-11625000.0
+Revenue Multiplier,0.6,1,-11304584.59214501
+Revenue Multiplier,0.6,2,-10984169.184290022
+Revenue Multiplier,0.6,3,-10663753.776435032
+Revenue Multiplier,0.6,4,-5668753.7764350325
+Revenue Multiplier,0.6,5,-673753.7764350325
+Revenue Multiplier,0.6,6,4321246.2235649675
+Revenue Multiplier,0.6,7,9316246.223564968
+Revenue Multiplier,0.6,8,14311246.223564968
+Revenue Multiplier,0.6,9,19306246.223564968
+Revenue Multiplier,0.6,10,24301246.223564968
+Revenue Multiplier,0.7,0,-11625000.0
+Revenue Multiplier,0.7,1,-10054584.59214501
+Revenue Multiplier,0.7,2,-8484169.184290022
+Revenue Multiplier,0.7,3,-6913753.776435033
+Revenue Multiplier,0.7,4,-668753.7764350334
+Revenue Multiplier,0.7,5,5576246.223564967
+Revenue Multiplier,0.7,6,11821246.223564968
+Revenue Multiplier,0.7,7,18066246.223564968
+Revenue Multiplier,0.7,8,24311246.223564968
+Revenue Multiplier,0.7,9,30556246.223564968
+Revenue Multiplier,0.7,10,36801246.22356497
+Revenue Multiplier,0.8,0,-11625000.0
+Revenue Multiplier,0.8,1,-8804584.59214501
+Revenue Multiplier,0.8,2,-5984169.184290023
+Revenue Multiplier,0.8,3,-3163753.7764350343
+Revenue Multiplier,0.8,4,4331246.223564966
+Revenue Multiplier,0.8,5,11826246.223564966
+Revenue Multiplier,0.8,6,19321246.223564968
+Revenue Multiplier,0.8,7,26816246.223564968
+Revenue Multiplier,0.8,8,34311246.22356497
+Revenue Multiplier,0.8,9,41806246.22356497
+Revenue Multiplier,0.8,10,49301246.22356497
+Revenue Multiplier,0.9,0,-11625000.0
+Revenue Multiplier,0.9,1,-7554584.592145012
+Revenue Multiplier,0.9,2,-3484169.1842900235
+Revenue Multiplier,0.9,3,586246.2235649647
+Revenue Multiplier,0.9,4,9331246.223564964
+Revenue Multiplier,0.9,5,18076246.223564964
+Revenue Multiplier,0.9,6,26821246.223564964
+Revenue Multiplier,0.9,7,35566246.22356497
+Revenue Multiplier,0.9,8,44311246.22356497
+Revenue Multiplier,0.9,9,53056246.22356497
+Revenue Multiplier,0.9,10,61801246.22356497
+Revenue Multiplier,1.0,0,-11625000.0
+Revenue Multiplier,1.0,1,-6304584.592145012
+Revenue Multiplier,1.0,2,-984169.1842900235
+Revenue Multiplier,1.0,3,4336246.223564965
+Revenue Multiplier,1.0,4,14331246.223564964
+Revenue Multiplier,1.0,5,24326246.223564964
+Revenue Multiplier,1.0,6,34321246.22356497
+Revenue Multiplier,1.0,7,44316246.22356497
+Revenue Multiplier,1.0,8,54311246.22356497
+Revenue Multiplier,1.0,9,64306246.22356497
+Revenue Multiplier,1.0,10,74301246.22356497
+Revenue Multiplier,1.1,0,-11625000.0
+Revenue Multiplier,1.1,1,-5054584.59214501
+Revenue Multiplier,1.1,2,1515830.8157099802
+Revenue Multiplier,1.1,3,8086246.22356497
+Revenue Multiplier,1.1,4,19331246.22356497
+Revenue Multiplier,1.1,5,30576246.223564975
+Revenue Multiplier,1.1,6,41821246.223564975
+Revenue Multiplier,1.1,7,53066246.223564975
+Revenue Multiplier,1.1,8,64311246.223564975
+Revenue Multiplier,1.1,9,75556246.22356498
+Revenue Multiplier,1.1,10,86801246.22356498
+Revenue Multiplier,1.2,0,-11625000.0
+Revenue Multiplier,1.2,1,-3804584.5921450118
+Revenue Multiplier,1.2,2,4015830.8157099765
+Revenue Multiplier,1.2,3,11836246.223564964
+Revenue Multiplier,1.2,4,24331246.223564964
+Revenue Multiplier,1.2,5,36826246.22356497
+Revenue Multiplier,1.2,6,49321246.22356497
+Revenue Multiplier,1.2,7,61816246.22356497
+Revenue Multiplier,1.2,8,74311246.22356497
+Revenue Multiplier,1.2,9,86806246.22356497
+Revenue Multiplier,1.2,10,99301246.22356497
+Revenue Multiplier,1.3,0,-11625000.0
+Revenue Multiplier,1.3,1,-2554584.592145011
+Revenue Multiplier,1.3,2,6515830.815709978
+Revenue Multiplier,1.3,3,15586246.223564968
+Revenue Multiplier,1.3,4,29331246.223564968
+Revenue Multiplier,1.3,5,43076246.22356497
+Revenue Multiplier,1.3,6,56821246.22356497
+Revenue Multiplier,1.3,7,70566246.22356497
+Revenue Multiplier,1.3,8,84311246.22356497
+Revenue Multiplier,1.3,9,98056246.22356497
+Revenue Multiplier,1.3,10,111801246.22356497
+Revenue Multiplier,1.4,0,-11625000.0
+Revenue Multiplier,1.4,1,-1304584.5921450108
+Revenue Multiplier,1.4,2,9015830.815709978
+Revenue Multiplier,1.4,3,19336246.223564968
+Revenue Multiplier,1.4,4,34331246.22356497
+Revenue Multiplier,1.4,5,49326246.22356497
+Revenue Multiplier,1.4,6,64321246.22356497
+Revenue Multiplier,1.4,7,79316246.22356497
+Revenue Multiplier,1.4,8,94311246.22356497
+Revenue Multiplier,1.4,9,109306246.22356497
+Revenue Multiplier,1.4,10,124301246.22356497
+Revenue Multiplier,1.5,0,-11625000.0
+Revenue Multiplier,1.5,1,-54584.59214501083
+Revenue Multiplier,1.5,2,11515830.815709978
+Revenue Multiplier,1.5,3,23086246.223564968
+Revenue Multiplier,1.5,4,39331246.22356497
+Revenue Multiplier,1.5,5,55576246.22356497
+Revenue Multiplier,1.5,6,71821246.22356497
+Revenue Multiplier,1.5,7,88066246.22356497
+Revenue Multiplier,1.5,8,104311246.22356497
+Revenue Multiplier,1.5,9,120556246.22356497
+Revenue Multiplier,1.5,10,136801246.22356498
+Revenue Multiplier,1.6,0,-11625000.0
+Revenue Multiplier,1.6,1,1195415.4078549892
+Revenue Multiplier,1.6,2,14015830.815709978
+Revenue Multiplier,1.6,3,26836246.223564968
+Revenue Multiplier,1.6,4,44331246.22356497
+Revenue Multiplier,1.6,5,61826246.22356497
+Revenue Multiplier,1.6,6,79321246.22356497
+Revenue Multiplier,1.6,7,96816246.22356497
+Revenue Multiplier,1.6,8,114311246.22356497
+Revenue Multiplier,1.6,9,131806246.22356497
+Revenue Multiplier,1.6,10,149301246.22356498
+Revenue Multiplier,1.7,0,-11625000.0
+Revenue Multiplier,1.7,1,2445415.407854989
+Revenue Multiplier,1.7,2,16515830.815709978
+Revenue Multiplier,1.7,3,30586246.223564968
+Revenue Multiplier,1.7,4,49331246.22356497
+Revenue Multiplier,1.7,5,68076246.22356497
+Revenue Multiplier,1.7,6,86821246.22356497
+Revenue Multiplier,1.7,7,105566246.22356497
+Revenue Multiplier,1.7,8,124311246.22356497
+Revenue Multiplier,1.7,9,143056246.22356498
+Revenue Multiplier,1.7,10,161801246.22356498
+Revenue Multiplier,1.8,0,-11625000.0
+Revenue Multiplier,1.8,1,3695415.407854989
+Revenue Multiplier,1.8,2,19015830.81570998
+Revenue Multiplier,1.8,3,34336246.22356497
+Revenue Multiplier,1.8,4,54331246.22356497
+Revenue Multiplier,1.8,5,74326246.22356497
+Revenue Multiplier,1.8,6,94321246.22356497
+Revenue Multiplier,1.8,7,114316246.22356497
+Revenue Multiplier,1.8,8,134311246.22356498
+Revenue Multiplier,1.8,9,154306246.22356498
+Revenue Multiplier,1.8,10,174301246.22356498
+Revenue Multiplier,1.9,0,-11625000.0
+Revenue Multiplier,1.9,1,4945415.407854989
+Revenue Multiplier,1.9,2,21515830.81570998
+Revenue Multiplier,1.9,3,38086246.22356497
+Revenue Multiplier,1.9,4,59331246.22356497
+Revenue Multiplier,1.9,5,80576246.22356497
+Revenue Multiplier,1.9,6,101821246.22356497
+Revenue Multiplier,1.9,7,123066246.22356497
+Revenue Multiplier,1.9,8,144311246.22356498
+Revenue Multiplier,1.9,9,165556246.22356498
+Revenue Multiplier,1.9,10,186801246.22356498
+Revenue Multiplier,2.0,0,-11625000.0
+Revenue Multiplier,2.0,1,6195415.407854989
+Revenue Multiplier,2.0,2,24015830.81570998
+Revenue Multiplier,2.0,3,41836246.22356497
+Revenue Multiplier,2.0,4,64331246.22356497
+Revenue Multiplier,2.0,5,86826246.22356497
+Revenue Multiplier,2.0,6,109321246.22356497
+Revenue Multiplier,2.0,7,131816246.22356497
+Revenue Multiplier,2.0,8,154311246.22356498
+Revenue Multiplier,2.0,9,176806246.22356498
+Revenue Multiplier,2.0,10,199301246.22356498
+Fixed Ops Multiplier,0.5,0,-11625000.0
+Fixed Ops Multiplier,0.5,1,-6052084.592145012
+Fixed Ops Multiplier,0.5,2,-479169.1842900235
+Fixed Ops Multiplier,0.5,3,5093746.223564965
+Fixed Ops Multiplier,0.5,4,15341246.223564964
+Fixed Ops Multiplier,0.5,5,25588746.223564964
+Fixed Ops Multiplier,0.5,6,35836246.22356497
+Fixed Ops Multiplier,0.5,7,46083746.22356497
+Fixed Ops Multiplier,0.5,8,56331246.22356497
+Fixed Ops Multiplier,0.5,9,66578746.22356497
+Fixed Ops Multiplier,0.5,10,76826246.22356497
+Fixed Ops Multiplier,0.6,0,-11625000.0
+Fixed Ops Multiplier,0.6,1,-6102584.592145012
+Fixed Ops Multiplier,0.6,2,-580169.1842900235
+Fixed Ops Multiplier,0.6,3,4942246.223564965
+Fixed Ops Multiplier,0.6,4,15139246.223564964
+Fixed Ops Multiplier,0.6,5,25336246.223564964
+Fixed Ops Multiplier,0.6,6,35533246.22356497
+Fixed Ops Multiplier,0.6,7,45730246.22356497
+Fixed Ops Multiplier,0.6,8,55927246.22356497
+Fixed Ops Multiplier,0.6,9,66124246.22356497
+Fixed Ops Multiplier,0.6,10,76321246.22356497
+Fixed Ops Multiplier,0.7,0,-11625000.0
+Fixed Ops Multiplier,0.7,1,-6153084.592145012
+Fixed Ops Multiplier,0.7,2,-681169.1842900235
+Fixed Ops Multiplier,0.7,3,4790746.223564965
+Fixed Ops Multiplier,0.7,4,14937246.223564964
+Fixed Ops Multiplier,0.7,5,25083746.223564964
+Fixed Ops Multiplier,0.7,6,35230246.22356497
+Fixed Ops Multiplier,0.7,7,45376746.22356497
+Fixed Ops Multiplier,0.7,8,55523246.22356497
+Fixed Ops Multiplier,0.7,9,65669746.22356497
+Fixed Ops Multiplier,0.7,10,75816246.22356497
+Fixed Ops Multiplier,0.8,0,-11625000.0
+Fixed Ops Multiplier,0.8,1,-6203584.592145012
+Fixed Ops Multiplier,0.8,2,-782169.1842900235
+Fixed Ops Multiplier,0.8,3,4639246.223564965
+Fixed Ops Multiplier,0.8,4,14735246.223564964
+Fixed Ops Multiplier,0.8,5,24831246.223564964
+Fixed Ops Multiplier,0.8,6,34927246.22356497
+Fixed Ops Multiplier,0.8,7,45023246.22356497
+Fixed Ops Multiplier,0.8,8,55119246.22356497
+Fixed Ops Multiplier,0.8,9,65215246.22356497
+Fixed Ops Multiplier,0.8,10,75311246.22356497
+Fixed Ops Multiplier,0.9,0,-11625000.0
+Fixed Ops Multiplier,0.9,1,-6254084.592145012
+Fixed Ops Multiplier,0.9,2,-883169.1842900235
+Fixed Ops Multiplier,0.9,3,4487746.223564965
+Fixed Ops Multiplier,0.9,4,14533246.223564964
+Fixed Ops Multiplier,0.9,5,24578746.223564964
+Fixed Ops Multiplier,0.9,6,34624246.22356497
+Fixed Ops Multiplier,0.9,7,44669746.22356497
+Fixed Ops Multiplier,0.9,8,54715246.22356497
+Fixed Ops Multiplier,0.9,9,64760746.22356497
+Fixed Ops Multiplier,0.9,10,74806246.22356497
+Fixed Ops Multiplier,1.0,0,-11625000.0
+Fixed Ops Multiplier,1.0,1,-6304584.592145012
+Fixed Ops Multiplier,1.0,2,-984169.1842900235
+Fixed Ops Multiplier,1.0,3,4336246.223564965
+Fixed Ops Multiplier,1.0,4,14331246.223564964
+Fixed Ops Multiplier,1.0,5,24326246.223564964
+Fixed Ops Multiplier,1.0,6,34321246.22356497
+Fixed Ops Multiplier,1.0,7,44316246.22356497
+Fixed Ops Multiplier,1.0,8,54311246.22356497
+Fixed Ops Multiplier,1.0,9,64306246.22356497
+Fixed Ops Multiplier,1.0,10,74301246.22356497
+Fixed Ops Multiplier,1.1,0,-11625000.0
+Fixed Ops Multiplier,1.1,1,-6355084.592145012
+Fixed Ops Multiplier,1.1,2,-1085169.1842900235
+Fixed Ops Multiplier,1.1,3,4184746.2235649647
+Fixed Ops Multiplier,1.1,4,14129246.223564964
+Fixed Ops Multiplier,1.1,5,24073746.223564964
+Fixed Ops Multiplier,1.1,6,34018246.22356497
+Fixed Ops Multiplier,1.1,7,43962746.22356497
+Fixed Ops Multiplier,1.1,8,53907246.22356497
+Fixed Ops Multiplier,1.1,9,63851746.22356497
+Fixed Ops Multiplier,1.1,10,73796246.22356497
+Fixed Ops Multiplier,1.2,0,-11625000.0
+Fixed Ops Multiplier,1.2,1,-6405584.592145012
+Fixed Ops Multiplier,1.2,2,-1186169.1842900235
+Fixed Ops Multiplier,1.2,3,4033246.2235649647
+Fixed Ops Multiplier,1.2,4,13927246.223564964
+Fixed Ops Multiplier,1.2,5,23821246.223564964
+Fixed Ops Multiplier,1.2,6,33715246.22356497
+Fixed Ops Multiplier,1.2,7,43609246.22356497
+Fixed Ops Multiplier,1.2,8,53503246.22356497
+Fixed Ops Multiplier,1.2,9,63397246.22356497
+Fixed Ops Multiplier,1.2,10,73291246.22356497
+Fixed Ops Multiplier,1.3,0,-11625000.0
+Fixed Ops Multiplier,1.3,1,-6456084.592145012
+Fixed Ops Multiplier,1.3,2,-1287169.1842900235
+Fixed Ops Multiplier,1.3,3,3881746.2235649647
+Fixed Ops Multiplier,1.3,4,13725246.223564964
+Fixed Ops Multiplier,1.3,5,23568746.223564964
+Fixed Ops Multiplier,1.3,6,33412246.223564964
+Fixed Ops Multiplier,1.3,7,43255746.22356497
+Fixed Ops Multiplier,1.3,8,53099246.22356497
+Fixed Ops Multiplier,1.3,9,62942746.22356497
+Fixed Ops Multiplier,1.3,10,72786246.22356497
+Fixed Ops Multiplier,1.4,0,-11625000.0
+Fixed Ops Multiplier,1.4,1,-6506584.592145012
+Fixed Ops Multiplier,1.4,2,-1388169.1842900235
+Fixed Ops Multiplier,1.4,3,3730246.2235649647
+Fixed Ops Multiplier,1.4,4,13523246.223564964
+Fixed Ops Multiplier,1.4,5,23316246.223564964
+Fixed Ops Multiplier,1.4,6,33109246.223564964
+Fixed Ops Multiplier,1.4,7,42902246.22356497
+Fixed Ops Multiplier,1.4,8,52695246.22356497
+Fixed Ops Multiplier,1.4,9,62488246.22356497
+Fixed Ops Multiplier,1.4,10,72281246.22356497
+Fixed Ops Multiplier,1.5,0,-11625000.0
+Fixed Ops Multiplier,1.5,1,-6557084.592145012
+Fixed Ops Multiplier,1.5,2,-1489169.1842900235
+Fixed Ops Multiplier,1.5,3,3578746.2235649647
+Fixed Ops Multiplier,1.5,4,13321246.223564964
+Fixed Ops Multiplier,1.5,5,23063746.223564964
+Fixed Ops Multiplier,1.5,6,32806246.223564964
+Fixed Ops Multiplier,1.5,7,42548746.22356497
+Fixed Ops Multiplier,1.5,8,52291246.22356497
+Fixed Ops Multiplier,1.5,9,62033746.22356497
+Fixed Ops Multiplier,1.5,10,71776246.22356497
+Fixed Ops Multiplier,1.6,0,-11625000.0
+Fixed Ops Multiplier,1.6,1,-6607584.592145012
+Fixed Ops Multiplier,1.6,2,-1590169.1842900235
+Fixed Ops Multiplier,1.6,3,3427246.2235649647
+Fixed Ops Multiplier,1.6,4,13119246.223564964
+Fixed Ops Multiplier,1.6,5,22811246.223564964
+Fixed Ops Multiplier,1.6,6,32503246.223564964
+Fixed Ops Multiplier,1.6,7,42195246.22356497
+Fixed Ops Multiplier,1.6,8,51887246.22356497
+Fixed Ops Multiplier,1.6,9,61579246.22356497
+Fixed Ops Multiplier,1.6,10,71271246.22356497
+Fixed Ops Multiplier,1.7,0,-11625000.0
+Fixed Ops Multiplier,1.7,1,-6658084.592145012
+Fixed Ops Multiplier,1.7,2,-1691169.1842900235
+Fixed Ops Multiplier,1.7,3,3275746.2235649647
+Fixed Ops Multiplier,1.7,4,12917246.223564964
+Fixed Ops Multiplier,1.7,5,22558746.223564964
+Fixed Ops Multiplier,1.7,6,32200246.223564964
+Fixed Ops Multiplier,1.7,7,41841746.22356497
+Fixed Ops Multiplier,1.7,8,51483246.22356497
+Fixed Ops Multiplier,1.7,9,61124746.22356497
+Fixed Ops Multiplier,1.7,10,70766246.22356497
+Fixed Ops Multiplier,1.8,0,-11625000.0
+Fixed Ops Multiplier,1.8,1,-6708584.592145012
+Fixed Ops Multiplier,1.8,2,-1792169.1842900235
+Fixed Ops Multiplier,1.8,3,3124246.2235649647
+Fixed Ops Multiplier,1.8,4,12715246.223564964
+Fixed Ops Multiplier,1.8,5,22306246.223564964
+Fixed Ops Multiplier,1.8,6,31897246.223564964
+Fixed Ops Multiplier,1.8,7,41488246.22356497
+Fixed Ops Multiplier,1.8,8,51079246.22356497
+Fixed Ops Multiplier,1.8,9,60670246.22356497
+Fixed Ops Multiplier,1.8,10,70261246.22356497
+Fixed Ops Multiplier,1.9,0,-11625000.0
+Fixed Ops Multiplier,1.9,1,-6759084.592145012
+Fixed Ops Multiplier,1.9,2,-1893169.1842900235
+Fixed Ops Multiplier,1.9,3,2972746.2235649647
+Fixed Ops Multiplier,1.9,4,12513246.223564964
+Fixed Ops Multiplier,1.9,5,22053746.223564964
+Fixed Ops Multiplier,1.9,6,31594246.223564964
+Fixed Ops Multiplier,1.9,7,41134746.22356497
+Fixed Ops Multiplier,1.9,8,50675246.22356497
+Fixed Ops Multiplier,1.9,9,60215746.22356497
+Fixed Ops Multiplier,1.9,10,69756246.22356497
+Fixed Ops Multiplier,2.0,0,-11625000.0
+Fixed Ops Multiplier,2.0,1,-6809584.592145012
+Fixed Ops Multiplier,2.0,2,-1994169.1842900235
+Fixed Ops Multiplier,2.0,3,2821246.2235649647
+Fixed Ops Multiplier,2.0,4,12311246.223564964
+Fixed Ops Multiplier,2.0,5,21801246.223564964
+Fixed Ops Multiplier,2.0,6,31291246.223564964
+Fixed Ops Multiplier,2.0,7,40781246.22356497
+Fixed Ops Multiplier,2.0,8,50271246.22356497
+Fixed Ops Multiplier,2.0,9,59761246.22356497
+Fixed Ops Multiplier,2.0,10,69251246.22356497
+Variable Ops Multiplier,0.5,0,-11625000.0
+Variable Ops Multiplier,0.5,1,-5304584.592145012
+Variable Ops Multiplier,0.5,2,1015830.8157099765
+Variable Ops Multiplier,0.5,3,7336246.223564965
+Variable Ops Multiplier,0.5,4,18331246.223564964
+Variable Ops Multiplier,0.5,5,29326246.223564964
+Variable Ops Multiplier,0.5,6,40321246.22356497
+Variable Ops Multiplier,0.5,7,51316246.22356497
+Variable Ops Multiplier,0.5,8,62311246.22356497
+Variable Ops Multiplier,0.5,9,73306246.22356497
+Variable Ops Multiplier,0.5,10,84301246.22356497
+Variable Ops Multiplier,0.6,0,-11625000.0
+Variable Ops Multiplier,0.6,1,-5504584.592145012
+Variable Ops Multiplier,0.6,2,615830.8157099765
+Variable Ops Multiplier,0.6,3,6736246.223564965
+Variable Ops Multiplier,0.6,4,17531246.223564964
+Variable Ops Multiplier,0.6,5,28326246.223564964
+Variable Ops Multiplier,0.6,6,39121246.22356497
+Variable Ops Multiplier,0.6,7,49916246.22356497
+Variable Ops Multiplier,0.6,8,60711246.22356497
+Variable Ops Multiplier,0.6,9,71506246.22356497
+Variable Ops Multiplier,0.6,10,82301246.22356497
+Variable Ops Multiplier,0.7,0,-11625000.0
+Variable Ops Multiplier,0.7,1,-5704584.592145012
+Variable Ops Multiplier,0.7,2,215830.81570997648
+Variable Ops Multiplier,0.7,3,6136246.223564965
+Variable Ops Multiplier,0.7,4,16731246.223564964
+Variable Ops Multiplier,0.7,5,27326246.223564964
+Variable Ops Multiplier,0.7,6,37921246.22356497
+Variable Ops Multiplier,0.7,7,48516246.22356497
+Variable Ops Multiplier,0.7,8,59111246.22356497
+Variable Ops Multiplier,0.7,9,69706246.22356497
+Variable Ops Multiplier,0.7,10,80301246.22356497
+Variable Ops Multiplier,0.8,0,-11625000.0
+Variable Ops Multiplier,0.8,1,-5904584.592145012
+Variable Ops Multiplier,0.8,2,-184169.18429002352
+Variable Ops Multiplier,0.8,3,5536246.223564965
+Variable Ops Multiplier,0.8,4,15931246.223564964
+Variable Ops Multiplier,0.8,5,26326246.223564964
+Variable Ops Multiplier,0.8,6,36721246.22356497
+Variable Ops Multiplier,0.8,7,47116246.22356497
+Variable Ops Multiplier,0.8,8,57511246.22356497
+Variable Ops Multiplier,0.8,9,67906246.22356497
+Variable Ops Multiplier,0.8,10,78301246.22356497
+Variable Ops Multiplier,0.9,0,-11625000.0
+Variable Ops Multiplier,0.9,1,-6104584.592145012
+Variable Ops Multiplier,0.9,2,-584169.1842900235
+Variable Ops Multiplier,0.9,3,4936246.223564965
+Variable Ops Multiplier,0.9,4,15131246.223564964
+Variable Ops Multiplier,0.9,5,25326246.223564964
+Variable Ops Multiplier,0.9,6,35521246.22356497
+Variable Ops Multiplier,0.9,7,45716246.22356497
+Variable Ops Multiplier,0.9,8,55911246.22356497
+Variable Ops Multiplier,0.9,9,66106246.22356497
+Variable Ops Multiplier,0.9,10,76301246.22356497
+Variable Ops Multiplier,1.0,0,-11625000.0
+Variable Ops Multiplier,1.0,1,-6304584.592145012
+Variable Ops Multiplier,1.0,2,-984169.1842900235
+Variable Ops Multiplier,1.0,3,4336246.223564965
+Variable Ops Multiplier,1.0,4,14331246.223564964
+Variable Ops Multiplier,1.0,5,24326246.223564964
+Variable Ops Multiplier,1.0,6,34321246.22356497
+Variable Ops Multiplier,1.0,7,44316246.22356497
+Variable Ops Multiplier,1.0,8,54311246.22356497
+Variable Ops Multiplier,1.0,9,64306246.22356497
+Variable Ops Multiplier,1.0,10,74301246.22356497
+Variable Ops Multiplier,1.1,0,-11625000.0
+Variable Ops Multiplier,1.1,1,-6504584.592145012
+Variable Ops Multiplier,1.1,2,-1384169.1842900235
+Variable Ops Multiplier,1.1,3,3736246.2235649647
+Variable Ops Multiplier,1.1,4,13531246.223564964
+Variable Ops Multiplier,1.1,5,23326246.223564964
+Variable Ops Multiplier,1.1,6,33121246.223564964
+Variable Ops Multiplier,1.1,7,42916246.22356497
+Variable Ops Multiplier,1.1,8,52711246.22356497
+Variable Ops Multiplier,1.1,9,62506246.22356497
+Variable Ops Multiplier,1.1,10,72301246.22356497
+Variable Ops Multiplier,1.2,0,-11625000.0
+Variable Ops Multiplier,1.2,1,-6704584.592145012
+Variable Ops Multiplier,1.2,2,-1784169.1842900235
+Variable Ops Multiplier,1.2,3,3136246.2235649647
+Variable Ops Multiplier,1.2,4,12731246.223564964
+Variable Ops Multiplier,1.2,5,22326246.223564964
+Variable Ops Multiplier,1.2,6,31921246.223564964
+Variable Ops Multiplier,1.2,7,41516246.22356497
+Variable Ops Multiplier,1.2,8,51111246.22356497
+Variable Ops Multiplier,1.2,9,60706246.22356497
+Variable Ops Multiplier,1.2,10,70301246.22356497
+Variable Ops Multiplier,1.3,0,-11625000.0
+Variable Ops Multiplier,1.3,1,-6904584.592145012
+Variable Ops Multiplier,1.3,2,-2184169.1842900235
+Variable Ops Multiplier,1.3,3,2536246.2235649647
+Variable Ops Multiplier,1.3,4,11931246.223564964
+Variable Ops Multiplier,1.3,5,21326246.223564964
+Variable Ops Multiplier,1.3,6,30721246.223564964
+Variable Ops Multiplier,1.3,7,40116246.22356497
+Variable Ops Multiplier,1.3,8,49511246.22356497
+Variable Ops Multiplier,1.3,9,58906246.22356497
+Variable Ops Multiplier,1.3,10,68301246.22356497
+Variable Ops Multiplier,1.4,0,-11625000.0
+Variable Ops Multiplier,1.4,1,-7104584.592145012
+Variable Ops Multiplier,1.4,2,-2584169.1842900235
+Variable Ops Multiplier,1.4,3,1936246.2235649647
+Variable Ops Multiplier,1.4,4,11131246.223564964
+Variable Ops Multiplier,1.4,5,20326246.223564964
+Variable Ops Multiplier,1.4,6,29521246.223564964
+Variable Ops Multiplier,1.4,7,38716246.22356497
+Variable Ops Multiplier,1.4,8,47911246.22356497
+Variable Ops Multiplier,1.4,9,57106246.22356497
+Variable Ops Multiplier,1.4,10,66301246.22356497
+Variable Ops Multiplier,1.5,0,-11625000.0
+Variable Ops Multiplier,1.5,1,-7304584.592145012
+Variable Ops Multiplier,1.5,2,-2984169.1842900235
+Variable Ops Multiplier,1.5,3,1336246.2235649647
+Variable Ops Multiplier,1.5,4,10331246.223564964
+Variable Ops Multiplier,1.5,5,19326246.223564964
+Variable Ops Multiplier,1.5,6,28321246.223564964
+Variable Ops Multiplier,1.5,7,37316246.22356497
+Variable Ops Multiplier,1.5,8,46311246.22356497
+Variable Ops Multiplier,1.5,9,55306246.22356497
+Variable Ops Multiplier,1.5,10,64301246.22356497
+Variable Ops Multiplier,1.6,0,-11625000.0
+Variable Ops Multiplier,1.6,1,-7504584.592145012
+Variable Ops Multiplier,1.6,2,-3384169.1842900235
+Variable Ops Multiplier,1.6,3,736246.2235649647
+Variable Ops Multiplier,1.6,4,9531246.223564964
+Variable Ops Multiplier,1.6,5,18326246.223564964
+Variable Ops Multiplier,1.6,6,27121246.223564964
+Variable Ops Multiplier,1.6,7,35916246.22356497
+Variable Ops Multiplier,1.6,8,44711246.22356497
+Variable Ops Multiplier,1.6,9,53506246.22356497
+Variable Ops Multiplier,1.6,10,62301246.22356497
+Variable Ops Multiplier,1.7,0,-11625000.0
+Variable Ops Multiplier,1.7,1,-7704584.592145012
+Variable Ops Multiplier,1.7,2,-3784169.1842900235
+Variable Ops Multiplier,1.7,3,136246.22356496472
+Variable Ops Multiplier,1.7,4,8731246.223564964
+Variable Ops Multiplier,1.7,5,17326246.223564964
+Variable Ops Multiplier,1.7,6,25921246.223564964
+Variable Ops Multiplier,1.7,7,34516246.22356497
+Variable Ops Multiplier,1.7,8,43111246.22356497
+Variable Ops Multiplier,1.7,9,51706246.22356497
+Variable Ops Multiplier,1.7,10,60301246.22356497
+Variable Ops Multiplier,1.8,0,-11625000.0
+Variable Ops Multiplier,1.8,1,-7904584.592145012
+Variable Ops Multiplier,1.8,2,-4184169.1842900235
+Variable Ops Multiplier,1.8,3,-463753.7764350353
+Variable Ops Multiplier,1.8,4,7931246.223564965
+Variable Ops Multiplier,1.8,5,16326246.223564964
+Variable Ops Multiplier,1.8,6,24721246.223564964
+Variable Ops Multiplier,1.8,7,33116246.223564964
+Variable Ops Multiplier,1.8,8,41511246.22356497
+Variable Ops Multiplier,1.8,9,49906246.22356497
+Variable Ops Multiplier,1.8,10,58301246.22356497
+Variable Ops Multiplier,1.9,0,-11625000.0
+Variable Ops Multiplier,1.9,1,-8104584.592145012
+Variable Ops Multiplier,1.9,2,-4584169.1842900235
+Variable Ops Multiplier,1.9,3,-1063753.7764350353
+Variable Ops Multiplier,1.9,4,7131246.223564965
+Variable Ops Multiplier,1.9,5,15326246.223564964
+Variable Ops Multiplier,1.9,6,23521246.223564964
+Variable Ops Multiplier,1.9,7,31716246.223564964
+Variable Ops Multiplier,1.9,8,39911246.22356497
+Variable Ops Multiplier,1.9,9,48106246.22356497
+Variable Ops Multiplier,1.9,10,56301246.22356497
+Variable Ops Multiplier,2.0,0,-11625000.0
+Variable Ops Multiplier,2.0,1,-8304584.592145012
+Variable Ops Multiplier,2.0,2,-4984169.1842900235
+Variable Ops Multiplier,2.0,3,-1663753.7764350353
+Variable Ops Multiplier,2.0,4,6331246.223564965
+Variable Ops Multiplier,2.0,5,14326246.223564964
+Variable Ops Multiplier,2.0,6,22321246.223564964
+Variable Ops Multiplier,2.0,7,30316246.223564964
+Variable Ops Multiplier,2.0,8,38311246.22356497
+Variable Ops Multiplier,2.0,9,46306246.22356497
+Variable Ops Multiplier,2.0,10,54301246.22356497
+Interest Rate (%),0.5,0,-11625000.0
+Interest Rate (%),0.5,1,-5543814.422144189
+Interest Rate (%),0.5,2,537371.1557116229
+Interest Rate (%),0.5,3,6618556.733567434
+Interest Rate (%),0.5,4,16613556.733567435
+Interest Rate (%),0.5,5,26608556.733567435
+Interest Rate (%),0.5,6,36603556.73356743
+Interest Rate (%),0.5,7,46598556.73356743
+Interest Rate (%),0.5,8,56593556.73356743
+Interest Rate (%),0.5,9,66588556.73356743
+Interest Rate (%),0.5,10,76583556.73356743
+Interest Rate (%),0.6,0,-11625000.0
+Interest Rate (%),0.6,1,-5551592.721557967
+Interest Rate (%),0.6,2,521814.55688406527
+Interest Rate (%),0.6,3,6595221.835326098
+Interest Rate (%),0.6,4,16590221.835326098
+Interest Rate (%),0.6,5,26585221.835326098
+Interest Rate (%),0.6,6,36580221.8353261
+Interest Rate (%),0.6,7,46575221.8353261
+Interest Rate (%),0.6,8,56570221.8353261
+Interest Rate (%),0.6,9,66565221.8353261
+Interest Rate (%),0.6,10,76560221.8353261
+Interest Rate (%),0.7,0,-11625000.0
+Interest Rate (%),0.7,1,-5559376.141325457
+Interest Rate (%),0.7,2,506247.71734908596
+Interest Rate (%),0.7,3,6571871.576023629
+Interest Rate (%),0.7,4,16566871.576023629
+Interest Rate (%),0.7,5,26561871.57602363
+Interest Rate (%),0.7,6,36556871.57602363
+Interest Rate (%),0.7,7,46551871.57602363
+Interest Rate (%),0.7,8,56546871.57602363
+Interest Rate (%),0.7,9,66541871.57602363
+Interest Rate (%),0.7,10,76536871.57602364
+Interest Rate (%),0.8,0,-11625000.0
+Interest Rate (%),0.8,1,-5567164.6737635285
+Interest Rate (%),0.8,2,490670.65247294307
+Interest Rate (%),0.8,3,6548505.978709415
+Interest Rate (%),0.8,4,16543505.978709415
+Interest Rate (%),0.8,5,26538505.978709415
+Interest Rate (%),0.8,6,36533505.978709415
+Interest Rate (%),0.8,7,46528505.978709415
+Interest Rate (%),0.8,8,56523505.978709415
+Interest Rate (%),0.8,9,66518505.978709415
+Interest Rate (%),0.8,10,76513505.97870941
+Interest Rate (%),0.9,0,-11625000.0
+Interest Rate (%),0.9,1,-5574958.311199855
+Interest Rate (%),0.9,2,475083.3776002899
+Interest Rate (%),0.9,3,6525125.066400435
+Interest Rate (%),0.9,4,16520125.066400435
+Interest Rate (%),0.9,5,26515125.066400435
+Interest Rate (%),0.9,6,36510125.06640044
+Interest Rate (%),0.9,7,46505125.06640044
+Interest Rate (%),0.9,8,56500125.06640044
+Interest Rate (%),0.9,9,66495125.06640044
+Interest Rate (%),0.9,10,76490125.06640044
+Interest Rate (%),1.0,0,-11625000.0
+Interest Rate (%),1.0,1,-5582757.045972063
+Interest Rate (%),1.0,2,459485.9080558736
+Interest Rate (%),1.0,3,6501728.86208381
+Interest Rate (%),1.0,4,16496728.862083811
+Interest Rate (%),1.0,5,26491728.86208381
+Interest Rate (%),1.0,6,36486728.86208381
+Interest Rate (%),1.0,7,46481728.86208381
+Interest Rate (%),1.0,8,56476728.86208381
+Interest Rate (%),1.0,9,66471728.86208381
+Interest Rate (%),1.0,10,76466728.86208381
+Interest Rate (%),1.1,0,-11625000.0
+Interest Rate (%),1.1,1,-5590560.870428561
+Interest Rate (%),1.1,2,443878.25914287753
+Interest Rate (%),1.1,3,6478317.388714316
+Interest Rate (%),1.1,4,16473317.388714317
+Interest Rate (%),1.1,5,26468317.388714317
+Interest Rate (%),1.1,6,36463317.38871431
+Interest Rate (%),1.1,7,46458317.38871431
+Interest Rate (%),1.1,8,56453317.38871431
+Interest Rate (%),1.1,9,66448317.38871431
+Interest Rate (%),1.1,10,76443317.38871431
+Interest Rate (%),1.2,0,-11625000.0
+Interest Rate (%),1.2,1,-5598369.776927577
+Interest Rate (%),1.2,2,428260.44614484534
+Interest Rate (%),1.2,3,6454890.669217268
+Interest Rate (%),1.2,4,16449890.669217268
+Interest Rate (%),1.2,5,26444890.669217266
+Interest Rate (%),1.2,6,36439890.669217266
+Interest Rate (%),1.2,7,46434890.669217266
+Interest Rate (%),1.2,8,56429890.669217266
+Interest Rate (%),1.2,9,66424890.669217266
+Interest Rate (%),1.2,10,76419890.66921726
+Interest Rate (%),1.3,0,-11625000.0
+Interest Rate (%),1.3,1,-5606183.757838113
+Interest Rate (%),1.3,2,412632.48432377353
+Interest Rate (%),1.3,3,6431448.72648566
+Interest Rate (%),1.3,4,16426448.72648566
+Interest Rate (%),1.3,5,26421448.726485662
+Interest Rate (%),1.3,6,36416448.72648566
+Interest Rate (%),1.3,7,46411448.72648566
+Interest Rate (%),1.3,8,56406448.72648566
+Interest Rate (%),1.3,9,66401448.72648566
+Interest Rate (%),1.3,10,76396448.72648567
+Interest Rate (%),1.4,0,-11625000.0
+Interest Rate (%),1.4,1,-5614002.805539161
+Interest Rate (%),1.4,2,396994.38892167807
+Interest Rate (%),1.4,3,6407991.583382517
+Interest Rate (%),1.4,4,16402991.583382517
+Interest Rate (%),1.4,5,26397991.583382517
+Interest Rate (%),1.4,6,36392991.58338252
+Interest Rate (%),1.4,7,46387991.58338252
+Interest Rate (%),1.4,8,56382991.58338252
+Interest Rate (%),1.4,9,66377991.58338252
+Interest Rate (%),1.4,10,76372991.58338252
+Interest Rate (%),1.5,0,-11625000.0
+Interest Rate (%),1.5,1,-5621826.912420297
+Interest Rate (%),1.5,2,381346.1751594059
+Interest Rate (%),1.5,3,6384519.262739109
+Interest Rate (%),1.5,4,16379519.262739109
+Interest Rate (%),1.5,5,26374519.262739107
+Interest Rate (%),1.5,6,36369519.26273911
+Interest Rate (%),1.5,7,46364519.26273911
+Interest Rate (%),1.5,8,56359519.26273911
+Interest Rate (%),1.5,9,66354519.26273911
+Interest Rate (%),1.5,10,76349519.2627391
+Interest Rate (%),1.6,0,-11625000.0
+Interest Rate (%),1.6,1,-5629656.070881187
+Interest Rate (%),1.6,2,365687.85823762603
+Interest Rate (%),1.6,3,6361031.787356439
+Interest Rate (%),1.6,4,16356031.78735644
+Interest Rate (%),1.6,5,26351031.78735644
+Interest Rate (%),1.6,6,36346031.787356436
+Interest Rate (%),1.6,7,46341031.787356436
+Interest Rate (%),1.6,8,56336031.787356436
+Interest Rate (%),1.6,9,66331031.787356436
+Interest Rate (%),1.6,10,76326031.78735644
+Interest Rate (%),1.7,0,-11625000.0
+Interest Rate (%),1.7,1,-5637490.273332054
+Interest Rate (%),1.7,2,350019.4533358924
+Interest Rate (%),1.7,3,6337529.180003839
+Interest Rate (%),1.7,4,16332529.180003839
+Interest Rate (%),1.7,5,26327529.180003837
+Interest Rate (%),1.7,6,36322529.18000384
+Interest Rate (%),1.7,7,46317529.18000384
+Interest Rate (%),1.7,8,56312529.18000384
+Interest Rate (%),1.7,9,66307529.18000384
+Interest Rate (%),1.7,10,76302529.18000384
+Interest Rate (%),1.8,0,-11625000.0
+Interest Rate (%),1.8,1,-5645329.512193201
+Interest Rate (%),1.8,2,334340.9756135978
+Interest Rate (%),1.8,3,6314011.463420397
+Interest Rate (%),1.8,4,16309011.463420397
+Interest Rate (%),1.8,5,26304011.4634204
+Interest Rate (%),1.8,6,36299011.4634204
+Interest Rate (%),1.8,7,46294011.4634204
+Interest Rate (%),1.8,8,56289011.4634204
+Interest Rate (%),1.8,9,66284011.4634204
+Interest Rate (%),1.8,10,76279011.46342039
+Interest Rate (%),1.9,0,-11625000.0
+Interest Rate (%),1.9,1,-5653173.779895496
+Interest Rate (%),1.9,2,318652.44020900875
+Interest Rate (%),1.9,3,6290478.660313513
+Interest Rate (%),1.9,4,16285478.660313513
+Interest Rate (%),1.9,5,26280478.660313513
+Interest Rate (%),1.9,6,36275478.66031352
+Interest Rate (%),1.9,7,46270478.66031352
+Interest Rate (%),1.9,8,56265478.66031352
+Interest Rate (%),1.9,9,66260478.66031352
+Interest Rate (%),1.9,10,76255478.66031352
+Interest Rate (%),2.0,0,-11625000.0
+Interest Rate (%),2.0,1,-5661023.068879875
+Interest Rate (%),2.0,2,302953.8622402493
+Interest Rate (%),2.0,3,6266930.793360374
+Interest Rate (%),2.0,4,16261930.793360375
+Interest Rate (%),2.0,5,26256930.793360375
+Interest Rate (%),2.0,6,36251930.793360375
+Interest Rate (%),2.0,7,46246930.793360375
+Interest Rate (%),2.0,8,56241930.793360375
+Interest Rate (%),2.0,9,66236930.793360375
+Interest Rate (%),2.0,10,76231930.79336038
