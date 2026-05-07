@@ -14,5 +14,5 @@ class Bay(Component):
         super().__init__(interference_factor, surface_wetted, length, laminar_fraction, surface_reynolds_factor)
 
     
-    def form_factor(self, mach=None):
+    def form_factor(self, mach=None)->float:
         return 1+.35/self.length_to_diameter

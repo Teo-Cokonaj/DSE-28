@@ -28,7 +28,7 @@ class Planform(Component):
         super().__init__(interference_factor, surface_exposed, surface_wetted, characteristic_length, laminar_fraction, surface_reynolds_factor)
 
     
-    def form_factor(self, mach):
+    def form_factor(self, mach)->float:
 
         gp = self.geometry_params
 
