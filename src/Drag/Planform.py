@@ -11,8 +11,6 @@ import numpy as np
 
 class Planform(Component):
     def __init__(self, interference_factor, geometry_params:dict[str, float], laminar_fraction, surface_reynolds_factor = 0.00000405):
-
-        
         
         self.interference_factor = interference_factor
         self.geometry_params = geometry_params
@@ -33,7 +31,9 @@ class Planform(Component):
     def form_factor(self, mach):
 
         gp = self.geometry_params
+
+        sweep_thickness_to_chord_max = np.arctan(np.tan(gp['sweep_LE']) + gp["chord_fraction_max_thickness"]*2*gp["chord_root"]/gp["sweep"]*(1-gp["taper_ratio"]))
         
-        FF = ( 1 + 0.6 / gp['pos_max_cambre'] * gp['thickness_to_chord_ratio'] + 100 * gp['thickness_to_chord_ratio'] ** 4 ) * (1.34 * mach ** 0.18 * np.cos( gp['sweep_mean_chord']) ** 0.28)
+        FF = ( 1 + 0.6 / gp['pos_max_camber'] * gp['thickness_to_chord_ratio'] + 100 * gp['thickness_to_chord_ratio'] ** 4 ) * (1.34 * mach ** 0.18 * np.cos(sweep_thickness_to_chord_max) ** 0.28)
 
         return FF
