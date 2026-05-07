@@ -10,7 +10,7 @@ from src.Drag.Component import Component
 import numpy as np
 
 class Planform(Component):
-    def __init__(self, interference_factor, geometry_params:dict[str, float], laminar_fraction, surface_reynolds_factor = 0.00000405):
+    def __init__(self, interference_factor, geometry_params:dict[str, float], laminar_fraction, surface_reynolds_factor = 0.00000405, wetted_surface_multiplier=1.07):
         
         self.interference_factor = interference_factor
         self.geometry_params = geometry_params
@@ -19,7 +19,7 @@ class Planform(Component):
     
         
         surface_exposed = self.geometry_params['chord_root']*self.geometry_params['taper_ratio']* (self.geometry_params['fuselage_diameter'] / 2) / (self.geometry_params['wing_span'] / 2)
-        surface_wetted = 1.07 * 2 * surface_exposed
+        surface_wetted = wetted_surface_multiplier * 2 * surface_exposed
 
         # MAC
         characteristic_length = (2 / 3) * self.geometry_params['chord_root'] * (1 + self.geometry_params['taper_ratio'] + self.geometry_params['taper_ratio'] ** 2) / (1 + self.geometry_params['taper_ratio'])
