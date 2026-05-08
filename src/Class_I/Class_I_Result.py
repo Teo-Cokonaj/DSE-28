@@ -20,3 +20,4 @@ class Class_I_Result:
     @property
     def payload_fraction(self) -> float:
         return 1-self.fuel_fraction-self.oem_fraction
+    
