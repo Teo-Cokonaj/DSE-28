@@ -1,27 +1,30 @@
 import sys
 import os
-import numpy as np
+import aerosandbox.numpy as np
+import aerosandbox as asb
 
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from global_parameters import CONSTANTS
 from Class_I.Mission_Segment import Mission_Segment
-from util.isa_calculator import dens_at_h, speed_of_sound_at_h
 
 def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, time_half_turn:float, CL_max_glide_ratio_go_around:float, 
                        glide_ratio_mach_max:float, glide_ratio_cruise:float, glide_ratio_go_around:float, airspeed_approach:float,
                        wing_loading:float, efficiency_engine_total:float, energy_density_saf:float,  debug=False) -> float:
 
     #determining the cruise parameters
-    airspeed_cruise = speed_of_sound_at_h(altitude_cruise)*CONSTANTS.MACH_CRUISE
+    atmosphere_cruise = asb.Atmosphere(altitude_cruise)
+    airspeed_cruise = atmosphere_cruise.speed_of_sound()*CONSTANTS.MACH_CRUISE
     
     #determining the max Mach parameters
-    airspeed_mach_max = speed_of_sound_at_h(CONSTANTS.ALTITUDE_MACH_MAX)*CONSTANTS.MACH_MAX
+    atmosphere_mach_max = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX)
+    airspeed_mach_max = atmosphere_mach_max.speed_of_sound()*CONSTANTS.MACH_MAX
     
     #determining go around parameters
     omega_turn = np.pi/time_half_turn
-    rho_go_around_altitude = dens_at_h(altitude_go_around)
+    atmosphere_go_around = asb.Atmosphere(altitude_go_around)
+    rho_go_around_altitude = atmosphere_go_around.density()
     # n**2 - quadratic_b_term*n -1
     quadratic_b_term = omega_turn**2/CONSTANTS.G0**2 * wing_loading * 2/rho_go_around_altitude / CL_max_glide_ratio_go_around
     load_factor_go_around = .5*(quadratic_b_term + np.sqrt(quadratic_b_term**2+4))
