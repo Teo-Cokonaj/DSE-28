@@ -54,9 +54,67 @@ import aerosandbox.numpy as np
 
                 # airfoil
 
-    # tail
+    # horizontal stab.
+
+        # name
+
+        # symmetry condition
+
+        # xsecs
+
+            # root
+
+                # pos LE
+
+                # chord
+
+                # twist
+
+                # airfoil
+
+                # control surface symmetry and deflection
+
+            # tip 
+
+                # pos LE
+
+                # chord
+
+                # airfoil
+    # vertical stab
+
+        # name
+
+        # symmetry condition
+
+        # xsecs
+
+            # root
+
+                # pos LE
+
+                # chord
+
+                # twist
+
+                # airfoil
+
+                # control surface symmetry and deflection
+
+            # tip 
+
+                # pos LE
+
+                # chord
+
+                # airfoil
+
+if __name__ == "__main__":
+    airplane.draw_three_view()
+
 
     
+
         
 
 
