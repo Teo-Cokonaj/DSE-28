@@ -4,110 +4,178 @@ import aerosandbox as asb
 import aerosandbox.numpy as np
 
 
+# This is for a non-parametric wing and tail (for now)
+
+
+# Relevant Parameters
+
+# Main Wing
+
+    # @ Root
+
+    # @ midway
+
+    # @ tip
+
+# Horizontal Stabilizer
+
+    # @ Root
+
+    # @ Tip
+
+# Vertical Stabilizer
+
+    # @ Root
+
+    # @ Tip
+
+
+# Control Surface Deflections:
+
+    # Aileron Deflection
+
+    # Elevetor Deflection
+
+    # Rudder Deflection
+
+
+
 # Select airfoils
 
     # Wing
 
+wing_airfoil = asb.Airfoil('naca9999')
+
     # Tail
 
-# Airplane
+tain_airfoil = asb.Airfoil('naca0012')
 
-    # name
 
-    # cg location
 
-    # wings
 
+
+airplane = asb.Airplane(
+
+
+    name = "HUGO (infant)",
+
+
+    xyz_ref = [0, 0, 0],
+
+
+    wing = [
+
+        asb.Wing(
+
+            name = "main wing",
+            xyz_le = [0, 0, 0],
+            symmetric = True,
+            xsecs = [
+
+                asb.WingXSec(
+
+                    xyz_le = [0, 0, 0],
+                    chord = "",
+                    twist = "",
+                    airfoil = wing_airfoil,
+                    control_surface_is_symmetric = True,
+                    control_surface_deflection = 0,
+
+                ),
+
+                asb.WingXSec(
+
+                    xyz_le = [],
+                    chord = "",
+                    twist = "",
+                    airfoil = wing_airfoil,
+                    control_surface_is_symmetric = True,
+                    control_surface_deflection = 0,
+
+                ),
+
+                asb.WingXSec(
+
+                    xyz_le = [],
+                    chord = "",
+                    twist = "",
+                    airfoil = wing_airfoil,
+
+                ),
+
+
+
+            ],
+
+
+        ),
+
+    asb.Wing(
+
+        name = "horizontal stabilizer",
+        symmetric = True,
+        xsecs = [
+            asb.WingXSec(
+                xyz_le = [],
+                chord = "",
+                twist = "",
+                airfoil = tail_airfoil,
+                control_surface_is_symmetric = True,
+                control_surface_deflection = 0,
+
+            ),
+            asb.WingXSec(
+                xyz_le = [],
+                chord = "",
+                twist = "",
+                airfoil = tail_airfoil,
+
+            ),
+
+        ],
+
+    ).translate(
+
+        ["", "", ""]
+
+    ),
+
+    asb.WingXSec(
+        name = "vertical stabilizer",
+        symmetric = False,
+        xsecs = [
+            asb.WingXSec(
+                xyz_le = [],
+                chord = "",
+                twist = "",
+                airfoil = tail_airfoil,
+                control_surface_is_symmetric = True,
+                control_surface_deflection = 0,
+
+            ),
+
+            asb.WingXSec(
+                xys_le = []
+                chord = "",
+                twist = "",
+                airfoil = tail_airfoil,
+
+
+            ),
+
+        ],
+
+
+    ).translate(
         
+        ["", "", ""]
+        
+        ),
 
-        # name
+    ]
 
-        # coordinate of LE
+)
 
-        # symmetry condition ? (true or false)
-
-        # wing's cross ("X") sections (Root)
-
-                # chord
-
-                # twist
-
-                # Airfoils are blended between a given XSec and the next one.
-
-                # control surfaces symmetry and deflection
-
-        # wing's cross ("X") sections (mid)
-
-                # chord
-
-                # twist
-
-                # Airfoils are blended between a given XSec and the next one.
-
-                # control surfaces symmetry and deflection
-
-        # wing's cross ("X") sections (tip)
-
-                # chord
-
-                # twist
-
-                # airfoil
-
-    # horizontal stab.
-
-        # name
-
-        # symmetry condition
-
-        # xsecs
-
-            # root
-
-                # pos LE
-
-                # chord
-
-                # twist
-
-                # airfoil
-
-                # control surface symmetry and deflection
-
-            # tip 
-
-                # pos LE
-
-                # chord
-
-                # airfoil
-    # vertical stab
-
-        # name
-
-        # symmetry condition
-
-        # xsecs
-
-            # root
-
-                # pos LE
-
-                # chord
-
-                # twist
-
-                # airfoil
-
-                # control surface symmetry and deflection
-
-            # tip 
-
-                # pos LE
-
-                # chord
-
-                # airfoil
 
 if __name__ == "__main__":
     airplane.draw_three_view()
