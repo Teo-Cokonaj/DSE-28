@@ -2,6 +2,12 @@
 
 import aerosandbox as asb
 import aerosandbox.numpy as np
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from objects.wing_planform import WingPlanform
+from objects.aircraft_parameters import AircraftParameters
 
 
 # This is for a non-parametric wing and tail (for now)
