@@ -37,9 +37,9 @@ class Component:
         raise NotImplementedError
     
 
-    def CD0_comp(self, altitude:float, mach:float)->float:
-        return self.Cf(altitude, mach) * self.form_factor(mach) * self.interfereance_factor * self.surface_wetted
+    def CD0_contribution(self, altitude:float, mach:float)->float:
+        return self.Cf(altitude, mach) * self.form_factor(mach) * self.interfereance_factor
     
 
-    def drag_surface_contribution(self, mach:float)->float:
+    def drag_area_contribution(self, mach:float)->float:
         return 0.

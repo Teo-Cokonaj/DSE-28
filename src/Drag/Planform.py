@@ -18,21 +18,24 @@ class Planform(Component):
         self.surface_reynolds_factor = surface_reynolds_factor
     
         
-        surface_exposed = self.geometry_params['chord_root']*self.geometry_params['taper_ratio']* (self.geometry_params['fuselage_diameter'] / 2) / (self.geometry_params['wing_span'] / 2)
+        chord_fuselage = geometry_params['chord_root']*(1 - (1 -geometry_params['taper_ratio']) * (geometry_params['diameter_fuselage'] / 2) / (geometry_params['wing_span'] / 2))
+        surface_hidden = geometry_params['diameter_fuselage'] * (geometry_params['chord_root'] + chord_fuselage)  / 2
+        surface_reference = geometry_params['chord_root'] * (1 + geometry_params['taper_ratio']) / 2 * geometry_params['wing_span']
+        surface_exposed = surface_reference - surface_hidden
         surface_wetted = wetted_surface_multiplier * 2 * surface_exposed
 
         # MAC
         characteristic_length = (2 / 3) * self.geometry_params['chord_root'] * (1 + self.geometry_params['taper_ratio'] + self.geometry_params['taper_ratio'] ** 2) / (1 + self.geometry_params['taper_ratio'])
         
 
-        super().__init__(interference_factor, surface_exposed, surface_wetted, characteristic_length, laminar_fraction, surface_reynolds_factor)
+        super().__init__(interference_factor, surface_wetted, characteristic_length, laminar_fraction, surface_reynolds_factor)
 
     
     def form_factor(self, mach)->float:
 
         gp = self.geometry_params
 
-        sweep_thickness_to_chord_max = np.arctan(np.tan(gp['sweep_LE']) + gp["chord_fraction_max_thickness"]*2*gp["chord_root"]/gp["sweep"]*(1-gp["taper_ratio"]))
+        sweep_thickness_to_chord_max = np.arctan(np.tan(gp['sweep_LE']) + gp["chord_fraction_max_thickness"]*2*gp["chord_root"]/gp["wing_span"]*(1-gp["taper_ratio"]))
         
         FF = ( 1 + 0.6 / gp['pos_max_camber'] * gp['thickness_to_chord_ratio'] + 100 * gp['thickness_to_chord_ratio'] ** 4 ) * (1.34 * mach ** 0.18 * np.cos(sweep_thickness_to_chord_max) ** 0.28)
 

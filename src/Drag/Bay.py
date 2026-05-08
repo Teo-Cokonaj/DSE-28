@@ -10,7 +10,7 @@ from src.Drag.Component import Component
 class Bay(Component):
     def __init__(self, interference_factor, length:float, diameter:float, laminar_fraction, surface_reynolds_factor = 0.00000405):
         self.length_to_diameter = length/diameter
-        surface_wetted = length*np.pi/4*diameter**2  
+        surface_wetted = 2*np.pi/4*diameter**2 + np.pi*diameter*length
         super().__init__(interference_factor, surface_wetted, length, laminar_fraction, surface_reynolds_factor)
 
     
