@@ -1,5 +1,5 @@
 # Imports
-import numpy as np
+import aerosandbox.numpy as np
 
 # Global parameters for configurations:
 class CONSTANTS:

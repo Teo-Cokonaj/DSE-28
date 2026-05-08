@@ -1,5 +1,6 @@
 import pytest as pt
-import numpy as np
+import aerosandbox.numpy as np
+import aerosandbox as asb
 import sys
 import os
 
@@ -10,7 +11,7 @@ from src.Class_I.Class_I import Class_I
 from src.global_parameters import CONSTANTS
 
 class TestClass_I:
-    debug = False
+    debug = True
 
     single_glide_ratio = 10.
     altitude_go_around = 2000. # [m]
@@ -26,13 +27,12 @@ class TestClass_I:
     time_half_turn = 60. # [s]
     omega_turn = np.pi/60. # [rad/s]
 
-    temperature_cruise = CONSTANTS.TEMPERATURE_SEA_LEVEL+CONSTANTS.TEMPERATURE_LAPSE*altitude_cruise
-    speed_of_sound_cruise = np.sqrt(CONSTANTS.GAMMA_AIR*CONSTANTS.GAS_CONSTANT_AIR*temperature_cruise)
-    temperature_mach_max = CONSTANTS.TEMPERATURE_SEA_LEVEL+CONSTANTS.TEMPERATURE_LAPSE*CONSTANTS.ALTITUDE_MACH_MAX
-    speed_of_sound_mach_max = np.sqrt(CONSTANTS.GAMMA_AIR*CONSTANTS.GAS_CONSTANT_AIR*temperature_mach_max)
-    temperature_go_around = CONSTANTS.TEMPERATURE_SEA_LEVEL+CONSTANTS.TEMPERATURE_LAPSE*altitude_go_around
-    pressure_go_around = CONSTANTS.PRESSURE_SEA_LEVEL*(temperature_go_around/CONSTANTS.TEMPERATURE_SEA_LEVEL)**(-CONSTANTS.G0/CONSTANTS.GAS_CONSTANT_AIR/CONSTANTS.TEMPERATURE_LAPSE)
-    density_go_around = pressure_go_around/CONSTANTS.GAS_CONSTANT_AIR/temperature_go_around
+    atmosphere_cruise = asb.Atmosphere(altitude_cruise)
+    speed_of_sound_cruise = atmosphere_cruise.speed_of_sound()
+    atmosphere_mach_max = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX)
+    speed_of_sound_mach_max = atmosphere_mach_max.speed_of_sound()
+    atmosphere_go_around = asb.Atmosphere(altitude_go_around)
+    density_go_around = atmosphere_go_around.density()
 
     load_factor_quadratic_term = wing_loading*2/density_go_around/CL_go_around*(omega_turn/CONSTANTS.G0)**2
     load_factor_go_around = (load_factor_quadratic_term+np.sqrt(load_factor_quadratic_term**2+4))/2

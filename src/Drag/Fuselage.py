@@ -1,6 +1,6 @@
 import sys
 import os
-import numpy as np
+import aerosandbox.numpy as np
 
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

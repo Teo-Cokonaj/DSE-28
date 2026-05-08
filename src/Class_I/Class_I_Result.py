@@ -1,6 +1,6 @@
 import sys
 import os
-import numpy as np
+import aerosandbox.numpy as np
 from dataclasses import dataclass
 
 @dataclass

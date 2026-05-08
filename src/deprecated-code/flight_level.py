@@ -1,7 +1,7 @@
 # Functions for Altitude from engine parameters
 
 #from parameters_for_altitude import *
-import numpy as np
+import aerosandbox.numpy as np
 
  
 def density_temp(M, gamma, R, S, CL, g, sfc, E, F_T, Wi, Wf): 

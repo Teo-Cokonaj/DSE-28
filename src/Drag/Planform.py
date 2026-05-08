@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.Drag.Component import Component
 
 
-import numpy as np
+import aerosandbox.numpy as np
 
 class Planform(Component):
     def __init__(self, interference_factor, geometry_params:dict[str, float], laminar_fraction, surface_reynolds_factor = 0.00000405, wetted_surface_multiplier=1.07):

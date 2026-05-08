@@ -1,11 +1,10 @@
-import numpy as np
+import aerosandbox.numpy as np
+import aerosandbox as asb
 import os
 import sys
 
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from util.isa_calculator import dens_at_h, speed_of_sound_at_h, viscosity_at_h
 
 class Component:
     def __init__(self, interference_factor:float, surface_wetted:float, 
@@ -25,9 +24,10 @@ class Component:
 
 
     def reynolds(self, altitude:float, mach:float)->float:
-        density = dens_at_h(altitude)
-        speed_of_sound = speed_of_sound_at_h(altitude)
-        viscosity = viscosity_at_h(altitude)
+        atmosphere = asb.Atmosphere(altitude)
+        density = atmosphere.density()
+        speed_of_sound = atmosphere.speed_of_sound()
+        viscosity = atmosphere.dynamic_viscosity()
         
         return min(density*speed_of_sound*mach*self.characteristic_length/viscosity,
             38.21*(self.characteristic_length/self.surface_reynolds_factor) ** 1.053)

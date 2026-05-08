@@ -1,4 +1,4 @@
-import numpy as np
+import aerosandbox.numpy as np
 
 class WingPlanform:
     def __init__(self,
