@@ -25,3 +25,8 @@ def dens_at_h(h):
 
 def speed_of_sound_at_h(h):
     return math.sqrt(CONSTANTS.GAMMA_AIR*CONSTANTS.GAS_CONSTANT_AIR*temp_eq(h)) 
+
+def viscosity_at_h(h):
+     temp_alt = temp_eq(h)
+     #from https://www.grc.nasa.gov/www/k-12/airplane/viscosity.html
+     return CONSTANTS.DYNAMIC_VISCOSITY_SEA_LEVEL*(temp_alt/CONSTANTS.TEMPERATURE_SEA_LEVEL)**1.5*((CONSTANTS.TEMPERATURE_SEA_LEVEL+110.4)/(temp_alt+110.4))
