@@ -277,7 +277,7 @@ class FlightEnvelope:
                  linewidth=1,
                  )
 
-        plt.plot(A_B_curve_speed, A_B_curve_load, 'b-', linewidth=1, label='Manoeuvre envelope')
+        plt.plot(A_B_curve_speed, A_B_curve_load, 'b-', linewidth=1, label='Manoeuvre loads')
         plt.plot(B_F_curve_speed, B_F_curve_load, 'b-', linewidth=1)
         plt.plot(F_G_curve_speed, F_G_curve_load, 'b-', linewidth=1)
         plt.plot(K_J_curve_speed, K_J_curve_load, 'b-', linewidth=1)
@@ -290,7 +290,7 @@ class FlightEnvelope:
 
         #Gust loads
         plt.plot(np.linspace(0.0, self.design_diving_speed+1, 1000),
-                gust_cruise_upper_load_factor, 'g-.', linewidth=1)
+                gust_cruise_upper_load_factor, 'g-.', linewidth=1, label='Gust loads')
 
         plt.plot(np.linspace(0.0, self.design_diving_speed+1, 1000),
                 gust_cruise_lower_load_factor, 'g-.', linewidth=1)
@@ -315,7 +315,7 @@ class FlightEnvelope:
         plt.minorticks_on()
         plt.grid(True, which='both')
         plt.legend()
-        plt.title('V-n diagram')
+        #plt.title('V-n diagram')
         plt.ylabel('Load factor')
         plt.xlabel('EAS [m/s]')
         plt.show()
@@ -351,9 +351,6 @@ if __name__=='__main__':
     flight_envelope.compute_design_speeds(aircraft_parameters,
                                           wing_planform,
                                           assumptions)
-    # flight_envelope.design_cruising_speed = 20.20
-    # flight_envelope.design_diving_speed = 28.28
-    #flight_envelope.V_H_sea_level=100.0
     flight_envelope.plot_V_n_diagram(aircraft_parameters,
                                      wing_planform,
                                      assumptions)
