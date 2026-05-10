@@ -12,30 +12,53 @@ from src.MatchingDiagram.ThrustLapse import ThrustLapse
 from src.global_parameters import CONSTANTS
 
 class MatchingDiagramJet(MatchingDiagram):
-    def __init__(self, approach_speed:float, CL_max:float, landing_field_length:float, cruise_speed_constraints:list[dict[str, float]], climb_gradient_constraints:list[dict[str, float]]):
-        wing_loading_constraints:dict[str, float] = list()
-        thrust_weight_constraints:dict[str, ty.Callable[[float]], float] = list()
+    def __init__(self, n_engines:float, bypass:float=0., resolution:int=100):
+        super().__init__({}, {}, resolution)
+        self.engine_inoperative_coefficient = n_engines / (n_engines - 1)
+        self.bypass = bypass
 
+
+    def add_approach_speed(self, constraint_label:str, approach_speed:float, CL_max:float, atmosphere:asb.Atmosphere=asb.Atmosphere(), beta:float=1.):
         stall_speed = approach_speed/1.3
-        wing_loading_constraints["Approach speed"] = CONSTANTS.AIR_DENSITY_SEA_LEVEL/2 * stall_speed**2 * CL_max
-        wing_loading_constraints["Landing length"] = CONSTANTS.AIR_DENSITY_SEA_LEVEL/2 * landing_field_length/.6 * CL_max
+        self.constraints_wing_loading[constraint_label] = atmosphere.density()/2 * stall_speed**2 * CL_max/beta
 
-        for cruise_speed_constraint in cruise_speed_constraints:
-            atmosphere_cruise = asb.Atmosphere(cruise_speed_constraint["altitude"])
-            atmospheric_coefficient = atmosphere_cruise.speed_of_sound()**2 * atmosphere_cruise.density()/2
-            mach = cruise_speed_constraint["mach"]
-            cruise_condition_term = atmospheric_coefficient*mach**2
+    
+    def add_landing_field_length(self, constraint_label:str, field_length:float, CL_max:float, atmosphere:asb.Atmosphere=asb.Atmosphere(), beta:float=1.):
+        self.constraints_wing_loading[constraint_label] = atmosphere.density()/2 * field_length/.6 * CL_max/beta
 
-            CD0 = cruise_speed_constraint["CD0"]
-            inviscid_ratio = cruise_speed_constraint["inviscid_ratio"]
 
-            thrust_lapse = ThrustLapse(cruise_speed_constraint["altitude"])
-            lapse = thrust_lapse.thrust_lapse(mach)
+    def add_cruise_speed(self, constraint_label:str, mach:float, CD0:float, inviscid_ratio:float, atmosphere:asb.Atmosphere=asb.Atmosphere(), beta:float=1.):
+            thrust_lapse_cruise = ThrustLapse(atmosphere)
+            lapse_cruise = thrust_lapse_cruise.thrust_lapse(mach, self.bypass)
 
-            thrust_weight_constraints.append(lambda wing_laoding: (CD0*cruise_condition_term/wing_laoding + wing_laoding/inviscid_ratio/cruise_condition_term) / lapse)
+            cruise_condition_term = atmosphere.speed_of_sound()**2 * atmosphere.density()/2 * mach**2
 
-        for climb_gradient_constraint in climb_gradient_constraints:
-            sin_gradient = np.sin(np.arctan(climb_gradient_constraint["gradient"]))
-            CD0 = cruise_speed_constraint["CD0"]
-            inviscid_ratio = cruise_speed_constraint["inviscid_ratio"]
-            engine_inoperative_coefficient = 1 if (cruise_speed_constraint["n_engines_if_inoperative"] is None) else 1 + 1/(cruise_speed_constraint["n_engines_if_inoperative"]-1)
+            self.constraints_thrust_weight[constraint_label] = lambda wing_laoding: (CD0 * cruise_condition_term / wing_laoding + wing_laoding / inviscid_ratio / cruise_condition_term) / lapse_cruise * beta
+      
+        
+    def add_climb_gradient(self, constraint_label:str, tan_gradient:float, CD0:float, inviscid_ratio:float, all_engines_operative:bool, atmosphere:asb.Atmosphere=asb.Atmosphere(), beta:float=1.): 
+        denisty = atmosphere.density()
+        speed_of_sound = atmosphere.speed_of_sound()
+        thrust_lapse = ThrustLapse(atmosphere)
+
+        sin_gradient = np.sin(np.arctan(tan_gradient))
+        CL_optimal = np.sqrt(CD0*inviscid_ratio) 
+        engine_coefficient =  1 if all_engines_operative else self.engine_inoperative_coefficient
+        numerator = (2 * np.sqrt(CD0 / inviscid_ratio) + sin_gradient) * engine_coefficient * beta
+
+        mach_from_wing_loading = lambda wing_loading: np.sqrt(wing_loading * 2/denisty / CL_optimal) / speed_of_sound
+
+        self.constraints_thrust_weight[constraint_label] = lambda wing_loading: numerator / thrust_lapse.thrust_lapse(mach_from_wing_loading(wing_loading), self.bypass)
+
+
+    def add_takeoff_field_length(self, constraint_label:str, field_length:float, inviscid_ratio:float, CL_takeoff:float, atmosphere:asb.Atmosphere=asb.Atmosphere()):
+        denisty = atmosphere.density()
+        speed_of_sound = atmosphere.speed_of_sound()
+        thrust_lapse = ThrustLapse(atmosphere)
+
+        proportionality = 1.15 * np.sqrt(self.engine_inoperative_coefficient / field_length / .85 / CONSTANTS.G0 / denisty / inviscid_ratio)
+        intercept = 4 * CONSTANTS.OBSTACLE_HEIGHT * self.engine_inoperative_coefficient / field_length
+
+        mach_from_wing_loading = lambda wing_loading: np.sqrt(wing_loading * 2/denisty / CL_takeoff) / speed_of_sound
+
+        self.constraints_thrust_weight[constraint_label] = lambda wing_loading: (proportionality * np.sqrt(wing_loading) + intercept) / thrust_lapse.thrust_lapse(mach_from_wing_loading(wing_loading), self.bypass) 

@@ -19,6 +19,7 @@ class CONSTANTS:
     N_LANDING_ATTEMPTS = 4
     MASS_PAYLOAD = 5. # [kg]
     DYNAMIC_VISCOSITY_SEA_LEVEL = 1.789e-5 # [kg/m/s]
+    OBSTACLE_HEIGHT = 11 #[m]
     
 
 class Assumptions():

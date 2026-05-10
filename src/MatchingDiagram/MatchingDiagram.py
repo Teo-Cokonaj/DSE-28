@@ -9,19 +9,24 @@ import matplotlib
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class MatchingDiagram():
-    def __init__(self, constraints_thrust:dict[str, ty.Callable[[float], float]], constraints_wing_loading:dict[str, float], resolution:int=100):
-        self.constraints_thrust = constraints_thrust
+    def __init__(self, constraints_thrust_weight:dict[str, ty.Callable[[float], float]], constraints_wing_loading:dict[str, float], resolution:int=100, epsilon_wing_loading:float=1.):
+        self.constraints_thrust_weight = constraints_thrust_weight
         self.constraints_wing_loading = constraints_wing_loading
         self.resolution = resolution
+        self.wing_loadings = np.array([])
+        self.epsilon_wing_loading = epsilon_wing_loading #to avoid divide by zero warning
 
+
+    def create_wing_loading_axis(self):
         cutoff_wing_loading = min(self.constraints_wing_loading.values())
-        self.wing_loadings = np.linspace(0., cutoff_wing_loading, resolution)
+        self.wing_loadings = np.linspace(0., cutoff_wing_loading, self.resolution)
+        self.wing_loadings[0] += self.epsilon_wing_loading
         
 
-    def plot(self, selected_wing_loading:float=None, selected_thrust_weight:float=None, location_legend:str=None) -> matplotlib.figure.Figure:
+    def plot(self, selected_wing_loading:float=None, selected_thrust_weight:float=None, location_legend:str=None, max_thrust_weight:float=.5) -> matplotlib.figure.Figure:
         figure = plt.figure()
 
-        for key, value in self.constraints_thrust.items():
+        for key, value in self.constraints_thrust_weight.items():
             plt.plot(self.wing_loadings, [value(wing_loading) for wing_loading in self.wing_loadings], label=key)
 
         for key, value in self.constraints_wing_loading.items():
@@ -37,12 +42,13 @@ class MatchingDiagram():
 
         plt.xlabel(r"Wing Loading [N/m$^2$]")
         plt.ylabel("Thrust-Weight Ratio [-]")
+        plt.ylim((0., max_thrust_weight))
         return figure
 
     
     def select_design_point(self, penalty_function:ty.Callable[[float, float], float])->tuple[float, float]:
 
-        thrust_weight_ratios = [max(constraint(wing_loading) for constraint in self.constraints_thrust.values()) for wing_loading in self.wing_loadings]
+        thrust_weight_ratios = [max(constraint(wing_loading) for constraint in self.constraints_thrust_weight.values()) for wing_loading in self.wing_loadings]
 
         rank_for_design_points = [penalty_function(wing_loading, thrust_weight) 
                                   for wing_loading, thrust_weight in zip(self.wing_loadings, thrust_weight_ratios)]
