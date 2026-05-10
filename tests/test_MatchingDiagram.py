@@ -84,5 +84,5 @@ class TestMatchingDiagram():
 
 if __name__ == "__main__":
     tester = TestMatchingDiagram()
-    #tester.test_nonphysical_matching_diagram(True)
+    tester.test_nonphysical_matching_diagram(True)
     tester.test_jet_matching_diagram_from_textbook(True)
