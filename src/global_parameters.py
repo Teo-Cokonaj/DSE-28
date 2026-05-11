@@ -36,8 +36,8 @@ class Assumptions():
         self.OMEGA_GO_AROUND = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
         self.MC=0.75 #cruise Mach number
         self.MD = 0.80 #ADSEE: in general, MD is 0.05M higher than MC
-        self.positive_C_L_max=1.6 #CHANGE
-        self.negative_C_L_max=-0.8 #CHANGE
+        self.positive_C_L_max_airfoil=1.25 #CHANGE
+        self.negative_C_L_max_airfoil=-1.25 #CHANGE
         self.C_L_alpha = 0.5*2*np.pi #CHANGE
         self.alpha_stall_deg = 10.0 #deg
 

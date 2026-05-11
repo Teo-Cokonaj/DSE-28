@@ -156,6 +156,8 @@ class DesignOption():
     def estimate_CD0(self, aircraft_parameters:AircraftParameters, wing_planfom:WingPlanform):
         pass
 
+    def generateLDs(self, results:dict[str, float])
+
 if __name__=='__main__':
 
     wing_planform=LiftingSurfacePlanform(aspect_ratio=25.0,

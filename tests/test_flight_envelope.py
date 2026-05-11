@@ -41,8 +41,8 @@ def assumptions():
     assumptions = Assumptions()
     assumptions.ALTITUDE_CRUISE = 0.0
     assumptions.AIR_DENSITY_CRUISE_ALTITUDE = 1.225
-    assumptions.positive_C_L_max = 1.6
-    assumptions.negative_C_L_max = -0.8
+    assumptions.positive_C_L_max_airfoil = 1.6
+    assumptions.negative_C_L_max_airfoil = -0.8
     assumptions.C_L_alpha = 1.5464
     assumptions.MC=0.5 #cruise Mach number
     assumptions.MD = 0.6 #ADSEE: in general, MD is 0.05M higher than MC
@@ -83,8 +83,8 @@ class TestFlightEnvelope:
                          aircraft_parameters,
                          wing_planform,
                          assumptions):
-        actual_stall_speed=np.sqrt(2*aircraft_parameters.total_mass*CONSTANTS.G0/(CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.positive_C_L_max))
-        assert np.isclose(actual_stall_speed,flight_envelope.V_stall(aircraft_parameters,wing_planform,assumptions.positive_C_L_max))
+        actual_stall_speed=np.sqrt(2*aircraft_parameters.total_mass*CONSTANTS.G0/(CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.positive_C_L_max_airfoil))
+        assert np.isclose(actual_stall_speed,flight_envelope.V_stall(aircraft_parameters,wing_planform,assumptions.positive_C_L_max_airfoil))
 
     def test_minimum_design_cruising_speed(self,
                                            flight_envelope,
@@ -99,7 +99,7 @@ class TestFlightEnvelope:
                                         aircraft_parameters,
                                         assumptions,
                                         flight_envelope,):
-        assert np.isclose(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.positive_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0),
+        assert np.isclose(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.positive_C_L_max_airfoil/(aircraft_parameters.total_mass*CONSTANTS.G0),
                           flight_envelope.load_factor_upper_manoeuvre_curve(1.0,
                                           wing_planform,
                                           aircraft_parameters,
@@ -111,7 +111,7 @@ class TestFlightEnvelope:
                                         aircraft_parameters,
                                         assumptions,
                                         flight_envelope,):
-                assert np.isclose(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.negative_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0),
+                assert np.isclose(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.negative_C_L_max_airfoil/(aircraft_parameters.total_mass*CONSTANTS.G0),
                           flight_envelope.load_factor_lower_manoeuvre_curve(1.0,
                                           wing_planform,
                                           aircraft_parameters,
