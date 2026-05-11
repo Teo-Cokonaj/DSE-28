@@ -11,10 +11,7 @@ from objects.wing_planform import WingPlanform
 from global_parameters import CONSTANTS, Assumptions
 
 class FlightEnvelope:
-    def __init__(self,
-                 CONSTANTS: CONSTANTS,
-                 assumptions: Assumptions,
-                 ):
+    def __init__(self):
 
         self.positive_manoeuvring_limit_load_factor=6.0 #CS-23, aerobatic
         self.negative_manoeuvring_limit_load_factor=-0.5*self.positive_manoeuvring_limit_load_factor #CS-23, aerobatic
