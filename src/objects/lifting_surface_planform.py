@@ -27,6 +27,6 @@ class LiftingSurfacePlanform:
         self.LE_positions = None #add LE position calculator here!
 
         def example_function(self):
-
+            
             return
         
