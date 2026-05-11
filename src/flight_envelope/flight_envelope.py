@@ -7,7 +7,7 @@ current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(current_file))
 sys.path.append(project_root)
 from objects.aircraft_parameters import AircraftParameters
-from objects.wing_planform import WingPlanform
+from objects.lifting_surface_planform import LiftingSurfacePlanform
 from global_parameters import CONSTANTS, Assumptions
 
 class FlightEnvelope:
@@ -31,7 +31,7 @@ class FlightEnvelope:
 
     def V_stall(self,
                 aircraft_parameters: AircraftParameters,
-                wing_planform: WingPlanform,
+                wing_planform: LiftingSurfacePlanform,
                 C_L_max: float):
         
         return np.sqrt(2*aircraft_parameters.total_mass*CONSTANTS.G0/CONSTANTS.AIR_DENSITY_SEA_LEVEL/wing_planform.wing_area/abs(C_L_max))
@@ -39,7 +39,7 @@ class FlightEnvelope:
 
     def compute_design_speeds(self,
                               aircraft_parameters: AircraftParameters,
-                              wing_planform: WingPlanform,
+                              wing_planform: LiftingSurfacePlanform,
                               assumptions: Assumptions,
                               ):
     
@@ -53,7 +53,7 @@ class FlightEnvelope:
 
     def load_factor_upper_manoeuvre_curve(self,
                                           speed:np.ndarray,
-                                          wing_planform:WingPlanform,
+                                          wing_planform:LiftingSurfacePlanform,
                                           aircraft_parameters:AircraftParameters,
                                           assumptions: Assumptions):
         
@@ -62,7 +62,7 @@ class FlightEnvelope:
 
     def load_factor_lower_manoeuvre_curve(self,
                                           speed:np.ndarray,
-                                          wing_planform:WingPlanform,
+                                          wing_planform:LiftingSurfacePlanform,
                                           aircraft_parameters:AircraftParameters,
                                           assumptions: Assumptions):
         
@@ -71,7 +71,7 @@ class FlightEnvelope:
 
     def delta_load_factor_gust_curve(self,
                                      speed:np.ndarray,
-                                     wing_planform:WingPlanform,
+                                     wing_planform:LiftingSurfacePlanform,
                                      aircraft_parameters:AircraftParameters,
                                      assumptions: Assumptions,
                                      condition: str='cruise' or 'dive'):
@@ -98,7 +98,7 @@ class FlightEnvelope:
     
     def plot_V_n_diagram(self,
                          aircraft_parameters: AircraftParameters,
-                         wing_planform: WingPlanform,
+                         wing_planform: LiftingSurfacePlanform,
                          assumptions: Assumptions):
 
         positive_stall_speed=np.sqrt(aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.positive_C_L_max))
@@ -323,7 +323,7 @@ if __name__=='__main__':
     total_mass=50.0,  
 )
 
-    wing_planform=WingPlanform(
+    wing_planform=LiftingSurfacePlanform(
         aspect_ratio=25.0,
         span=2.0,
         sweep_quarter_deg=45.0,
