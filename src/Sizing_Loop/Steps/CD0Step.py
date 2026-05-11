@@ -5,7 +5,7 @@ import os
 import sys
 
 current_file = os.path.abspath(__file__)
-project_root = os.path.dirname(os.path.dirname(current_file))
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 sys.path.append(project_root)
 
 from global_parameters import CONSTANTS, Assumptions
@@ -14,11 +14,9 @@ from flight_envelope.flight_envelope import FlightEnvelope
 from objects.aircraft_parameters import AircraftParameters
 from objects.lifting_surface_planform import LiftingSurfacePlanform
 
-class DesignOption():
-    def __init__(self, assumptions:Assumptions=Assumptions(), canard:bool=False):
-        self.assumptions = assumptions()
-        self.flight_envelope = FlightEnvelope()
-        self.canard = canard
+class CD0Step():
+    def __init__(self):
+        pass
 
     def _planform_geometry(self, planform: LiftingSurfacePlanform, is_main_wing: bool) -> dict[str, float]:
         """
@@ -158,7 +156,7 @@ class DesignOption():
             "diameter": diameter,
         }
 
-    def build_bay_component(self) -> dcm.Bay:
+    def build_bay_components(self) -> dcm.Bay:
         """
         Build a 'Bay' (nacelle) component using fuselage-derived length
         and diameter.
@@ -178,7 +176,7 @@ class DesignOption():
         return asb.LiftingLine()
 
     
-    def estimate_CD0(self, airplane: asb.Airplane, mach: float, altitude: float) -> float:
+    def estimate_CD0(self, airplane: asb.Airplane, mach: float, altitude: float, n_engines: float) -> float:
         """
         Estimate total CD0 using all currently modeled components.
 

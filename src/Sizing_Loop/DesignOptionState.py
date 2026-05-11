@@ -12,8 +12,8 @@ from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
 @dataclass
 class DesignOptionState:
     iterable = DesignOptionStateIterable
-    _fixture = DesignOptionStateFixed()
+    _fixed = DesignOptionStateFixed()
 
     @property
     def fixture(self) -> DesignOptionStateFixed:
-        return self._fixture
+        return self._fixed
