@@ -39,11 +39,29 @@ class Assumptions():
         self.positive_C_L_max=1.6 #CHANGE
         self.negative_C_L_max=-0.8 #CHANGE
         self.C_L_alpha = 0.5*2*np.pi #CHANGE
-        self.alpha_stall_deg = 10.0 #deg
 
-        #Geometry Assumptions:
-        self.diameter_fuselage = .4 #m
+        # Geometry Assumptions:
+        # Fuselage
+        self.diameter_fuselage = .15 # m (based on FLEXOP)
+        self.fuselage_length1 = .55 # [m] nose cone length (based on FLEXOP)
+        self.fuselage_length2 = 1.75 # [m] middle fuselage section length (based on FLEXOP)
+        self.fuselage_length3 = 1.12 # [m] tail cone length (based on FLEXOP)
+        self.fuselage_upsweep = np.radians(11) # [rad] (based on FLEXOP)
+        self.fuselage_base_area = np.pi / 4 * self.diameter_fuselage**2 * 0.1  # [m^2] (10% of max cross-section?)
+        
+        # Main gear (all are placeholders currently)
+        self.main_gear_diameter_wheel = 0.15   # [m] standard for 50-80kg UAV class
+        self.main_gear_width_wheel    = 0.055  # [m]
+        self.main_gear_height_strut   = 0.20   # [m] sized for belly clearance + rotation angle
+        self.main_gear_width_strut    = 0.035  # [m]
+        self.main_gear_enclosed       = False
 
+        # Nose gear (all are placeholders currently)
+        self.nose_gear_diameter_wheel = 0.10   # [m] smaller since lightly loaded
+        self.nose_gear_width_wheel    = 0.045  # [m]
+        self.nose_gear_height_strut   = 0.18   # [m] slightly shorter than main to give nose-up ground attitude
+        self.nose_gear_width_strut    = 0.025  # [m]
+        self.nose_gear_enclosed       = False
 
 class Engine():
     def __init__(self):

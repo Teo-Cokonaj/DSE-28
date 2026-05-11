@@ -3,167 +3,201 @@ import aerosandbox.numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
-# current_file = os.path.abspath(__file__)
-# project_root = os.path.dirname(os.path.dirname(current_file))
-# sys.path.append(project_root)
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from aerodynamic_model.aircraft_model import make_airplane_model
+current_file = os.path.abspath(__file__)
+project_root = os.path.dirname(os.path.dirname(current_file))
+sys.path.append(project_root)
+
 from global_parameters import CONSTANTS, Assumptions
-#import Drag.component_method as dcm
+import Drag.component_method as dcm
 from flight_envelope.flight_envelope import FlightEnvelope
 from objects.aircraft_parameters import AircraftParameters
 from objects.lifting_surface_planform import LiftingSurfacePlanform
 
-
-aircraft_parameters=AircraftParameters(total_mass=50.0,
-                                           horizontal_stabilizer_distance_from_wing=3.0,
-                                           vertical_stabilizer_distance_from_wing=3.0,
-                                           canard_distance_in_front_of_wing=0.5)
-
-wing_planform=LiftingSurfacePlanform(aspect_ratio=25.0,
-                                span=1.9,
-                                sweep_quarter_deg=45.0,
-                                taper=0.3,
-                                tip_twist_rad=1.0)
-    
-horizontal_stabilizer_planform=LiftingSurfacePlanform(aspect_ratio=3.0,
-                                                                span=0.5,
-                                                                sweep_quarter_deg=45.0,
-                                                                taper=1.0,
-                                                                tip_twist_rad=0.0)
-    
-vertical_stabilizer_planform=LiftingSurfacePlanform(aspect_ratio=3.0,
-                                                                span=0.3,
-                                                                sweep_quarter_deg=0.0,
-                                                                taper=0.3,
-                                                                tip_twist_rad=0.0)
-canard_planform=LiftingSurfacePlanform(aspect_ratio=3.0,
-                                                                span=0.3,
-                                                                sweep_quarter_deg=45.0,
-                                                                taper=1.0,
-                                                                tip_twist_rad=0.0)
-
-wing_number_of_sections=100
-horizontal_stabilizer_number_of_sections=5
-vertical_stabilizer_number_of_sections=5
-canard_number_of_sections = 5
-
-wing_airfoil = asb.Airfoil('naca9999')
-tail_airfoil = asb.Airfoil('naca0012')
-canard_airfoil=asb.Airfoil('naca0012')
-
-wing_airfoils=np.array([wing_airfoil]*wing_number_of_sections)
-horizontal_stabilizer_airfoils=np.array([tail_airfoil]*horizontal_stabilizer_number_of_sections)
-vertical_stabilizer_airfoils=np.array([tail_airfoil]*vertical_stabilizer_number_of_sections)
-canard_airfoils=np.array([canard_airfoil]*canard_number_of_sections)
-
-
 class DesignOption():
-    def __init__(self, assumptions: Assumptions=Assumptions(), canard:bool=False):
-        self.assumptions = Assumptions()
+    def __init__(self, assumptions:Assumptions=Assumptions(), canard:bool=False):
+        self.assumptions = assumptions()
         self.flight_envelope = FlightEnvelope()
         self.canard = canard
-        self.assumptions = assumptions
 
-    def generate_lift_distribution(
-        self,
-        load_factor: float,
-        wing_planform: LiftingSurfacePlanform
-    ): #-> asb.LiftingLine:
+    def _planform_geometry(self, planform: LiftingSurfacePlanform, is_main_wing: bool) -> dict[str, float]:
+        """
+        Build the geometry dict expected by the drag 'Planform' from a
+        'LiftingSurfacePlanform' instance.
+        """
+        if not isinstance(planform, LiftingSurfacePlanform):
+            raise TypeError("_planform_geometry expects a LiftingSurfacePlanform instance")
 
-        weight = aircraft_parameters.total_mass * CONSTANTS.G0
-        required_lift = load_factor * weight
-        print('Required lift: ',required_lift)
-        #Cruise conditions used for the operating point
-        rho = self.assumptions.AIR_DENSITY_CRUISE_ALTITUDE
-        cruise_speed=self.assumptions.MC*np.sqrt(CONSTANTS.GAMMA_AIR*CONSTANTS.GAS_CONSTANT_AIR*self.assumptions.TEMPERATURE_CRUISE_ALTITUDE)
-           
-        print('---------------Initial configuration------------------')
-        print('Aspect ratio: ', wing_planform.aspect_ratio)
-        print('Wing span: ',wing_planform.span)
-        print('Wing area: ',wing_planform.wing_area)
+        chord_root = float(planform.c_root)
+        wing_span = float(planform.span)
+        taper_ratio = float(planform.taper)
+        sweep_le = float(planform.sweep_LE_rad)
 
-        angle_of_attack_deg=15.0 #just an initial condition for the loop
-        iteration_counter = 0
-        while angle_of_attack_deg > self.assumptions.alpha_stall_deg:
+        return {
+            "chord_root": chord_root,
+            "wing_span": wing_span,
+            "taper_ratio": taper_ratio,
+            "sweep_LE": sweep_le,
+            "chord_fraction_max_thickness": 0.3, # comes from airfoil (dummy var)
+            "pos_max_camber": 0.25,              # comes from airfoil (dummy var)
+            "thickness_to_chord_ratio": 0.1,     # comes from airfoil (dummy var)
+        }
 
-            iteration_counter+=1
-            if iteration_counter%10==0:
-                print(f'Iteration {iteration_counter}')
 
-            wing_span = wing_planform.span
-            wing_span+=0.1
+    def build_planform_components(self, airplane: asb.Airplane):
+        """
+        Turn a list of wing planforms into the drag-model objects used by 
+        the component method.
+        """
+        components = []
+        source_list = getattr(airplane, "planforms", None)
+        if source_list is None:
+            raise ValueError("No planforms available on airplane: attach 'planforms' to the airplane before calling build_planform_components.")
 
-            wing_planform=LiftingSurfacePlanform(aspect_ratio=25.0,
-                                span=wing_span,
-                                sweep_quarter_deg=45.0,
-                                taper=0.3,
-                                tip_twist_rad=0.0)
+        surface_factors = [
+            (1.00, 1.07),  # main wing (1.00 for high wing, 1.1-1.4 for low wing)
+            (1.04, 1.05),  # horizontal stabilizer (conv. 1.04-1.05; T-tail 1.04; H-tail 1.06-1.13; V-tail 1.03)
+            (1.00, 1.05),  # vertical stabilizer (set IF to 1.00 and then adjust the hor. stab. value)
+            (1.05, 1.07),  # canard, only if present (use values similar to the wing, prob lower)
+        ]
 
-            S = wing_planform.wing_area
+        if len(source_list) > len(surface_factors):
+            raise ValueError(f"Expected at most {len(surface_factors)} planforms, got {len(source_list)}.")
 
-            C_L = 2*required_lift/(rho*cruise_speed**2*S)
-            angle_of_attack_deg=np.rad2deg(C_L/self.assumptions.C_L_alpha)
-            print('Required angle of attack [deg]: ',angle_of_attack_deg)
+        for index, wing_or_planform in enumerate(source_list):
+            is_main_wing = index == 0 
+            geometry = self._planform_geometry(wing_or_planform, is_main_wing=is_main_wing)
+            interference_factor, wetted_surface_multiplier = surface_factors[index]
 
-        print('---------------Configuration before aerosandbox simulation------------------')
-        print('Aspect ratio: ', wing_planform.aspect_ratio)
-        print('Wing span: ',wing_planform.span)
-        print('Wing area: ',wing_planform.wing_area)
+            components.append(
+                dcm.Planform(
+                    interference_factor,
+                    geometry,
+                    0.1,      # laminar fraction (General aviation – classic production metal)
+                    0.405e-5, # reynolds factor (Production sheet metal)
+                    wetted_surface_multiplier
+                )
+            )
 
-        airplane=make_airplane_model(aircraft_parameters,
-                                 wing_planform,
-                                 horizontal_stabilizer_planform,
-                                 vertical_stabilizer_planform,
-                                 wing_number_of_sections,
-                                 wing_airfoils,
-                                 horizontal_stabilizer_number_of_sections,
-                                 horizontal_stabilizer_airfoils,
-                                 vertical_stabilizer_number_of_sections,
-                                 vertical_stabilizer_airfoils,
-                                 canard_planform,
-                                 canard_number_of_sections,
-                                 canard_airfoils)
+        main_wing_geometry = components[0].geometry_params
+        surface_reference = main_wing_geometry["chord_root"] * (1 + main_wing_geometry["taper_ratio"]) / 2 * main_wing_geometry["wing_span"]
+        return components, surface_reference
 
-        op_point = asb.OperatingPoint(
-            velocity=cruise_speed,
-            alpha=angle_of_attack_deg, 
-            beta=0,
-            p=0,
-            q=0,
-            r=0
+    def _fuselage_geometry(self) -> dict[str, float]:
+        """
+        Build the geometry dict expected by the drag 'Fuselage' from
+        'Assumptions'. 
+        """
+        return {
+            "length1": float(self.assumptions.fuselage_length1),
+            "length2": float(self.assumptions.fuselage_length2),
+            "length3": float(self.assumptions.fuselage_length3),
+            "diameter": float(self.assumptions.diameter_fuselage),
+            "upsweep": float(self.assumptions.fuselage_upsweep),
+            "area_base": float(self.assumptions.fuselage_base_area),
+        }
+
+    def build_fuselage_components(self) -> dcm.Fuselage:
+        """
+        Build the fuselage drag component from assumptions.
+        """
+        geometry = self._fuselage_geometry()
+        interference_factor = 1.0  # fuselage reference IF
+        laminar_fraction = 0.05  # assume very low laminar fraction for fuselage
+        
+        return dcm.Fuselage(
+            interference_factor,
+            geometry,
+            laminar_fraction,
+            0.405e-5  # reynolds factor (Production sheet metal)
+        )
+        
+    def _landing_gear_geometry(self) -> dict[str, float]:
+        """
+        Build nose and main landing-gear geometry dicts from 'Assumptions'.
+        Returns a tuple: (nose_geometry, main_geometry)
+        """
+        nose_geometry = {
+            "diameter_wheel": float(self.assumptions.nose_gear_diameter_wheel),
+            "width_wheel": float(self.assumptions.nose_gear_width_wheel),
+            "height_strut": float(self.assumptions.nose_gear_height_strut),
+            "width_strut": float(self.assumptions.nose_gear_width_strut),
+            "height_total": float(self.assumptions.nose_gear_diameter_wheel / 2 + self.assumptions.nose_gear_height_strut),
+            "width_total": float(self.assumptions.nose_gear_width_strut + self.assumptions.nose_gear_width_wheel),
+        }
+
+        main_geometry = {
+            "diameter_wheel": float(self.assumptions.main_gear_diameter_wheel),
+            "width_wheel": float(self.assumptions.main_gear_width_wheel),
+            "height_strut": float(self.assumptions.main_gear_height_strut),
+            "width_strut": float(self.assumptions.main_gear_width_strut),
+            "height_total": float(self.assumptions.main_gear_diameter_wheel / 2 + self.assumptions.main_gear_height_strut),
+            "width_total": float(self.assumptions.main_gear_width_strut + self.assumptions.main_gear_width_wheel),
+        }
+
+        return nose_geometry, main_geometry
+
+    def build_landing_gear_components(self) -> list:
+        """
+        Build 'LandingGear' components using assumptions.
+        """
+        nose_geom, main_geom = self._landing_gear_geometry()
+        nose_component = dcm.LandingGear(nose_geom, bool(self.assumptions.nose_gear_enclosed))
+        main_component = dcm.LandingGear(main_geom, bool(self.assumptions.main_gear_enclosed))
+        return [nose_component, main_component]
+
+    def _bay_geometry(self) -> dict[str, float]:
+        """
+        Build bay (nacelle) geometry from fuselage assumptions.
+        Uses the sum of fuselage length sections as the bay length.
+        """
+        length_total = float(self.assumptions.fuselage_length1 + self.assumptions.fuselage_length2 + self.assumptions.fuselage_length3)
+        diameter = float(self.assumptions.diameter_fuselage)
+        return {
+            "length": length_total,
+            "diameter": diameter,
+        }
+
+    def build_bay_component(self) -> dcm.Bay:
+        """
+        Build a 'Bay' (nacelle) component using fuselage-derived length
+        and diameter.
+        """
+        gp = self._bay_geometry()
+        interference_factor = 1.3
+        laminar_fraction = 0.1  # placeholder
+        return dcm.Bay(
+            interference_factor,
+            float(gp["length"]),
+            float(gp["diameter"]),
+            laminar_fraction,
+            0.405e-5  # reynolds factor (Production sheet metal)
         )
 
-        analysis = asb.LiftingLine(
-            airplane=airplane,
-            op_point=op_point,
-        )
-
-        results = analysis.run()
-        print(results)
-
-
-        # print(results["CL"])
-        # print(results["CD"])
-
-        # spanwise = analysis.get_induced_velocity_at_points()
-        # distribution = analysis.run_with_stability_derivatives()
-
-        #return 1
+    def generate_lift_distribution(self, load_factor:float, plane:asb.Airplane)->asb.LiftingLine:
+        return asb.LiftingLine()
 
     
-    def estimate_CD0(self, aircraft_parameters:AircraftParameters, wing_planfom:WingPlanform):
-        pass
+    def estimate_CD0(self, airplane: asb.Airplane, mach: float, altitude: float) -> float:
+        """
+        Estimate total CD0 using all currently modeled components.
 
-if __name__=='__main__':
+        The current implementation combines:
+        - planform components
+        - fuselage
+        - landing gear
+        - bay / nacelle
+        """
+        planform_components, surface_reference = self.build_planform_components(airplane)
+        fuselage_component = self.build_fuselage_components()
+        landing_gear_components = self.build_landing_gear_components()
+        bay_component = self.build_bay_component()
 
-    wing_planform=LiftingSurfacePlanform(aspect_ratio=25.0,
-                                span=2.0,
-                                sweep_quarter_deg=45.0,
-                                taper=0.3,
-                                tip_twist_rad=0.0)
+        all_components = (
+            planform_components
+            + [fuselage_component]
+            + landing_gear_components
+            + [bay_component]
+        )
 
-    design_option=DesignOption()
-    design_option.generate_lift_distribution(load_factor=6.0,
-                                             wing_planform=wing_planform)
+        return dcm.estimate_CD0(all_components, altitude, mach, surface_reference)
