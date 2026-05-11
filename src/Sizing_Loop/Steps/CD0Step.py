@@ -8,15 +8,46 @@ current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 sys.path.append(project_root)
 
+from Sizing_Loop.DesignOptionState import DesignOptionState
 from global_parameters import CONSTANTS, Assumptions
 import Drag.component_method as dcm
 from flight_envelope.flight_envelope import FlightEnvelope
 from objects.aircraft_parameters import AircraftParameters
 from objects.lifting_surface_planform import LiftingSurfacePlanform
+from Sizing_Loop.DesignOptionStep import DesignOptionStep
 
-class CD0Step():
+class CD0Step(DesignOptionStep):
     def __init__(self):
         pass
+
+    def update(self, state:DesignOptionState):
+        assumptions = state.fixed.assumptions
+        state.iterable.performance_parameters.cruise_parameters.CD0 = self.estimate_CD0(state, CONSTANTS.MACH_CRUISE, assumptions.ALTITUDE_CRUISE)
+        state.iterable.performance_parameters.mach_max_parameters.CD0 = self.estimate_CD0(state, CONSTANTS.MACH_MAX, CONSTANTS.ALTITUDE_MACH_MAX)
+        go_around_mach = self.go_around_mach(state)
+        state.iterable.performance_parameters.go_around_parameters.CD0 = self.estimate_CD0(state, go_around_mach, assumptions.ALTITUDE_GO_AROUND)
+        state.iterable.performance_parameters.takeoff_parameters.CD0 = self.estimate_CD0(state, 0., 0., True)
+
+        return state.iterable
+
+
+
+    @staticmethod
+    def go_around_mach(state:DesignOptionState)->float:
+        assumptions = state.fixed.assumptions
+        wing_loading = state.iterable.aircraft_parameters.total_mass / state.iterable.lifting_surfaces[0].wing_area
+        CL_max_glide_ratio = np.sqrt(state.iterable.performance_parameters.go_around_parameters.CD0 * state.iterable.performance_parameters.go_around_parameters.inviscid_ratio)
+        #determining go around parameters
+        omega_turn = np.pi/assumptions.time_half_turn
+        atmosphere_go_around = asb.Atmosphere(assumptions.altitude_go_around)
+        rho_go_around_altitude = atmosphere_go_around.density()
+        # n**2 - quadratic_b_term*n -1
+        quadratic_b_term = omega_turn**2/CONSTANTS.G0**2 * wing_loading * 2/rho_go_around_altitude / CL_max_glide_ratio
+        load_factor_go_around = .5*(quadratic_b_term + np.sqrt(quadratic_b_term**2+4))
+        airspeed_go_around = np.sqrt(wing_loading * 2/rho_go_around_altitude * load_factor_go_around/CL_max_glide_ratio)
+
+        return airspeed_go_around / atmosphere_go_around.speed_of_sound()
+
 
     def _planform_geometry(self, planform: LiftingSurfacePlanform, is_main_wing: bool) -> dict[str, float]:
         """
@@ -176,7 +207,7 @@ class CD0Step():
         return asb.LiftingLine()
 
     
-    def estimate_CD0(self, airplane: asb.Airplane, mach: float, altitude: float, n_engines: float) -> float:
+    def estimate_CD0(self, state:DesignOptionState, mach: float, altitude: float, gear_down:bool=False) -> float:
         """
         Estimate total CD0 using all currently modeled components.
 
