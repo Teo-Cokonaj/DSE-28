@@ -6,7 +6,7 @@ from typing import Optional
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from objects.lifting_surface_planform import LiftingSurfacePlanform
 from objects.aircraft_parameters import AircraftParameters
-
+import ac_params as acp
 
 def calculate_LE_x_positions(number_of_sections: int,
                            planform: LiftingSurfacePlanform):
@@ -144,33 +144,33 @@ def make_airplane_model(aircraft_parameters: AircraftParameters,
     return airplane
 
 if __name__ == "__main__":
-    aircraft_parameters=AircraftParameters(total_mass=50.0,
-                                           horizontal_stabilizer_distance_from_wing=3.0,
-                                           vertical_stabilizer_distance_from_wing=3.0,
-                                           canard_distance_in_front_of_wing=0.5)
+    aircraft_parameters=AircraftParameters(total_mass=acp.m_HUGO,
+                                           horizontal_stabilizer_distance_from_wing=acp.horizontal_stabilizer_distance_from_wing_HUGO,
+                                           vertical_stabilizer_distance_from_wing=acp.vertical_stabilizer_distance_from_wing_HUGO,
+                                           canard_distance_in_front_of_wing=acp.canard_distance_in_front_of_wing)
     
-    wing_planform=LiftingSurfacePlanform(aspect_ratio=25.0,
-                                span=2.0,
-                                sweep_quarter_deg=45.0,
-                                taper=1.0,
-                                tip_twist_rad=1.0)
+    wing_planform=LiftingSurfacePlanform(aspect_ratio=acp.AR_HUGO,
+                                span=acp.b_HUGO,
+                                sweep_quarter_deg=acp.Lambda_qc_HUGO,
+                                taper=acp.lambda_HUGO,
+                                tip_twist_rad=acp.tip_twist_HUGO)
     
-    horizontal_stabilizer_planform=LiftingSurfacePlanform(aspect_ratio=3.0,
-                                                                span=0.5,
-                                                                sweep_quarter_deg=45.0,
-                                                                taper=1.0,
-                                                                tip_twist_rad=0.0)
+    horizontal_stabilizer_planform=LiftingSurfacePlanform(aspect_ratio=acp.HT_AR_HUGO,
+                                                                span=acp.HT_span_HUGO,
+                                                                sweep_quarter_deg=acp.HT_sweep_quarter_deg_HUGO,
+                                                                taper=acp.HT_taper_HUGO,
+                                                                tip_twist_rad=acp.HT_tip_twist_rad_HUGO)
     
-    vertical_stabilizer_planform=LiftingSurfacePlanform(aspect_ratio=3.0,
-                                                                span=0.3,
-                                                                sweep_quarter_deg=0.0,
-                                                                taper=0.3,
-                                                                tip_twist_rad=0.0)
-    canard_planform=LiftingSurfacePlanform(aspect_ratio=3.0,
-                                                                span=0.3,
-                                                                sweep_quarter_deg=45.0,
-                                                                taper=1.0,
-                                                                tip_twist_rad=0.0)
+    vertical_stabilizer_planform=LiftingSurfacePlanform(aspect_ratio=acp.VT_AR_HUGO,
+                                                                span=acp.VT_span_HUGO,
+                                                                sweep_quarter_deg=acp.VT_sweep_quarter_deg_HUGO,
+                                                                taper=acp.VT_taper_HUGO,
+                                                                tip_twist_rad=acp.VT_tip_twist_rad_HUGO)
+    canard_planform=LiftingSurfacePlanform(aspect_ratio=acp.CN_AR_HUGO,
+                                                                span=acp.CN_span_HUGO,
+                                                                sweep_quarter_deg=acp.CN_sweep_quarter_deg_HUGO,
+                                                                taper=acp.CN_taper_HUGO,
+                                                                tip_twist_rad=acp.CN_tip_twist_rad_HUGO)
 
     wing_number_of_sections=100
     horizontal_stabilizer_number_of_sections=5
@@ -201,10 +201,3 @@ if __name__ == "__main__":
                                  canard_airfoils)
     
     airplane.draw_three_view()
-
-
-    
-
-        
-
-
