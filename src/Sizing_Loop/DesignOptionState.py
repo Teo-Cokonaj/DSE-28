@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import copy
 
 import sys
 import os
@@ -11,9 +12,9 @@ from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
 
 @dataclass
 class DesignOptionState:
-    iterable = DesignOptionStateIterable
-    _fixed = DesignOptionStateFixed()
+    iterable:DesignOptionStateIterable
+    _fixed:DesignOptionStateFixed = field(default_factory=lambda: copy.deepcopy(DesignOptionStateFixed()))
 
     @property
-    def fixture(self) -> DesignOptionStateFixed:
+    def fixed(self) -> DesignOptionStateFixed:
         return self._fixed
