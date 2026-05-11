@@ -7,7 +7,7 @@ current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(current_file))
 sys.path.append(project_root)
 from objects.aircraft_parameters import AircraftParameters
-from objects.wing_planform import WingPlanform
+from objects.lifting_surface_planform import LiftingSurfacePlanform
 from global_parameters import CONSTANTS, Assumptions
 
 class FlightEnvelope:

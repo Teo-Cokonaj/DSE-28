@@ -39,6 +39,7 @@ class Assumptions():
         self.positive_C_L_max=1.6 #CHANGE
         self.negative_C_L_max=-0.8 #CHANGE
         self.C_L_alpha = 0.5*2*np.pi #CHANGE
+        self.alpha_stall_deg = 10.0 #deg
 
 
 class Engine():
