@@ -3,15 +3,15 @@ import aerosandbox.numpy as np
 class AircraftParameters:
     def __init__(self,
                  total_mass: float,
-                 E: float=73.1e9,
-                 G: float=28.0e9,
-                 rho_structural: float=2780.0
+                 horizontal_stabilizer_distance_from_wing: float,
+                 vertical_stabilizer_distance_from_wing: float,
+                 canard_distance_in_front_of_wing: float,
                  ):
 
         self.total_mass=total_mass
-        self.E=E
-        self.G=G
-        self.rho_structural=rho_structural
+        self.horizontal_stabilizer_distance_from_wing = horizontal_stabilizer_distance_from_wing
+        self.vertical_stabilizer_distance_from_wing = vertical_stabilizer_distance_from_wing
+        self.canard_distance_in_front_of_wing = canard_distance_in_front_of_wing
 
         def example_function(self):
 
