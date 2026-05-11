@@ -40,6 +40,9 @@ class Assumptions():
         self.negative_C_L_max=-0.8 #CHANGE
         self.C_L_alpha = 0.5*2*np.pi #CHANGE
 
+        #Geometry Assumptions:
+        self.diameter_fuselage = .4 #m
+
 
 class Engine():
     def __init__(self):

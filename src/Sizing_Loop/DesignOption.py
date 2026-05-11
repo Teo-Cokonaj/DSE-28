@@ -12,7 +12,6 @@ from global_parameters import CONSTANTS, Assumptions
 import Drag.component_method as dcm
 from flight_envelope.flight_envelope import FlightEnvelope
 from objects.aircraft_parameters import AircraftParameters
-from objects.wing_planform import WingPlanform
 
 class DesignOption():
     def __init__(self, assumptions:Assumptions=Assumptions(), canard:bool=False):
@@ -21,9 +20,11 @@ class DesignOption():
         self.canard = canard
 
 
-    def generate_lift_distribution(self, load_factor:float, aircraft_parameters:AircraftParameters, wing_planfom:WingPlanform)->asb.LiftingLine:
+    def generate_lift_distribution(self, load_factor:float, plane:asb.Airplane)->asb.LiftingLine:
         return asb.LiftingLine()
 
     
-    def estimate_CD0(self, aircraft_parameters:AircraftParameters, wing_planfom:WingPlanform):
-        pass
+    def estimate_CD0(self, airplane:asb.Airplane, mach:float, altitude:float):
+        main_wing_geometry = {
+            'diameter_fuselage':self.assumptions.diameter_fuselage
+        }
