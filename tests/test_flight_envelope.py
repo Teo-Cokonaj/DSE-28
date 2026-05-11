@@ -5,22 +5,28 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.global_parameters import CONSTANTS, Assumptions
 from src.objects.aircraft_parameters import AircraftParameters
-from src.objects.wing_planform import WingPlanform
+from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.flight_envelope.flight_envelope import FlightEnvelope
 
 
 @pytest.fixture
 def aircraft_parameters():
-    return AircraftParameters(total_mass=7.0660)
+    return AircraftParameters(
+        total_mass=7.0660,
+        horizontal_stabilizer_distance_from_wing=0.,
+        vertical_stabilizer_distance_from_wing=0.,
+        canard_distance_in_front_of_wing=0.,
+    )
 
 
 @pytest.fixture
 def wing_planform():
-    wing = WingPlanform(
+    wing = LiftingSurfacePlanform(
         aspect_ratio=8.0,
         span=2.8,
         sweep_quarter_deg=0.0,
         taper=1.0,
+        tip_twist_rad=0.
     )
     return wing
 
@@ -44,11 +50,10 @@ def assumptions():
 
 
 @pytest.fixture
-def flight_envelope(constants,
-                    assumptions,
+def flight_envelope(assumptions,
                     aircraft_parameters,
                     wing_planform):
-    fe = FlightEnvelope(constants, assumptions)
+    fe = FlightEnvelope()
 
     fe.positive_manoeuvring_limit_load_factor = 3.8
     fe.negative_manoeuvring_limit_load_factor = (

@@ -41,6 +41,9 @@ class Assumptions():
         self.C_L_alpha = 0.5*2*np.pi #CHANGE
         self.alpha_stall_deg = 10.0 #deg
 
+        #Geometry Assumptions:
+        self.diameter_fuselage = .4 #m
+
 
 class Engine():
     def __init__(self):
