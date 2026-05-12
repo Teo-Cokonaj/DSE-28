@@ -41,7 +41,7 @@ class Assumptions():
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
         self.C_L_alpha = 0.5*2*np.pi #CHANGE
 
-        self.airfield_length = 1000. #m #TODO check with the actual airport
+        self.airfield_length = 1275. #m #TODO check with the actual airport
 
         # Geometry Assumptions:
         # Fuselage

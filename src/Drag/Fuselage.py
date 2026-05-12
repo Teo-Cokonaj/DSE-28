@@ -31,7 +31,7 @@ class Fuselage(Component):
     
 
     def form_factor(self, mach=None)->float:
-        FF_fuslage = 1+60/self.lenght_to_diameter**3 +self.lenght_to_diameter/400
+        FF_fuslage = 0.9+5/self.lenght_to_diameter**1.5 +self.lenght_to_diameter/400
     
         return FF_fuslage
     

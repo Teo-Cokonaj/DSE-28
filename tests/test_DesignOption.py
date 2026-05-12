@@ -18,8 +18,7 @@ from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
 from src.objects.propulsion_parameters import PropulsionParameters, EngineParameters
 
-@pytest.fixture
-def initial_state():
+def initial_state_interior():
     return DesignOptionState(
         DesignOptionStateIterable(
             aircraft_parameters=AircraftParameters(
@@ -54,9 +53,16 @@ def initial_state():
         )
     )
 
+
+@pytest.fixture
+def initial_state():
+    return initial_state_interior()
+
 class TestDesignOption:
-    def test_twoIterations(self, initial_state, print_:bool=False):
-        design_option = DesignOption(initial_state, [MatchingDiagramStep()])
+    def test_twoIterations(self, initial_state, print_:bool=False, plot:bool=False):
+        matching_diagram_step = MatchingDiagramStep(plot=plot)
+
+        design_option = DesignOption(initial_state, [matching_diagram_step])
         design_option.iteration_step()
 
         #checking that the iteration actually happened
@@ -69,4 +75,7 @@ class TestDesignOption:
             print(design_option.state.iterable.lifting_surfaces[1].span)
             print(design_option.state.iterable.aircraft_parameters.thrust_weight_ratio)
 
-        
+    
+if __name__ == "__main__":
+    test_design_option = TestDesignOption()
+    test_design_option.test_twoIterations(initial_state_interior(), True, True)

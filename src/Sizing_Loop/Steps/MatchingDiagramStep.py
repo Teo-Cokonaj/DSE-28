@@ -25,7 +25,7 @@ class MatchingDiagramStep(DesignOptionStep):
 
         CL_A_h = state.fixed.assumptions.positive_C_L_max_airfoil * .9 * np.cos(state.iterable.lifting_surfaces[0].sweep_quarter_rad)
         CL_h_max = -.35 * state.iterable.lifting_surfaces[1].aspect_ratio**(1/3)
-        CL_max = CL_A_h + state.iterable.lifting_surfaces[0].wing_area / state.iterable.lifting_surfaces[1].wing_area * CL_h_max
+        CL_max = CL_A_h + state.iterable.lifting_surfaces[1].wing_area / state.iterable.lifting_surfaces[0].wing_area * CL_h_max
 
         diagram.add_landing_field_length("Landing Length", state.fixed.assumptions.airfield_length, CL_max)
         diagram.create_wing_loading_axis()
