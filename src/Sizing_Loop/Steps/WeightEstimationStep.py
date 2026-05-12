@@ -31,17 +31,12 @@ class WeightEstimationStep(DesignOptionStep):
 
         class_I_result = class_I.run_estimation(
             oem_fraction=state.iterable.aircraft_parameters.empty_mass_fraction,
-            CL_max_glide_ratio_go_around=np.sqrt(state.iterable.performance_parameters.go_around_parameters.CD0 
-                                        * state.iterable.performance_parameters.go_around_parameters.inviscid_ratio),
-            glide_ratio_mach_max=.5 * np.sqrt(state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio 
-                                        / state.iterable.performance_parameters.mach_max_parameters.CD0),
-            glide_ratio_cruise=.5 * np.sqrt(state.iterable.performance_parameters.cruise_parameters.inviscid_ratio 
-                                        / state.iterable.performance_parameters.cruise_parameters.CD0),
-            glide_ratio_go_around=.5 * np.sqrt(state.iterable.performance_parameters.go_around_parameters.inviscid_ratio 
-                                        / state.iterable.performance_parameters.go_around_parameters.CD0),
-            airspeed_approach=np.sqrt(state.fixed.assumptions.airfield_length/.6),
-            wing_loading=CONSTANTS.G0 * state.iterable.aircraft_parameters.total_mass
-                         / state.iterable.lifting_surfaces[0].wing_area
+            CL_max_glide_ratio_go_around=state.iterable.performance_parameters.go_around_parameters.CL_glide_ratio_max(),
+            glide_ratio_mach_max=state.iterable.performance_parameters.mach_max_parameters.glide_ratio_max(),
+            glide_ratio_cruise=state.iterable.performance_parameters.cruise_parameters.glide_ratio_max(),
+            glide_ratio_go_around=state.iterable.performance_parameters.go_around_parameters.glide_ratio_max(),
+            airspeed_approach=state.fixed.assumptions.airspeed_approach,
+            wing_loading=state.iterable.wing_loading()
         )
 
         state.iterable.aircraft_parameters.fuel_mass_fraction = class_I_result.fuel_fraction

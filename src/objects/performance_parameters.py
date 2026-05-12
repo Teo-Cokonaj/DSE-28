@@ -6,8 +6,11 @@ class PerformanceAtAltitude:
     inviscid_ratio:float
     CD0:float
 
-    def glide_ratio_max(self):
+    def glide_ratio_max(self) -> float:
         return .5 * np.sqrt(self.inviscid_ratio / self.CD0)
+    
+    def CL_glide_ratio_max(self) -> float:
+        return np.sqrt(self.inviscid_ratio * self.CD0)
 
 
 @dataclass

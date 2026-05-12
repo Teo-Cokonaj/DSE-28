@@ -72,6 +72,11 @@ class Assumptions():
         self.moment_arm_per_span = 1.7 /7.07 # based on FLEXOP
 
 
+    @property
+    def airspeed_approach(self) -> float:
+        return np.sqrt(self.airfield_length / .6)
+
+
 class Engine():
     def __init__(self):
         # ENGINE CONSTANTS --- ENGINE TBD ---
