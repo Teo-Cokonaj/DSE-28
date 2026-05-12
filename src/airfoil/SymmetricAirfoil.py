@@ -27,6 +27,7 @@ class SymmetricAirfoil(asb.Airfoil):
             Res = np.geomspace(1e6, 1e8, 100),
             cache_filename = "src/airfoil/NASA_SC2_0012"
         )
+        self.repanel(n_points_per_side=50)
 
 
 if __name__ == "__main__":
