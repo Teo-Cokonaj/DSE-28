@@ -31,7 +31,6 @@ class CD0Step(DesignOptionStep):
         return state.iterable
 
 
-
     @staticmethod
     def go_around_mach(state:DesignOptionState)->float:
         assumptions = state.fixed.assumptions
@@ -73,15 +72,12 @@ class CD0Step(DesignOptionStep):
         }
 
 
-    def build_planform_components(self, airplane: asb.Airplane):
+    def build_planform_components(self, planforms: list[LiftingSurfacePlanform]):
         """
         Turn a list of wing planforms into the drag-model objects used by 
         the component method.
         """
-        components = []
-        source_list = getattr(airplane, "planforms", None)
-        if source_list is None:
-            raise ValueError("No planforms available on airplane: attach 'planforms' to the airplane before calling build_planform_components.")
+        components = list()
 
         surface_factors = [
             (1.00, 1.07),  # main wing (1.00 for high wing, 1.1-1.4 for low wing)
@@ -90,10 +86,10 @@ class CD0Step(DesignOptionStep):
             (1.05, 1.07),  # canard, only if present (use values similar to the wing, prob lower)
         ]
 
-        if len(source_list) > len(surface_factors):
-            raise ValueError(f"Expected at most {len(surface_factors)} planforms, got {len(source_list)}.")
+        if len(planforms) > len(surface_factors):
+            raise ValueError(f"Expected at most {len(surface_factors)} planforms, got {len(planforms)}.")
 
-        for index, wing_or_planform in enumerate(source_list):
+        for index, wing_or_planform in enumerate(planforms):
             is_main_wing = index == 0 
             geometry = self._planform_geometry(wing_or_planform, is_main_wing=is_main_wing)
             interference_factor, wetted_surface_multiplier = surface_factors[index]
@@ -175,7 +171,7 @@ class CD0Step(DesignOptionStep):
         main_component = dcm.LandingGear(main_geom, bool(self.assumptions.main_gear_enclosed))
         return [nose_component, main_component]
 
-    def _bay_geometry(self) -> dict[str, float]:
+    def _bay_geometry(self, state:DesignOptionState) -> dict[str, float]:
         """
         Build bay (nacelle) geometry from fuselage assumptions.
         Uses the sum of fuselage length sections as the bay length.
@@ -187,21 +183,24 @@ class CD0Step(DesignOptionStep):
             "diameter": diameter,
         }
 
-    def build_bay_components(self) -> dcm.Bay:
+    def build_bay_components(self, state:DesignOptionState) -> dcm.Bay:
         """
         Build a 'Bay' (nacelle) component using fuselage-derived length
         and diameter.
         """
-        gp = self._bay_geometry()
+        gps = self._bay_geometry(state)
         interference_factor = 1.3
         laminar_fraction = 0.1  # placeholder
-        return dcm.Bay(
-            interference_factor,
-            float(gp["length"]),
-            float(gp["diameter"]),
-            laminar_fraction,
-            0.405e-5  # reynolds factor (Production sheet metal)
-        )
+        bays = list()
+        for gp in gps:
+            bays.append(dcm.Bay(
+                interference_factor,
+                float(gp["length"]),
+                float(gp["diameter"]),
+                laminar_fraction,
+                0.405e-5  # reynolds factor (Production sheet metal)
+        ))
+        return bays
 
     def generate_lift_distribution(self, load_factor:float, plane:asb.Airplane)->asb.LiftingLine:
         return asb.LiftingLine()
@@ -217,16 +216,16 @@ class CD0Step(DesignOptionStep):
         - landing gear
         - bay / nacelle
         """
-        planform_components, surface_reference = self.build_planform_components(airplane)
+        planform_components, surface_reference = self.build_planform_components(state.iterable.lifting_surfaces)
         fuselage_component = self.build_fuselage_components()
         landing_gear_components = self.build_landing_gear_components()
-        bay_component = self.build_bay_component()
+        bay_components = self.build_bay_components()
 
         all_components = (
             planform_components
             + [fuselage_component]
             + landing_gear_components
-            + [bay_component]
+            + bay_components
         )
 
         return dcm.estimate_CD0(all_components, altitude, mach, surface_reference)
