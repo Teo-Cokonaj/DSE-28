@@ -1,335 +1,184 @@
-from dataclasses import dataclass
 import aerosandbox.numpy as np
 
-#--------------------------------------CONSTANTS--------------------------------------
-g = 9.81  # m/s^2, gravitational acceleration
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+g = 9.81  # m/s^2
+
+# =============================================================================
+# SWEEP CONVERSION HELPERS
+# =============================================================================
 
 def sweep_le_to_qc_deg(sweep_le_deg: float, aspect_ratio: float, taper: float) -> float:
     """
-    Convert leading-edge sweep angle to quarter-chord sweep angle.
-
-    Parameters
-    ----------
-    sweep_le_deg : float
-        Leading-edge sweep angle [deg].
-    aspect_ratio : float
-        Aspect ratio [-].
-    taper : float
-        Taper ratio [-].
-
-    Returns
-    -------
-    float
-        Quarter-chord sweep angle [deg].
+    Convert leading-edge sweep angle to quarter-chord sweep angle
+    for a trapezoidal lifting surface.
     """
-    sweep_le = np.radians(sweep_le_deg)
-    return np.rad2deg(
-        np.arctan(
-            np.tan(sweep_le) - (1 - taper) / (aspect_ratio * (1 + taper))
-        )
+    sweep_le_rad = np.radians(sweep_le_deg)
+
+    sweep_qc_rad = np.arctan(
+        np.tan(sweep_le_rad)
+        - (1.0 - taper) / (aspect_ratio * (1.0 + taper))
     )
+
+    return np.degrees(sweep_qc_rad)
 
 
 def sweep_qc_to_le_deg(sweep_qc_deg: float, aspect_ratio: float, taper: float) -> float:
     """
-    Convert quarter-chord sweep angle to leading-edge sweep angle.
-
-    Parameters
-    ----------
-    sweep_qc_deg : float
-        Quarter-chord sweep angle [deg].
-    aspect_ratio : float
-        Aspect ratio [-].
-    taper : float
-        Taper ratio [-].
-
-    Returns
-    -------
-    float
-        Leading-edge sweep angle [deg].
+    Convert quarter-chord sweep angle to leading-edge sweep angle
+    for a trapezoidal lifting surface.
     """
-    sweep_qc = np.radians(sweep_qc_deg)
-    return np.rad2deg(
-        np.arctan(
-            np.tan(sweep_qc) + (1 - taper) / (aspect_ratio * (1 + taper))
-        )
+    sweep_qc_rad = np.radians(sweep_qc_deg)
+
+    sweep_le_rad = np.arctan(
+        np.tan(sweep_qc_rad)
+        + (1.0 - taper) / (aspect_ratio * (1.0 + taper))
     )
 
-
-@dataclass(frozen=True)
-class LiftingSurfaceParams:
-    """
-    Geometric parameters of a trapezoidal lifting surface.
-
-    The span is the full span for symmetric horizontal surfaces such as wings,
-    horizontal tails and canards. For vertical tails, use it as the exposed
-    vertical span/height.
-    """
-
-    name: str
-    aspect_ratio: float
-    span: float
-    taper: float
-    sweep_quarter_deg: float
-    tip_twist_rad: float = 0.0
-    symmetric: bool = True
-    airfoil: str | None = None
-
-    @property
-    def area(self) -> float:
-        """Planform area [m^2]."""
-        return self.span**2 / self.aspect_ratio
-
-    @property
-    def root_chord(self) -> float:
-        """Root chord [m]."""
-        return 2 * self.area / (self.span * (1 + self.taper))
-
-    @property
-    def tip_chord(self) -> float:
-        """Tip chord [m]."""
-        return self.taper * self.root_chord
-
-    @property
-    def mean_aerodynamic_chord(self) -> float:
-        """Mean aerodynamic chord of a trapezoidal lifting surface [m]."""
-        return (
-            2 / 3 * self.root_chord
-            * (1 + self.taper + self.taper**2)
-            / (1 + self.taper)
-        )
-
-    @property
-    def semi_span(self) -> float:
-        """Semi-span [m]. For vertical surfaces, this is half of the defined span."""
-        return self.span / 2
-
-    @property
-    def sweep_quarter_rad(self) -> float:
-        """Quarter-chord sweep angle [rad]."""
-        return np.radians(self.sweep_quarter_deg)
-
-    @property
-    def sweep_le_deg(self) -> float:
-        """Leading-edge sweep angle [deg]."""
-        return sweep_qc_to_le_deg(
-            self.sweep_quarter_deg,
-            self.aspect_ratio,
-            self.taper,
-        )
-
-    @property
-    def sweep_le_rad(self) -> float:
-        """Leading-edge sweep angle [rad]."""
-        return np.radians(self.sweep_le_deg)
-
-    @property
-    def tip_le_x_offset(self) -> float:
-        """
-        Leading-edge x-offset of the tip section relative to the root leading edge [m].
-
-        This is useful for creating an AeroSandbox WingXSec at the tip using
-        xyz_le=[tip_le_x_offset, semi_span, z].
-        """
-        x_tip_qc = self.semi_span * np.tan(self.sweep_quarter_rad)
-        return x_tip_qc + 0.25 * self.root_chord - 0.25 * self.tip_chord
+    return np.degrees(sweep_le_rad)
 
 
-@dataclass(frozen=True)
-class AircraftParams:
-    """Container for aircraft-level parameters and component planforms."""
-
-    name: str
-    mass: float
-    wing: LiftingSurfaceParams
-    wing_loading: float | None = None
-    horizontal_stabilizer: LiftingSurfaceParams | None = None
-    vertical_stabilizer: LiftingSurfaceParams | None = None
-    canard: LiftingSurfaceParams | None = None
-    horizontal_stabilizer_distance_from_wing: float | None = None
-    vertical_stabilizer_distance_from_wing: float | None = None
-    canard_distance_in_front_of_wing: float | None = None
-
-    @property
-    def weight(self) -> float:
-        """Aircraft weight [N]."""
-        return self.mass * g
-
-    @property
-    def wing_area_from_geometry(self) -> float:
-        """Wing area from span and aspect ratio [m^2]."""
-        return self.wing.area
-
-    @property
-    def wing_area_from_loading(self) -> float | None:
-        """Wing area implied by W/S [m^2], if wing_loading is defined."""
-        if self.wing_loading is None:
-            return None
-        return self.weight / self.wing_loading
-
-
-#--------------------------------------AIRCRAFT PARAMETER OBJECTS--------------------------------------
-
-DAST_ARW2 = AircraftParams(
-    name="DAST ARW-2",
-    mass=1060,  # kg
-    wing=LiftingSurfaceParams(
-        name="DAST ARW-2 wing",
-        aspect_ratio=10.3,
-        span=5.79,  # m
-        taper=0.4,
-        sweep_quarter_deg=sweep_le_to_qc_deg(28.8, 10.3, 0.4),
-        tip_twist_rad=0.0,
-        symmetric=True,
-    ),
-)
-
-X56A = AircraftParams(
-    name="NASA X-56A",
-    mass=238,  # kg
-    wing=LiftingSurfaceParams(
-        name="X-56A wing",
-        aspect_ratio=14.0,
-        span=8.53,  # m
-        taper=0.46,
-        sweep_quarter_deg=sweep_le_to_qc_deg(22.0, 14.0, 0.46),
-        tip_twist_rad=0.0,
-        symmetric=True,
-    ),
-)
-
-BOEING_TTBW = AircraftParams(
-    name="Boeing/NASA Mach 0.745 Transonic Truss-Braced Wing",
-    mass=143164.0 * 0.45359237,  # kg, full-scale reference weight
-    wing=LiftingSurfaceParams(
-        name="Boeing/NASA TTBW wing",
-        aspect_ratio=19.55,
-        span=170.0 * 0.3048,  # m
-        taper=0.3,  # assumed preliminary value; exact public value not found
-        sweep_quarter_deg=15.0,  # assumed preliminary value; exact public value not found
-        tip_twist_rad=0.0,
-        symmetric=True,
-    ),
-)
-
-FLEXOP = AircraftParams(
-    name="FLEXOP / T-FLEX flexible-wing UAV demonstrator",
-    mass=65.0,  # kg
-    wing=LiftingSurfaceParams(
-        name="FLEXOP wing",
-        aspect_ratio=7.07**2 / (7.07 * (0.4713 + 0.2357) / 2.0),
-        span=7.07,  # m
-        taper=0.2357 / 0.4713,
-        sweep_quarter_deg=sweep_le_to_qc_deg(
-            20.0,
-            7.07**2 / (7.07 * (0.4713 + 0.2357) / 2.0),
-            0.2357 / 0.4713,
-        ),
-        tip_twist_rad=0.0,
-        symmetric=True,
-        airfoil="try6",
-    ),
-)
-
-HUGO = AircraftParams(
-    name="HUGO",
-    mass=50,  # kg
-    wing_loading=1000,  # N/m^2
-    wing=LiftingSurfaceParams(
-        name="HUGO wing",
-        aspect_ratio=23.0,
-        span=3.36,  # m
-        taper=0.5,
-        sweep_quarter_deg=sweep_le_to_qc_deg(15.0, 23.0, 0.5),
-        tip_twist_rad=0.0,
-        symmetric=True,
-        airfoil="NASA SC(2)-0012",
-    ),
-    horizontal_stabilizer=LiftingSurfaceParams(
-        name="HUGO horizontal stabilizer",
-        aspect_ratio=3.0,
-        span=0.5,  # m
-        taper=1.0,
-        sweep_quarter_deg=45.0,
-        tip_twist_rad=0.0,
-        symmetric=True,
-    ),
-    vertical_stabilizer=LiftingSurfaceParams(
-        name="HUGO vertical stabilizer",
-        aspect_ratio=1.5,
-        span=0.5,  # m, vertical height/exposed span
-        taper=1.0,
-        sweep_quarter_deg=45.0,
-        tip_twist_rad=0.0,
-        symmetric=False,
-    ),
-    canard=LiftingSurfaceParams(
-        name="HUGO canard",
-        aspect_ratio=3.0,
-        span=0.5,  # m
-        taper=1.0,
-        sweep_quarter_deg=45.0,
-        tip_twist_rad=0.0,
-        symmetric=True,
-    ),
-    horizontal_stabilizer_distance_from_wing=3.0,  # m
-    vertical_stabilizer_distance_from_wing=3.0,  # m
-    canard_distance_in_front_of_wing=0.5,  # m
-)
-
-
-#--------------------------------------BACKWARD-COMPATIBLE ALIASES--------------------------------------
-# These keep older scripts working while allowing aircraft_model.py to migrate
-# to the structured objects above.
-
+# =============================================================================
+# REFERENCE AIRCRAFT PARAMETERS
+# =============================================================================
+# -----------------------------------------------------------------------------
 # DAST ARW-2
-b_DAST = DAST_ARW2.wing.span
-AR_DAST = DAST_ARW2.wing.aspect_ratio
-lambda_DAST = DAST_ARW2.wing.taper
-Lambda_LE_DAST = DAST_ARW2.wing.sweep_le_deg
-Lambda_qc_DAST = DAST_ARW2.wing.sweep_quarter_deg  # degrees
-tip_twist_DAST = DAST_ARW2.wing.tip_twist_rad
-m_DAST = DAST_ARW2.mass
+# -----------------------------------------------------------------------------
 
-# X-56A
-b_X = X56A.wing.span
-AR_X = X56A.wing.aspect_ratio
-lambda_X = X56A.wing.taper
-Lambda_LE_X = X56A.wing.sweep_le_deg
-Lambda_qc_X = X56A.wing.sweep_quarter_deg  # degrees
-tip_twist_X = X56A.wing.tip_twist_rad
-m_X = X56A.mass
+m_DAST = 1060.0  # kg
 
-# HUGO wing
-b_HUGO = HUGO.wing.span
-AR_HUGO = HUGO.wing.aspect_ratio
-lambda_HUGO = HUGO.wing.taper
-Lambda_LE_HUGO = HUGO.wing.sweep_le_deg
-Lambda_qc_HUGO = HUGO.wing.sweep_quarter_deg  # degrees
-tip_twist_HUGO = HUGO.wing.tip_twist_rad
-m_HUGO = HUGO.mass
-W_over_S_HUGO = HUGO.wing_loading
-horizontal_stabilizer_distance_from_wing_HUGO = HUGO.horizontal_stabilizer_distance_from_wing
-vertical_stabilizer_distance_from_wing_HUGO = HUGO.vertical_stabilizer_distance_from_wing
-canard_distance_in_front_of_wing = HUGO.canard_distance_in_front_of_wing
+b_DAST = 5.79  # m
+AR_DAST = 10.3
+lambda_DAST = 0.40
+Lambda_LE_DAST = 28.8  # deg
+Lambda_qc_DAST = sweep_le_to_qc_deg(
+    sweep_le_deg=Lambda_LE_DAST,
+    aspect_ratio=AR_DAST,
+    taper=lambda_DAST,
+)
+tip_twist_DAST = 0.0  # rad
 
-# HUGO horizontal stabilizer
-HT_AR_HUGO = HUGO.horizontal_stabilizer.aspect_ratio
-HT_span_HUGO = HUGO.horizontal_stabilizer.span
-HT_sweep_quarter_deg_HUGO = HUGO.horizontal_stabilizer.sweep_quarter_deg
-HT_taper_HUGO = HUGO.horizontal_stabilizer.taper
-HT_tip_twist_rad_HUGO = HUGO.horizontal_stabilizer.tip_twist_rad
 
-# HUGO vertical stabilizer
-VT_AR_HUGO = HUGO.vertical_stabilizer.aspect_ratio
-VT_span_HUGO = HUGO.vertical_stabilizer.span
-VT_sweep_quarter_deg_HUGO = HUGO.vertical_stabilizer.sweep_quarter_deg
-VT_taper_HUGO = HUGO.vertical_stabilizer.taper
-VT_tip_twist_rad_HUGO = HUGO.vertical_stabilizer.tip_twist_rad
+# -----------------------------------------------------------------------------
+# NASA X-56A
+# -----------------------------------------------------------------------------
 
-# HUGO canard
-CN_AR_HUGO = HUGO.canard.aspect_ratio
-CN_span_HUGO = HUGO.canard.span
-CN_sweep_quarter_deg_HUGO = HUGO.canard.sweep_quarter_deg
-CN_taper_HUGO = HUGO.canard.taper
-CN_tip_twist_rad_HUGO = HUGO.canard.tip_twist_rad
+m_X = 238.0  # kg, max gross takeoff mass from 525 lb
+
+b_X = 8.53  # m, 28 ft
+AR_X = 14.0
+lambda_X = 0.46
+Lambda_LE_X = 22.0  # deg
+Lambda_qc_X = sweep_le_to_qc_deg(
+    sweep_le_deg=Lambda_LE_X,
+    aspect_ratio=AR_X,
+    taper=lambda_X,
+)
+tip_twist_X = 0.0  # rad
+
+
+# -----------------------------------------------------------------------------
+# Boeing / NASA Transonic Truss-Braced Wing reference
+# -----------------------------------------------------------------------------
+
+m_TTBW = 143_164.0 * 0.45359237  # kg
+
+b_TTBW = 170.0 * 0.3048  # m
+AR_TTBW = 19.55
+lambda_TTBW = 0.30  # preliminary assumption; exact public value not fixed here
+Lambda_qc_TTBW = 15.0  # deg, preliminary assumption
+Lambda_LE_TTBW = sweep_qc_to_le_deg(
+    sweep_qc_deg=Lambda_qc_TTBW,
+    aspect_ratio=AR_TTBW,
+    taper=lambda_TTBW,
+)
+tip_twist_TTBW = 0.0  # rad
+
+
+# -----------------------------------------------------------------------------
+# FLEXOP / T-FLEX flexible-wing UAV reference
+# -----------------------------------------------------------------------------
+
+m_FLEXOP = 65.0  # kg
+
+b_FLEXOP = 7.07  # m
+c_root_FLEXOP = 0.4713  # m
+c_tip_FLEXOP = 0.2357  # m
+
+lambda_FLEXOP = c_tip_FLEXOP / c_root_FLEXOP
+S_FLEXOP = b_FLEXOP * (c_root_FLEXOP + c_tip_FLEXOP) / 2.0
+AR_FLEXOP = b_FLEXOP**2 / S_FLEXOP
+
+Lambda_LE_FLEXOP = 20.0  # deg
+Lambda_qc_FLEXOP = sweep_le_to_qc_deg(
+    sweep_le_deg=Lambda_LE_FLEXOP,
+    aspect_ratio=AR_FLEXOP,
+    taper=lambda_FLEXOP,
+)
+tip_twist_FLEXOP = 0.0  # rad
+
+
+# =============================================================================
+# HUGO AIRCRAFT PARAMETERS
+# =============================================================================
+
+m_HUGO = 50.0  # kg
+
+W_over_S_HUGO = 1000.0  # N/m^2
+
+horizontal_stabilizer_distance_from_wing_HUGO = 3.0  # m
+vertical_stabilizer_distance_from_wing_HUGO = 3.0  # m
+canard_distance_in_front_of_wing = 0.5  # m
+
+
+# =============================================================================
+# HUGO MAIN WING
+# =============================================================================
+
+AR_HUGO = 23.0
+b_HUGO = 3.36  # m
+lambda_HUGO = 0.50
+
+Lambda_LE_HUGO = 15.0  # deg
+Lambda_qc_HUGO = sweep_le_to_qc_deg(
+    sweep_le_deg=Lambda_LE_HUGO,
+    aspect_ratio=AR_HUGO,
+    taper=lambda_HUGO,
+)
+
+tip_twist_HUGO = 0.0  # rad
+
+
+# =============================================================================
+# HUGO HORIZONTAL STABILIZER
+# =============================================================================
+
+HT_AR_HUGO = 3.0
+HT_span_HUGO = 0.20  # m
+HT_taper_HUGO = 0.50
+HT_sweep_quarter_deg_HUGO = 35.0  # deg
+HT_tip_twist_rad_HUGO = 0.0  # rad
+
+
+# =============================================================================
+# HUGO VERTICAL STABILIZER
+# =============================================================================
+
+VT_AR_HUGO = 1.5
+VT_span_HUGO = 0.20  # m
+VT_taper_HUGO = 0.50
+VT_sweep_quarter_deg_HUGO = 40.0  # deg
+VT_tip_twist_rad_HUGO = 0.0  # rad
+
+
+# =============================================================================
+# HUGO CANARD
+# =============================================================================
+
+CN_AR_HUGO = 3.0
+CN_span_HUGO = 0.20  # m
+CN_taper_HUGO = 0.50
+CN_sweep_quarter_deg_HUGO = 35.0  # deg
+CN_tip_twist_rad_HUGO = 0.0  # rad

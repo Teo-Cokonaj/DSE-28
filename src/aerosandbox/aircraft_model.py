@@ -177,7 +177,7 @@ if __name__ == "__main__":
     vertical_stabilizer_number_of_sections=5
     canard_number_of_sections = 5
 
-    wing_airfoil = asb.Airfoil('naca9999')
+    wing_airfoil = asb.Airfoil('sc20012')
     tail_airfoil = asb.Airfoil('naca0012')
     canard_airfoil=asb.Airfoil('naca0012')
 
