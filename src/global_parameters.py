@@ -46,9 +46,9 @@ class Assumptions():
         # Geometry Assumptions:
         # Fuselage
         self.diameter_fuselage = .15 # m (based on FLEXOP)
-        self.fuselage_length1 = .55 # [m] nose cone length (based on FLEXOP)
-        self.fuselage_length2 = 1.75 # [m] middle fuselage section length (based on FLEXOP)
-        self.fuselage_length3 = 1.12 # [m] tail cone length (based on FLEXOP)
+        self.fuselage_length1_per_span = .55 / 7.07 # nose cone length / span (based on FLEXOP)
+        self.fuselage_length2_per_span = 1.75 / 7.07  # middle fuselage section length /span (based on FLEXOP)
+        self.fuselage_length3_per_span = 1.12 / 7.07  # tail cone length / span (based on FLEXOP)
         self.fuselage_upsweep = np.radians(11) # [rad] (based on FLEXOP)
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
@@ -65,6 +65,10 @@ class Assumptions():
         self.nose_gear_height_strut   = 0.18   # [m] slightly shorter than main to give nose-up ground attitude
         self.nose_gear_width_strut    = 0.025  # [m]
         self.nose_gear_enclosed       = False
+
+        #tail arm
+        self.moment_arm_per_span = 1.7 /7.07 # based on FLEXOP
+
 
 class Engine():
     def __init__(self):
