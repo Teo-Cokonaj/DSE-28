@@ -26,7 +26,8 @@ class CD0Step(DesignOptionStep):
         state.iterable.performance_parameters.mach_max_parameters.CD0 = self.estimate_CD0(state, CONSTANTS.MACH_MAX, CONSTANTS.ALTITUDE_MACH_MAX)
         go_around_mach = self.go_around_mach(state)
         state.iterable.performance_parameters.go_around_parameters.CD0 = self.estimate_CD0(state, go_around_mach, assumptions.ALTITUDE_GO_AROUND)
-        state.iterable.performance_parameters.takeoff_parameters.CD0 = self.estimate_CD0(state, 0., 0., True)
+        takeoff_mach = np.sqrt(state.fixed.assumptions.airfield_length / .6) / asb.Atmosphere().speed_of_sound()
+        state.iterable.performance_parameters.takeoff_parameters.CD0 = self.estimate_CD0(state, takeoff_mach, 0., True)
 
         return state.iterable
 

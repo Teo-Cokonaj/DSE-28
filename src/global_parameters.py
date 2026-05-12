@@ -31,6 +31,8 @@ class Assumptions():
         self.AIR_DENSITY_CRUISE_ALTITUDE = 0.695 # [kg/m^3]
         self.TEMPERATURE_CRUISE_ALTITUDE = 252.2 #[K]
 
+        self.energy_density_saf = 42.8e6 # [J/kg]
+
         # TURN ASSUMPTIONS:
         self.ALTITUDE_GO_AROUND = 2000. # [m]
         self.TIME_HALF_CIRCLE = 60.0 # [s]
