@@ -18,7 +18,7 @@ class Component:
 
     def Cf(self, altitude:float, mach:float)->float:
         reynolds_ = self.reynolds(altitude, mach)
-        laminar_comp = self.laminar_fraction*1.328/np.sqrt(reynolds_)
+        laminar_comp = self.laminar_fraction*1.328/np.sqrt(reynolds_) 
         turbulent_comp = (1-self.laminar_fraction)*.455/(np.log10(reynolds_)**2.58*(1+.144*mach**2)**.65)
         return laminar_comp + turbulent_comp
 
@@ -30,7 +30,7 @@ class Component:
         viscosity = atmosphere.dynamic_viscosity()
         
         return min(density*speed_of_sound*mach*self.characteristic_length/viscosity,
-            38.21*(self.characteristic_length/self.surface_reynolds_factor) ** 1.053)
+            38.21*(self.characteristic_length/self.surface_reynolds_factor) ** 1.053) # subsonic value
 
 
     def form_factor(self, mach:float)->float:
