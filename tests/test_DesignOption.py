@@ -13,6 +13,8 @@ from src.Sizing_Loop.DesignOption import DesignOption
 from src.Sizing_Loop.DesignOptionState import DesignOptionState
 from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
 from src.Sizing_Loop.Steps.MatchingDiagramStep import MatchingDiagramStep
+from src.Sizing_Loop.Steps.CD0Step import CD0Step
+
 from src.objects.aircraft_parameters import AircraftParameters
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
@@ -61,8 +63,9 @@ def initial_state():
 class TestDesignOption:
     def test_twoIterations(self, initial_state, print_:bool=False, plot:bool=False):
         matching_diagram_step = MatchingDiagramStep(plot=plot)
+        CD0_step = CD0Step()
 
-        design_option = DesignOption(initial_state, [matching_diagram_step])
+        design_option = DesignOption(initial_state, [matching_diagram_step, CD0_step])
         design_option.iteration_step()
 
         #checking that the iteration actually happened
@@ -72,6 +75,7 @@ class TestDesignOption:
 
         if print_:
             print(design_option.state.iterable.lifting_surfaces[0].span)
+            print(design_option.state.iterable.lifting_surfaces[0].wing_area)
             print(design_option.state.iterable.lifting_surfaces[1].span)
             print(design_option.state.iterable.aircraft_parameters.thrust_weight_ratio)
 

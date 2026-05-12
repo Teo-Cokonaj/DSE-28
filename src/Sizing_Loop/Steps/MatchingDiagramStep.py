@@ -68,7 +68,7 @@ class MatchingDiagramStep(DesignOptionStep):
 
     @staticmethod
     def _update_wing_areas(state:DesignOptionState, wing_loading:float):
-        new_surface = wing_loading * state.iterable.aircraft_parameters.total_mass
+        new_surface = state.iterable.aircraft_parameters.total_mass * CONSTANTS.G0 / wing_loading
         surface_ratio = new_surface / state.iterable.lifting_surfaces[0].wing_area
 
         for lifting_surface in state.iterable.lifting_surfaces:
