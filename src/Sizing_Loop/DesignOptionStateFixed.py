@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import copy
 
 import sys
 import os
@@ -12,4 +13,4 @@ from src.Sizing_Loop.DesignOptionChoices import DesignOptionChoices
 @dataclass
 class DesignOptionStateFixed:
     assumptions:Assumptions = Assumptions()
-    choices:DesignOptionChoices = DesignOptionChoices()
+    choices:DesignOptionChoices = field(default_factory=lambda:copy.deepcopy(DesignOptionChoices()))

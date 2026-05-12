@@ -32,6 +32,7 @@ class Assumptions():
         self.TEMPERATURE_CRUISE_ALTITUDE = 252.2 #[K]
 
         # TURN ASSUMPTIONS:
+        self.ALTITUDE_GO_AROUND = 2000. # [m]
         self.TIME_HALF_CIRCLE = 60.0 # [s]
         self.OMEGA_GO_AROUND = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
         self.MC=0.75 #cruise Mach number
@@ -39,6 +40,8 @@ class Assumptions():
         self.positive_C_L_max_airfoil=1.25 #CHANGE
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
         self.C_L_alpha = 0.5*2*np.pi #CHANGE
+
+        self.airfield_length = 1000. #m #TODO check with the actual airport
 
         # Geometry Assumptions:
         # Fuselage

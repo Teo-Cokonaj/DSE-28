@@ -198,6 +198,39 @@ X56A = AircraftParams(
     ),
 )
 
+BOEING_TTBW = AircraftParams(
+    name="Boeing/NASA Mach 0.745 Transonic Truss-Braced Wing",
+    mass=143164.0 * 0.45359237,  # kg, full-scale reference weight
+    wing=LiftingSurfaceParams(
+        name="Boeing/NASA TTBW wing",
+        aspect_ratio=19.55,
+        span=170.0 * 0.3048,  # m
+        taper=0.3,  # assumed preliminary value; exact public value not found
+        sweep_quarter_deg=15.0,  # assumed preliminary value; exact public value not found
+        tip_twist_rad=0.0,
+        symmetric=True,
+    ),
+)
+
+FLEXOP = AircraftParams(
+    name="FLEXOP / T-FLEX flexible-wing UAV demonstrator",
+    mass=65.0,  # kg
+    wing=LiftingSurfaceParams(
+        name="FLEXOP wing",
+        aspect_ratio=7.07**2 / (7.07 * (0.4713 + 0.2357) / 2.0),
+        span=7.07,  # m
+        taper=0.2357 / 0.4713,
+        sweep_quarter_deg=sweep_le_to_qc_deg(
+            20.0,
+            7.07**2 / (7.07 * (0.4713 + 0.2357) / 2.0),
+            0.2357 / 0.4713,
+        ),
+        tip_twist_rad=0.0,
+        symmetric=True,
+        airfoil="try6",
+    ),
+)
+
 HUGO = AircraftParams(
     name="HUGO",
     mass=50,  # kg
