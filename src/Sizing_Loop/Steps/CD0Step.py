@@ -98,7 +98,7 @@ class CD0Step(DesignOptionStep):
                 dcm.Planform(
                     interference_factor,
                     geometry,
-                    0.1,      # laminar fraction (General aviation – classic production metal)
+                    0.1,      # laminar fraction (General aviation – classic production metal; subsonic!)
                     0.405e-5, # reynolds factor (Production sheet metal)
                     wetted_surface_multiplier
                 )
