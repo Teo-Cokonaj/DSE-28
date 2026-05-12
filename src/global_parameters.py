@@ -50,9 +50,7 @@ class Assumptions():
         self.fuselage_length2 = 1.75 # [m] middle fuselage section length (based on FLEXOP)
         self.fuselage_length3 = 1.12 # [m] tail cone length (based on FLEXOP)
         self.fuselage_upsweep = np.radians(11) # [rad] (based on FLEXOP)
-        if self.fuselage_upsweep > np.radians(20):
-            self.fuselage_base_area = np.pi / 4 * self.diameter_fuselage**2 * 0.5  # [m^2] (50% of max cross-section?)
-        else: self.fuselage_base_area = 0
+        self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
         # Main gear (all are placeholders currently)
         self.main_gear_diameter_wheel = 0.15   # [m] standard for 50-80kg UAV class
