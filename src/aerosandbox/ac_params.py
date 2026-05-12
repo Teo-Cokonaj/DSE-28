@@ -60,7 +60,21 @@ Lambda_qc_DAST = sweep_le_to_qc_deg(
 )
 tip_twist_DAST = 0.0  # rad
 
+HT_AREA_DAST = 0.836  # m^2
+HT_AR_DAST = 3.5
+HT_lambda_DAST = 0.40
+HT_Lambda_LE_DAST_deg = 45  # deg
+HT_root_DAST = 0.70  # m
+HT_tip_DAST = 0.28  # m
+HT_arm_DAST = 2.66 # m
+HT_span_DAST = 1.71  # m
+HT_Lambda_qc_DAST_deg = sweep_le_to_qc_deg(
+    sweep_le_deg=HT_Lambda_LE_DAST_deg,
+    aspect_ratio=HT_AR_DAST,
+    taper=HT_lambda_DAST,
+)
 
+VT_half_span_DAST = 0.83  # m
 # -----------------------------------------------------------------------------
 # NASA X-56A
 # -----------------------------------------------------------------------------
@@ -96,7 +110,19 @@ Lambda_LE_TTBW = sweep_qc_to_le_deg(
 )
 tip_twist_TTBW = 0.0  # rad
 
+HT_span_TTBW = 11.75  # m
+HT_root_TTBW = 3.57 #m
+HT_tip_TTBW = 1.26 #m
+HT_sweep_LE_TTBW_deg = 21.26  # deg
+HT_arm_TTBW = 21.09
+HT_sweep_qc_TTBW_deg = sweep_le_to_qc_deg(
+    sweep_le_deg=HT_sweep_LE_TTBW_deg,
+    aspect_ratio=AR_TTBW,
+    taper=lambda_TTBW,
+)
 
+VT_half_span_TTBW = 9.64 # m
+VT_sweep_LE_TTBW_deg = 16.60  # deg
 # -----------------------------------------------------------------------------
 # FLEXOP / T-FLEX flexible-wing UAV reference
 # -----------------------------------------------------------------------------
@@ -119,6 +145,12 @@ Lambda_qc_FLEXOP = sweep_le_to_qc_deg(
 )
 tip_twist_FLEXOP = 0.0  # rad
 
+HT_arm_FLEXOP = 2.0  # m
+HT_span_FLEXOP = 1.9  # m
+HT_Lambda_LE_FLEXOP_deg = 12.10  # deg
+HT_taper_FLEXOP = 0.50
+HT_root_FLEXOP = 0.46  # m
+HT_tip_FLEXOP = 0.23  # m
 
 # =============================================================================
 # HUGO AIRCRAFT PARAMETERS
