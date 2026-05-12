@@ -19,7 +19,12 @@ class CONSTANTS:
     N_LANDING_ATTEMPTS = 4
     MASS_PAYLOAD = 5. # [kg]
     DYNAMIC_VISCOSITY_SEA_LEVEL = 1.789e-5 # [kg/m/s]
+
+    #cs-23 requirements
     OBSTACLE_HEIGHT = 11 #[m]
+    ALTITUDE_OEI_CLIMB = 122 #[m]
+    CLIMB_GRADIENT_AEO = .04
+    CLIMB_GRADIENT_OEI = .01
     
 
 class Assumptions():
@@ -55,17 +60,17 @@ class Assumptions():
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
         # Main gear (all are placeholders currently)
-        self.main_gear_diameter_wheel = 0.15   # [m] standard for 50-80kg UAV class
-        self.main_gear_width_wheel    = 0.055  # [m]
-        self.main_gear_height_strut   = 0.20   # [m] sized for belly clearance + rotation angle
-        self.main_gear_width_strut    = 0.035  # [m]
+        self.main_gear_diameter_wheel = 0.05   # [m] standard for 50-80kg UAV class
+        self.main_gear_width_wheel    = 0.025  # [m]
+        self.main_gear_height_strut   = 0.1   # [m] sized for belly clearance + rotation angle
+        self.main_gear_width_strut    = 0.01  # [m]
         self.main_gear_enclosed       = False
 
         # Nose gear (all are placeholders currently)
-        self.nose_gear_diameter_wheel = 0.10   # [m] smaller since lightly loaded
-        self.nose_gear_width_wheel    = 0.045  # [m]
-        self.nose_gear_height_strut   = 0.18   # [m] slightly shorter than main to give nose-up ground attitude
-        self.nose_gear_width_strut    = 0.025  # [m]
+        self.nose_gear_diameter_wheel = 0.04   # [m] smaller since lightly loaded
+        self.nose_gear_width_wheel    = 0.02  # [m]
+        self.nose_gear_height_strut   = 0.1   # [m] slightly shorter than main to give nose-up ground attitude
+        self.nose_gear_width_strut    = 0.008  # [m]
         self.nose_gear_enclosed       = False
 
         #tail arm

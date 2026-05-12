@@ -36,7 +36,7 @@ class WeightEstimationStep(DesignOptionStep):
             glide_ratio_cruise=state.iterable.performance_parameters.cruise_parameters.glide_ratio_max(),
             glide_ratio_go_around=state.iterable.performance_parameters.go_around_parameters.glide_ratio_max(),
             airspeed_approach=state.fixed.assumptions.airspeed_approach,
-            wing_loading=state.iterable.wing_loading()
+            wing_loading=state.wing_loading()
         )
 
         state.iterable.aircraft_parameters.fuel_mass_fraction = class_I_result.fuel_fraction

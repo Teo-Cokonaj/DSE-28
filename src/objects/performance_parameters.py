@@ -19,4 +19,5 @@ class PerformanceParameters:
     mach_max_parameters:PerformanceAtAltitude
     go_around_parameters:PerformanceAtAltitude
     takeoff_parameters:PerformanceAtAltitude
+    climb_OEI_parameters:PerformanceAtAltitude
     

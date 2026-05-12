@@ -51,7 +51,8 @@ def initial_state_interior():
                 cruise_parameters=PerformanceAtAltitude(np.pi*.8*20., .01),
                 mach_max_parameters=PerformanceAtAltitude(np.pi*.75*20., .02),
                 go_around_parameters=PerformanceAtAltitude(np.pi*.9*20., .015),
-                takeoff_parameters=PerformanceAtAltitude(np.pi*.9*20., .025)
+                takeoff_parameters=PerformanceAtAltitude(np.pi*.9*20., .025),
+                climb_OEI_parameters=PerformanceAtAltitude(np.pi*.87*20., .023)
             )
         )
     )
@@ -80,6 +81,19 @@ class TestDesignOption:
             print(design_option.state.iterable.lifting_surfaces[0].wing_area)
             print(design_option.state.iterable.lifting_surfaces[1].span)
             print(design_option.state.iterable.aircraft_parameters.thrust_weight_ratio)
+            print("\nclimb at OEI performance")
+            print(design_option.state.iterable.performance_parameters.climb_OEI_parameters.glide_ratio_max())
+            print(design_option.state.iterable.performance_parameters.climb_OEI_parameters.CL_glide_ratio_max())
+            print(design_option.state.iterable.performance_parameters.climb_OEI_parameters.CD0)
+            print("\ntakeoff performance")
+            print(design_option.state.iterable.performance_parameters.takeoff_parameters.glide_ratio_max())
+            print(design_option.state.iterable.performance_parameters.takeoff_parameters.CL_glide_ratio_max())
+            print(design_option.state.iterable.performance_parameters.takeoff_parameters.CD0)
+            print("\nmach max")
+            print(design_option.state.iterable.performance_parameters.mach_max_parameters.glide_ratio_max())
+            print(design_option.state.iterable.performance_parameters.mach_max_parameters.CL_glide_ratio_max())
+            print(design_option.state.iterable.performance_parameters.mach_max_parameters.CD0)
+            
 
     
 if __name__ == "__main__":

@@ -22,31 +22,20 @@ class CD0Step(DesignOptionStep):
 
     def update(self, state:DesignOptionState):
         assumptions = state.fixed.assumptions
+
         state.iterable.performance_parameters.cruise_parameters.CD0 = self.estimate_CD0(state, CONSTANTS.MACH_CRUISE, assumptions.ALTITUDE_CRUISE)
+
         state.iterable.performance_parameters.mach_max_parameters.CD0 = self.estimate_CD0(state, CONSTANTS.MACH_MAX, CONSTANTS.ALTITUDE_MACH_MAX)
-        go_around_mach = self.go_around_mach(state)
-        state.iterable.performance_parameters.go_around_parameters.CD0 = self.estimate_CD0(state, go_around_mach, assumptions.ALTITUDE_GO_AROUND)
-        takeoff_mach = np.sqrt(state.fixed.assumptions.airfield_length / .6) / asb.Atmosphere().speed_of_sound()
+
+        state.iterable.performance_parameters.go_around_parameters.CD0 = self.estimate_CD0(state, state.mach_go_around(), assumptions.ALTITUDE_GO_AROUND)
+
+        #NOTE: using approach speed since takeoff and landing configurations are same for this aircraft
+        takeoff_mach = assumptions.airspeed_approach / asb.Atmosphere().speed_of_sound() 
         state.iterable.performance_parameters.takeoff_parameters.CD0 = self.estimate_CD0(state, takeoff_mach, 0., True)
 
+        state.iterable.performance_parameters.climb_OEI_parameters.CD0 = self.estimate_CD0(state, takeoff_mach, CONSTANTS.ALTITUDE_OEI_CLIMB, False)
+
         return state.iterable
-
-
-    @staticmethod
-    def go_around_mach(state:DesignOptionState)->float:
-        assumptions = state.fixed.assumptions
-        wing_loading = state.iterable.aircraft_parameters.total_mass / state.iterable.lifting_surfaces[0].wing_area
-        CL_max_glide_ratio = np.sqrt(state.iterable.performance_parameters.go_around_parameters.CD0 * state.iterable.performance_parameters.go_around_parameters.inviscid_ratio)
-        # determining go around parameters
-        omega_turn = np.pi/assumptions.TIME_HALF_CIRCLE
-        atmosphere_go_around = asb.Atmosphere(assumptions.ALTITUDE_GO_AROUND)
-        rho_go_around_altitude = atmosphere_go_around.density()
-        # n**2 - quadratic_b_term*n -1
-        quadratic_b_term = omega_turn**2/CONSTANTS.G0**2 * wing_loading * 2/rho_go_around_altitude / CL_max_glide_ratio
-        load_factor_go_around = .5*(quadratic_b_term + np.sqrt(quadratic_b_term**2+4))
-        airspeed_go_around = np.sqrt(wing_loading * 2/rho_go_around_altitude * load_factor_go_around/CL_max_glide_ratio)
-
-        return airspeed_go_around / atmosphere_go_around.speed_of_sound()
 
 
     def _planform_geometry(self, planform: LiftingSurfacePlanform, diameter_fuselage:float) -> dict[str, float]:
@@ -106,9 +95,7 @@ class CD0Step(DesignOptionStep):
                 )
             )
 
-        main_wing_geometry = components[0].geometry_params
-        surface_reference = main_wing_geometry["chord_root"] * (1 + main_wing_geometry["taper_ratio"]) / 2 * main_wing_geometry["wing_span"]
-        return components, surface_reference
+            return components
 
     def _fuselage_geometry(self, state:DesignOptionState) -> dict[str, float]:
         """
@@ -171,7 +158,7 @@ class CD0Step(DesignOptionStep):
         nose_geom, main_geom = self._landing_gear_geometry(state)
         nose_component = dcm.LandingGear(nose_geom, bool(state.fixed.assumptions.nose_gear_enclosed))
         main_component = dcm.LandingGear(main_geom, bool(state.fixed.assumptions.main_gear_enclosed))
-        return [nose_component, main_component]
+        return [nose_component, main_component, main_component] #NOTE: there is a pair of main landing gears!
 
     def _bay_geometry(self, state:DesignOptionState) -> dict[str, float]:
         """
@@ -216,7 +203,7 @@ class CD0Step(DesignOptionStep):
         - landing gear
         - nacelles (bay components)
         """
-        planform_components, surface_reference = self.build_planform_components(state)
+        planform_components = self.build_planform_components(state)
         fuselage_component = self.build_fuselage_components(state)
         landing_gear_components = self.build_landing_gear_components(state) if gear_down else []
         bay_components = self.build_bay_components(state)
@@ -227,5 +214,7 @@ class CD0Step(DesignOptionStep):
             + landing_gear_components
             + bay_components
         )
+
+        surface_reference = state.iterable.lifting_surfaces[0].wing_area
 
         return dcm.estimate_CD0(all_components, altitude, mach, surface_reference)
