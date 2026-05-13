@@ -23,22 +23,17 @@ class TailSizingStep(DesignOptionStep):
     def update(self, state) -> DesignOptionStateIterable:
 
         self.wing_downwash_gradient=0.0
-        self.cruise_speed = CONSTANTS.MACH_CRUISE*np.sqrt(CONSTANTS.GAMMA_AIR*CONSTANTS.GAS_CONSTANT_AIR*state.fixed.assumptions.TEMPERATURE_CRUISE_ALTITUDE)
+        self.approach_speed = state.fixed.assumptions.airspeed_approach
         self.horizontal_stabilizer_arm = state.fixed.assumptions.moment_arm_per_area*state.iterable.lifting_surfaces[0].wing_area
 
         aircraft_parameters=AircraftParameters(total_mass=state.iterable.aircraft_parameters.total_mass,
-                 horizontal_stabilizer_distance_from_wing: float,
-                 vertical_stabilizer_distance_from_wing: float,
-                 canard_distance_in_front_of_wing: float,
-                 thrust_weight_ratio: float = 0.,
-                 empty_mass_fraction:float = .4,
-                 fuel_mass_fraction:float = .3,
-                 x_cg_per_mac:float = .25,
-                 ):
+                 horizontal_stabilizer_distance_from_wing=self.horizontal_stabilizer_arm,
+                 vertical_stabilizer_distance_from_wing=self.horizontal_stabilizer_arm,
+                 canard_distance_in_front_of_wing=state.iterable.aircraft_parameters.canard_distance_in_front_of_wing,
+                 x_cg_per_mac=state.iterable.aircraft_parameters.x_cg_per_mac,
+                 )
 
-
-
-        lifting_line_theory = LiftingLineTheory(aircraft_parameters=state.iterable.aircraft_parameters,
+        lifting_line_theory = LiftingLineTheory(aircraft_parameters=aircraft_parameters,
                                                 wing_planform=state.iterable.lifting_surfaces[0],
                                                 horizontal_stabilizer_planform=state.iterable.lifting_surfaces[1],
                                                 vertical_stabilizer_planform=state.iterable.lifting_surfaces[2],
@@ -51,7 +46,7 @@ class TailSizingStep(DesignOptionStep):
                                                       horizontal_stabilizer=False,
                                                       vertical_stabilizer=False)
 
-        A_minus_H_results = lifting_line_theory.run_llt_alpha_sweep(velocity=self.cruise_speed,
+        A_minus_H_results = lifting_line_theory.run_llt_alpha_sweep(velocity=self.approach_speed,
                                                                                  altitude_m=state.fixed.assumptions.ALTITUDE_CRUISE)
         self.ac_position_MAC = A_minus_H_results["x_ac"]/state.iterable.lifting_surfaces[0].MAC
         self.C_L_alpha_A_minus_H = A_minus_H_results["lift_curve_slope_per_rad"]
@@ -63,7 +58,7 @@ class TailSizingStep(DesignOptionStep):
                                                       horizontal_stabilizer=True,
                                                       vertical_stabilizer=True)
 
-        H_results = lifting_line_theory.run_llt_alpha_sweep(velocity=self.cruise_speed,
+        H_results = lifting_line_theory.run_llt_alpha_sweep(velocity=self.approach_speed,
                                                             altitude_m=state.fixed.assumptions.ALTITUDE_CRUISE)
         self.C_L_alpha_H = H_results["lift_curve_slope_per_rad"]
 
@@ -79,9 +74,8 @@ class TailSizingStep(DesignOptionStep):
                             )
         
         tail_volume.find_required_tail_volume()
+        state.iterable.lifting_surfaces[1].wing_area=tail_volume.required_tail_volume/state.iterable.aircraft_parameters.horizontal_stabilizer_distance_from_wing
         tail_volume.find_required_cg_position_MAC()
-
-        state.iterable.aircraft_parameters.fuel_mass_fraction = class_I_result.fuel_fraction
-        state.iterable.aircraft_parameters.total_mass = class_I_result.mtom
+        state.iterable.aircraft_parameters.x_cg_per_mac = tail_volume.required_CG_position_MAC
 
         return state.iterable
