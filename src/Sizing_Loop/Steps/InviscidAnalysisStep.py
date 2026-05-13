@@ -19,7 +19,7 @@ class InviscidAnalysisStep(DesignOptionStep):
         self.plot = plot
         self.debug = debug
 
-    def update(self, state) -> DesignOptionStateIterable:
+    def update(self, state:DesignOptionState) -> DesignOptionStateIterable:
         lifting_line_model = LiftingLineTheory(
             aircraft_parameters=state.iterable.aircraft_parameters,
             wing_planform=state.iterable.lifting_surfaces[0],
