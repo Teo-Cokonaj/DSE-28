@@ -102,6 +102,8 @@ m_TTBW = 143_164.0 * 0.45359237  # kg
 
 b_TTBW = 170.0 * 0.3048  # m
 AR_TTBW = 19.55
+S_TTBW = b_TTBW**2 / AR_TTBW
+
 lambda_TTBW = 0.30  # preliminary assumption; exact public value not fixed here
 Lambda_qc_TTBW = 15.0  # deg, preliminary assumption
 Lambda_LE_TTBW = sweep_qc_to_le_deg(
