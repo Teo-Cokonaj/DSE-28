@@ -14,11 +14,7 @@ def get_base_setup():
 def calculate_flight_case():
     x, dx, loads = get_base_setup()
         
-    L_canard = W * canard_lift_fraction # Assumed quantity from statistics
-    
-    # Solve for Main Wing and Empennage Lift simultaneously
-    # Forces: L_main + L_empennage = W - L_canard
-    # Moments: L_main*main_wing_loc + L_empennage*empennage_loc = W*cg_loc - L_canard*canard_loc
+    L_canard = W * canard_lift_fraction             # Assumed quantity from statistics
     
     # Set up the matrices for A * x = B
     A = np.array([
@@ -31,9 +27,6 @@ def calculate_flight_case():
     ])
 
     L_main, L_empennage = np.linalg.solve(A, B)
-
-    print(f"Main Wing Lift Fraction: {L_main/W:.2f}")
-    print(f"Empennage Lift Fraction: {L_empennage/W:.2f}")
 
     # Apply point loads to the load vector
     for loc, val in [(canard_loc, L_canard), (main_wing_loc, L_main), (empennage_loc, L_empennage)]:
@@ -62,15 +55,11 @@ def calculate_ground_case():
 
     return {"x": x, "dx": dx, "loads": loads, "title": title}
 
-def integrate_and_plot(x, dx, loads, title, **kwargs):
+def cumulative_shear_and_moment(x, dx, loads, **kwargs):
     # Shear is the integral of load
     shear = np.cumsum(loads)
     # Moment is the integral of shear
     moment = np.cumsum(shear) * dx
-    
-    print(f"--- {title} ---")
-    print(f"Residual Shear at tail: {shear[-1]:.2f} N")
-    print(f"Residual Moment at tail: {moment[-1]:.2f} Nm")
 
     return x, shear, moment
 
@@ -95,6 +84,27 @@ def plot_shear_and_moment_diagrams(x, shear, moment):
     plt.tight_layout()
     plt.show()
 
+"""
+x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case().values()
+x, shear, moment = cumulative_shear_and_moment(x, dx, loads)
 
-plot_shear_and_moment_diagrams(*integrate_and_plot(**calculate_flight_case()))
-plot_shear_and_moment_diagrams(*integrate_and_plot(**calculate_ground_case()))
+#plot_shear_and_moment_diagrams(x, shear, moment)
+
+print(f"In-Flight Case:")
+print(f"Residual Shear at tail: {shear[-1]:.2f} N")
+print(f"Residual Moment at tail: {moment[-1]:.2f} Nm")
+print(f"Main Wing Lift Fraction: {L_main/W:.2f}")
+print(f"Empennage Lift Fraction: {L_empennage/W:.2f}")
+
+###################################################################
+
+x, dx, loads, title = calculate_ground_case().values()
+x, shear, moment = cumulative_shear_and_moment(x, dx, loads)
+
+#plot_shear_and_moment_diagrams(x, shear, moment)
+
+print(f"Ground Case:")
+print(f"Residual Shear at tail: {shear[-1]:.2f} N")
+print(f"Residual Moment at tail: {moment[-1]:.2f} Nm")
+
+"""
