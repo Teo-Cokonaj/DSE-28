@@ -15,8 +15,9 @@ from src.aerodynamic_model.lifting_line_theory import LiftingLineTheory
 from src.global_parameters import CONSTANTS
 
 class InviscidAnalysisStep(DesignOptionStep):
-    def __init__(self, plot=False):
+    def __init__(self, plot=False, debug=False):
         self.plot = plot
+        self.debug = debug
 
     def update(self, state) -> DesignOptionStateIterable:
         lifting_line_model = LiftingLineTheory(
@@ -41,18 +42,34 @@ class InviscidAnalysisStep(DesignOptionStep):
 
         return state.iterable       
     
-    @staticmethod
-    def _exctract_inviscid_ratio_for_condition(lifting_line_model:LiftingLineTheory, mach:float, altitude:float):
+
+    def _exctract_inviscid_ratio_for_condition(self, lifting_line_model:LiftingLineTheory, mach:float, altitude:float):
         atmosphere = asb.Atmosphere(altitude)
         velocity = mach * atmosphere.speed_of_sound()
 
-        
-        alpha_analysis = lifting_line_model.find_aoa_for_force_equilibrium(velocity=velocity, altitude_m=altitude)
-        print(f"alpha: {alpha_analysis} @ altitude: {altitude}")
+        #alpha_analysis = lifting_line_model.find_aoa_for_force_equilibrium(velocity=velocity, altitude_m=altitude)
 
-        _, results = lifting_line_model.run_llt_arbitrary_analysis(
-            velocity=velocity, 
-            altitude_m=altitude, 
-            angle_of_attack_deg=alpha_analysis
-        )
-        return lifting_line_model.extract_L2_Di_ratio(results)
+        if self.debug:
+            inviscid_ratios = list()
+            for alpha_analysis in np.linspace(1., 10., 11): #NOTE: breaks at the AOA of zero
+                _, results = lifting_line_model.run_llt_arbitrary_analysis(
+                    velocity=velocity, 
+                    altitude_m=altitude, 
+                    angle_of_attack_deg=alpha_analysis
+                )
+                inviscid_ratios.append(lifting_line_model.extract_L2_Di_ratio(results))
+
+            print(f"STD: {np.std(inviscid_ratios)}, all: {inviscid_ratios}")
+            return np.average(inviscid_ratios)
+        
+        else:
+            _, results = lifting_line_model.run_llt_arbitrary_analysis(
+                    velocity=velocity, 
+                    altitude_m=altitude, 
+                    angle_of_attack_deg=5. #NOTE: verified that the AoA does not influence the inviscid ratio
+                )
+
+            return lifting_line_model.extract_L2_Di_ratio(results)
+
+
+        

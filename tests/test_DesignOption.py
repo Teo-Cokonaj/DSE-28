@@ -77,10 +77,9 @@ class TestDesignOption:
         matching_diagram_step = MatchingDiagramStep(plot=plot)
         CD0_step = CD0Step()
         class_I_step = WeightEstimationStep(print_)
-        inviscid_step = InviscidAnalysisStep()
-        tail_sizing_step = TailSizingStep()
-
-        design_option = DesignOption(initial_state, [inviscid_step, class_I_step, matching_diagram_step, CD0_step, tail_sizing_step])
+        inviscid_step = InviscidAnalysisStep(plot, False)
+        tail_sizing_step = TailSizingStep(print_)
+        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, CD0_step])
         design_option.iteration_step()
 
         #checking that the iteration actually happened
