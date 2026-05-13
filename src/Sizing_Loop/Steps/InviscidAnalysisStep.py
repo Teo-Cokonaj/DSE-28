@@ -46,8 +46,9 @@ class InviscidAnalysisStep(DesignOptionStep):
         atmosphere = asb.Atmosphere(altitude)
         velocity = mach * atmosphere.speed_of_sound()
 
-        print(f"Velocity: {velocity}")
+        
         alpha_analysis = lifting_line_model.find_aoa_for_force_equilibrium(velocity=velocity, altitude_m=altitude)
+        print(f"alpha: {alpha_analysis} @ altitude: {altitude}")
 
         _, results = lifting_line_model.run_llt_arbitrary_analysis(
             velocity=velocity, 

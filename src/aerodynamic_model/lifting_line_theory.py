@@ -172,7 +172,7 @@ class LiftingLineTheory():
         CL_sweep_results = self.run_llt_alpha_sweep(
             velocity=velocity,
             altitude_m=altitude_m,
-            alpha_range=alpha_range
+            alpha_range_deg=alpha_range
         )
         CL_alpha = CL_sweep_results["lift_curve_slope_per_rad"]
         CL_alpha_equals_0 = CL_sweep_results["CL"][0]
@@ -293,10 +293,12 @@ class LiftingLineTheory():
     def extract_L2_Di_ratio(self,
                             results: Dict) -> float:
         
-        lift_force=results['L']#[0]
-        drag_force=results['D']
+        lift_coefficient=results['CL']#[0]
+        drag_coefficient=results['CD']
 
-        return lift_force**2/drag_force
+        print(lift_coefficient, drag_coefficient)
+
+        return lift_coefficient**2/drag_coefficient
     
     def run_llt_alpha_sweep(self,
                         velocity: float,
