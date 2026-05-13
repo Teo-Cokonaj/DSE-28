@@ -19,8 +19,8 @@ class TailVolume:
                  V_H_over_V_2: float=1.0,
 
                  ):
-        self.wing_planform=wing_planform,
-        self.required_cg_excursion_MAC=required_cg_excursion_MAC,
+        self.wing_planform=wing_planform
+        self.required_cg_excursion_MAC=required_cg_excursion_MAC
         self.ac_position_mac=ac_position_mac
         self.Cmac=Cmac
         self.C_L_H=C_L_H
