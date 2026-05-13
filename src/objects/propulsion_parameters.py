@@ -6,7 +6,7 @@ class EngineParameters():
     diameter:float
     length:float
     efficiency_total:float = .9
-
+    mass:float = 10.
 
 @dataclass
 class PropulsionParameters():
