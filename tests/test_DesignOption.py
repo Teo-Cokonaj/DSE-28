@@ -17,6 +17,7 @@ from src.Sizing_Loop.Steps.MatchingDiagramStep import MatchingDiagramStep
 from src.Sizing_Loop.Steps.CD0Step import CD0Step
 from src.Sizing_Loop.Steps.WeightEstimationStep import WeightEstimationStep
 from src.Sizing_Loop.Steps.InviscidAnalysisStep import InviscidAnalysisStep
+from src.Sizing_Loop.Steps.tail_sizing_step import TailSizingStep
 
 from src.objects.aircraft_parameters import AircraftParameters
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
@@ -77,8 +78,9 @@ class TestDesignOption:
         CD0_step = CD0Step()
         class_I_step = WeightEstimationStep(print_)
         inviscid_step = InviscidAnalysisStep()
+        tail_sizing_step = TailSizingStep()
 
-        design_option = DesignOption(initial_state, [inviscid_step, class_I_step, matching_diagram_step, CD0_step])
+        design_option = DesignOption(initial_state, [inviscid_step, class_I_step, matching_diagram_step, CD0_step, tail_sizing_step])
         design_option.iteration_step()
 
         #checking that the iteration actually happened
