@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def get_base_setup():
+def get_base_setup(fuselage_length, resolution, W):
     x = np.linspace(0, fuselage_length, resolution)
     dx = x[1] - x[0]
     # Distributed weight load (N per node)
@@ -11,8 +11,8 @@ def get_base_setup():
     w_dist = np.full_like(x, -(W / resolution))
     return x, dx, w_dist
 
-def calculate_flight_case():
-    x, dx, loads = get_base_setup()
+def calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc):
+    x, dx, loads = get_base_setup(fuselage_length, resolution, W)
         
     L_canard = W * canard_lift_fraction             # Assumed quantity from statistics
     
@@ -37,13 +37,10 @@ def calculate_flight_case():
 
     return {"x": x, "dx": dx, "loads": loads, "title": title, "L_main": L_main, "L_empennage": L_empennage, "L_canard": L_canard}
 
-def calculate_ground_case():
-    x, dx, loads = get_base_setup()
-    # On ground, g-load is usually different, but we'll keep max_g for "hard landing"
+def calculate_ground_case(fuselage_length, resolution, W, main_gear_loc, nose_gear_loc, cg_loc):
+    x, dx, loads = get_base_setup(fuselage_length, resolution, W)
     total_force = W
     
-    # Solve for Nose Gear Reaction (Rn) using Sum of Moments = 0 at Main Gear
-    # Equation: Weight*(main_gear - cg) - Rn*(main_gear - nose_gear) = 0
     r_nose = (total_force * (main_gear_loc - cg_loc)) / (main_gear_loc - nose_gear_loc)
     r_main = total_force - r_nose
     
@@ -85,7 +82,7 @@ def plot_shear_and_moment_diagrams(x, shear, moment):
     plt.show()
 
 """
-x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case().values()
+x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc).values()
 x, shear, moment = cumulative_shear_and_moment(x, dx, loads)
 
 #plot_shear_and_moment_diagrams(x, shear, moment)
@@ -98,7 +95,7 @@ print(f"Empennage Lift Fraction: {L_empennage/W:.2f}")
 
 ###################################################################
 
-x, dx, loads, title = calculate_ground_case().values()
+x, dx, loads, title = calculate_ground_case(fuselage_length, resolution, W, main_gear_loc, nose_gear_loc, cg_loc).values()
 x, shear, moment = cumulative_shear_and_moment(x, dx, loads)
 
 #plot_shear_and_moment_diagrams(x, shear, moment)

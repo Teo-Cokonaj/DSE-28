@@ -1,12 +1,14 @@
 from parameters import *
 from shear_moment_diagrams_sideview import calculate_flight_case
+from scipy.optimize import root_scalar
+
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 
 
 
-def mainwing_lift_distribution(lift):
+def mainwing_lift_distribution(resolution, wingspan, lift):
 
     x = np.linspace(-wingspan/2, wingspan/2, resolution)
     dx = x[1] - x[0]
@@ -42,7 +44,7 @@ def mainwing_lift_distribution(lift):
     title = f"Main Wing Lift Distribution"
     return {"x": x, "dx": dx, "loads": loads, "title": title, "fuselage_overlap": fuselage_overlap}
 
-def canard_lift_distribution(lift):
+def canard_lift_distribution(canard_lift_fraction, L_main, chord_length, fraction_root_thickness, z_location_canard, fuselage_radius, wingspan, lift, resolution):
 
     canard_size_fraction = canard_lift_fraction/(L_main/W) 
     chord_length_canard = chord_length*canard_size_fraction
@@ -83,7 +85,7 @@ def canard_lift_distribution(lift):
 
     title = f"Canard Lift Distribution"
 
-    return {"x": x, "dx": dx, "loads": loads, "title": title, "fuselage_overlap": fuselage_overlap}
+    return {"x": x, "dx": dx, "loads": loads, "title": title, "fuselage_overlap": fuselage_overlap, "chord_length_canard": chord_length_canard, "t_canard": t_canard}
 
 
 def cumulative_shear_and_moment(x, dx, loads, title):
@@ -98,59 +100,83 @@ def cumulative_shear_and_moment(x, dx, loads, title):
 
     return x, shear, moment
 
+def required_fuselage_wingbox_stiffness(x, dx, moment, fuselage_overlap, target_deflection_m=0.001):
+    
+    center_idx = (x > 0) & (x <= fuselage_overlap/2)
+    moment_half = np.zeros_like(moment)
+    moment_half[center_idx] = moment[center_idx]
+    
+    unscaled_slope = np.cumsum(moment_half)*dx
+    unscaled_deflection = np.cumsum(unscaled_slope)*dx
+    
+    
+    unscaled_deflection_edge = unscaled_deflection[center_idx][-1]
+    
+    EI_required = np.abs(unscaled_deflection_edge / target_deflection_m)
+    I_required = EI_required / wing_youngs_modulus
 
-"""
-def deflection_from_moment(x, dx, moment, E, I, fuselage_overlap, title):
+    print(f"Target Max Deflection inside clamp: {target_deflection_m * 1000:.1f} mm")
+    print(f"Required Clamp Stiffness (EI): {I_required:.2e} N·m²")
+    
+    return I_required
+
+def required_wingbox_skin_thickness(I_req, chord, t_root):
+    I_solid = (chord * t_root**3) / 12.0
+    
+    # Sanity check: If required I is larger than a solid block, it's impossible.
+    if I_req > I_solid:
+        raise ValueError(
+            f"Required I ({I_req:.2e}) is physically impossible for this chord and root thickness. "
+            f"The maximum possible I (solid block) is {I_solid:.2e}"
+        )
+        
+    # 2. Define the equation we want to drive to zero
+    def inertia_error(t_skin):
+        b_in = chord - 2 * t_skin
+        h_in = t_root - 2 * t_skin
+        
+        I_guess = (chord * t_root**3) / 12.0 - (b_in * h_in**3) / 12.0
+        
+        return I_guess - I_req
+        
+    solution = root_scalar(inertia_error, bracket=[0, t_root/2], method='brentq')
+    
+    if solution.converged:
+        t_required = solution.root
+        print(f"Required Skin Thickness for {I_req:.2e} m^4: {t_required * 1000:.2f} mm")
+        return t_required
+    else:
+        raise RuntimeError("Failed to converge on a valid skin thickness.")
+
+
+def required_canard_rod_thickness(I_required, t_canard):
+    D = t_canard
+    d = -(64*I_required / math.pi - D**4)
+    rod_thickness = (D - math.sqrt(d)) / 2
+    if rod_thickness <= 0:
+        raise ValueError(f"Required canard rod thickness is non-positive. Current canard thickness of {t_canard*1000:.2f} mm is insufficient for the required stiffness.")
+    
+    return rod_thickness
+
+def deflection_from_moment(x, dx, moment, E, I, fuselage_overlap):
     free_wing_idx = x > fuselage_overlap/2
     
-    # 2. Zero out the bending moment inside the clamped region
-    # (The internal structure takes this load; it doesn't contribute to wing bending)
-    effective_moment = np.zeros_like(moment)
-    effective_moment[free_wing_idx] = moment[free_wing_idx]
+    deflection_moment = np.zeros_like(moment)
+    deflection_moment[free_wing_idx] = moment[free_wing_idx]
     
-    # 3. Integrate Moment to get Slope (Theta)
-    slope = np.cumsum(effective_moment) * dx / (E * I)
-    
-    # Enforce boundary condition: Rigid clamp cannot angle up or down
+    slope = np.cumsum(deflection_moment) * dx / (E * I)
+
     slope[x <= fuselage_overlap/2] = 0.0
     
-    # 4. Integrate Slope to get Deflection (v)
     deflection = np.cumsum(slope) * dx
     
-    # Enforce boundary condition: Rigid clamp cannot move vertically
     deflection[x <= fuselage_overlap/2] = 0.0
-    
-    # 5. Mirror the right semispan to visualize the full wing
-    x_full = np.concatenate((-np.flip(x[1:]), x))
-    deflection_full = np.concatenate((np.flip(deflection[1:]), deflection))
 
-"""    
+    left_side = x < 0
+    right_side = x > 0
+    deflection[left_side] = np.flip(deflection[right_side])
 
-def deflection_from_moment(dx, moment, E, I):
-
-    slope = np.cumsum(moment) * dx / (E * I)
-    
-    # Boundary condition: The clamped root (x=0) cannot angle upwards.
-    slope = slope - slope[0] 
-    
-    # 2. Integrate Slope to get Deflection (v)
-    deflection = np.cumsum(slope) * dx
-    
-    # Boundary condition: The clamped root (x=0) cannot move vertically.
-    deflection = deflection - deflection[0] 
-    
-    # 3. Mirror the right semispan to visualize the full wing
-    # We slice [1:] to avoid duplicating the zero-point at the root
-    x_full = np.concatenate((-np.flip(x[1:]), x))
-    deflection_full = np.concatenate((np.flip(deflection[1:]), deflection))
-
-
-    curvature = np.cumsum(moment) * dx / (E * I)
-    slope = np.cumsum(curvature) * dx
-    deflection = np.cumsum(slope) * dx
-    
     return deflection
-
 
 def plot_loads(x, loads, title):
     plt.figure(figsize=(10, 4))
@@ -200,21 +226,16 @@ L_canard = calculate_flight_case()["L_canard"]
 #Main Wing
 x, dx, loads, title, fuselage_overlap = mainwing_lift_distribution(L_main).values()
 x, shear, moment = cumulative_shear_and_moment(x, dx, loads, title)
-deflection = deflection_from_moment(dx, moment, wing_yield_strength, wing_I_xx)
+deflection = deflection_from_moment(x, dx, moment, wing_youngs_modulus, wing_I_xx, fuselage_overlap)
 #plot_loads(x, loads, title)
-plot_shear_and_moment_diagrams(x, shear, moment)
-plot_deflection_diagrams(x, deflection)
-
-max_idx = np.argmax(moment)
-
-
-print(f"Max Value: {moment[max_idx]}, Index: {max_idx}")
-
+#plot_shear_and_moment_diagrams(x, shear, moment)
+#plot_deflection_diagrams(x, deflection)
+print(required_wingbox_skin_thickness(required_fuselage_wingbox_stiffness(x, dx, moment, fuselage_overlap), chord_length, t_wing))
 
 #Canard
-x, dx, loads, title = canard_lift_distribution(L_canard)
+x, dx, loads, title, fuselage_overlap = canard_lift_distribution(L_canard).values()
 x, shear, moment = cumulative_shear_and_moment(x, dx, loads, title)
-deflection = deflection_from_moment(dx, moment, wing_yield_strength, wing_I_xx)
+deflection = deflection_from_moment(x, dx, moment, wing_youngs_modulus, wing_I_xx, fuselage_overlap)
 #plot_loads(x, loads, title)
 #plot_shear_and_moment_diagrams(x, shear, moment)
 #plot_deflection_diagrams(x, deflection)

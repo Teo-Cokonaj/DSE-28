@@ -4,13 +4,13 @@
 #constants
 g = 9.81                        # Gravitational acceleration [m/s^2]
 
-Aluminum = [2810.0, 500e6]       # Aluminum 7075-T6 properties: Density [kg/m^3], Yield Strength [Pa]
-CFRP = [1600.0, 600e6]           # CFRP Quasi-isotropic properties: Density [kg/m^3], Yield Strength [Pa]
+Aluminum = [2810.0, 500e6, 70e9]       # Aluminum 7075-T6 properties: Density [kg/m^3], Yield Strength [Pa], Elastic Modulus [Pa]
+CFRP = [1600.0, 600e6, 80e9]           # CFRP Quasi-isotropic properties: Density [kg/m^3], Yield Strength [Pa], Elastic Modulus [Pa]
 
 
 
 #Load parameters
-mtow=100.0                      # Maximum Takeoff Weight of the drone [kg]
+mtow=50.0                      # Maximum Takeoff Weight of the drone [kg]
 max_g_load=6.0                  # Maximum g-load based on Aerobatic CS-23 classification
 safety_factor=1.5               # Safety factor for structural design
 cruise_speed=15.0               # Cruise speed of the drone [m/s]
@@ -40,12 +40,12 @@ z_location_mainwing=fuselage_radius                # Z-location of top part of t
 wing_material_choice = CFRP                        # Material choice for the wing structure ("CFRP" or "Aluminum")
 wing_density=wing_material_choice[0]               # Wing material density [kg/m^3]
 wing_yield_strength=wing_material_choice[1]        # Wing material yield strength [Pa]
+wing_youngs_modulus=wing_material_choice[2]        # Wing material Young's Modulus [Pa]
 wing_skin_thickness=0.002                          # Thickness of the wing skin [m]
 
 chord_length = (wingspan / Aspect_ratio)           # Chord length at the root of the wing [m]
 t_wing = fraction_root_thickness * chord_length    # Root thickness of the wing [m]
 wing_I_xx = ((chord_length * t_wing**3)/12)-((chord_length-wing_skin_thickness*2)*(t_wing-wing_skin_thickness*2)**3)/12                 # Moment of inertia of the wing cross-section [m^4]
-
 
 if z_location_mainwing > fuselage_radius or z_location_mainwing < -fuselage_radius:
     raise ValueError("Warning: Main wing placed outside of fuselage. Change z_location_mainwing to be within fuselage radius.")
