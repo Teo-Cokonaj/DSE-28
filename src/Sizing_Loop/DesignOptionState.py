@@ -42,8 +42,8 @@ class DesignOptionState:
 
     def mach_go_around(self) -> float:
         assumptions = self.fixed.assumptions
-        wing_loading = self.iterable.aircraft_parameters.total_mass / self.iterable.lifting_surfaces[0].wing_area
-        CL_max_glide_ratio = np.sqrt(self.iterable.performance_parameters.go_around_parameters.CD0 * self.iterable.performance_parameters.go_around_parameters.inviscid_ratio)
+        wing_loading = self.wing_loading()
+        CL_max_glide_ratio = self.iterable.performance_parameters.go_around_parameters.CL_glide_ratio_max()
         # determining go around parameters
         omega_turn = np.pi/assumptions.TIME_HALF_CIRCLE
         atmosphere_go_around = asb.Atmosphere(assumptions.ALTITUDE_GO_AROUND)
