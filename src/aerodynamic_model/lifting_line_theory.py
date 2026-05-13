@@ -10,6 +10,8 @@ from objects.aircraft_parameters import AircraftParameters
 from objects.lifting_surface_planform import LiftingSurfacePlanform
 from airfoil.SymmetricAirfoil import SymmetricAirfoil
 
+from aerodynamic_model.lifting_line_inviscid import LiftingLineInviscid
+
 class LiftingLineTheory():
     def __init__(self,
                  aircraft_parameters: AircraftParameters,
@@ -197,7 +199,7 @@ class LiftingLineTheory():
             alpha=alpha_deg,
         )
 
-        self.analysis = asb.LiftingLine(
+        self.analysis = LiftingLineInviscid(
             airplane=self.airplane,
             op_point=self.op_point,
         )
@@ -218,7 +220,7 @@ class LiftingLineTheory():
             alpha=trimmed_alpha_deg,
         )
 
-        self.analysis = asb.LiftingLine(
+        self.analysis = LiftingLineInviscid(
             airplane=self.airplane,
             op_point=self.op_point,
         )
@@ -247,7 +249,7 @@ class LiftingLineTheory():
             def linear_spacing(start,end,number_of_stations):
                 return np.linspace(0,1,number_of_stations)
 
-            self.analysis = asb.LiftingLine(
+            self.analysis = LiftingLineInviscid(
                 airplane=self.airplane,
                 op_point=self.op_point,
                 spanwise_spacing_function=linear_spacing,
@@ -296,8 +298,6 @@ class LiftingLineTheory():
         lift_coefficient=results['CL']#[0]
         drag_coefficient=results['CD']
 
-        print(lift_coefficient, drag_coefficient)
-
         return lift_coefficient**2/drag_coefficient
     
     def run_llt_alpha_sweep(self,
@@ -316,7 +316,7 @@ class LiftingLineTheory():
                 alpha=float(alpha),  # explicit scalar cast to be safe
             )
 
-            self.analysis = asb.LiftingLine(
+            self.analysis = LiftingLineInviscid(
                 airplane=self.airplane,
                 op_point=self.op_point,
             )

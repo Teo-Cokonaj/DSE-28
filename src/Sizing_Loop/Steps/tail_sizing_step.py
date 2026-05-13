@@ -36,8 +36,8 @@ class TailSizingStep(DesignOptionStep):
         lifting_line_theory = LiftingLineTheory(aircraft_parameters=aircraft_parameters,
                                                 wing_planform=state.iterable.lifting_surfaces[0],
                                                 horizontal_stabilizer_planform=state.iterable.lifting_surfaces[1],
-                                                vertical_stabilizer_planform=state.iterable.lifting_surfaces[2],
-                                                canard_planform=state.iterable.lifting_surfaces[3])
+                                                vertical_stabilizer_planform=state.iterable.lifting_surfaces[2],)
+                                                #canard_planform=state.iterable.lifting_surfaces[3])
         lifting_line_theory.initialize_airfoils()
 
         #Aircraft without tail
