@@ -4,7 +4,7 @@ import sys
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.objects.propulsion_parameters import EngineParameters, PropulsionParameters
-
+# THE ENGINE EFFICIENCIES ARE NOT VERIFIED, I NEED TO FIND A WAY TO CALCULATE OR ESTIMATE THEM
 class PossibleEngines:
     def __init__(self):
         self.engineTJ40_G1 = PropulsionParameters(EngineParameters(
