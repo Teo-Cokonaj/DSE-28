@@ -12,9 +12,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.Sizing_Loop.DesignOption import DesignOption
 from src.Sizing_Loop.DesignOptionState import DesignOptionState
 from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
+
 from src.Sizing_Loop.Steps.MatchingDiagramStep import MatchingDiagramStep
 from src.Sizing_Loop.Steps.CD0Step import CD0Step
 from src.Sizing_Loop.Steps.WeightEstimationStep import WeightEstimationStep
+from src.Sizing_Loop.Steps.InviscidAnalysisStep import InviscidAnalysisStep
 
 from src.objects.aircraft_parameters import AircraftParameters
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
@@ -44,6 +46,13 @@ def initial_state_interior():
                     sweep_quarter_deg=25., # [m]
                     taper=.3,
                     tip_twist_rad=np.deg2rad(2.),
+                ),
+                LiftingSurfacePlanform(
+                    aspect_ratio=3.,
+                    span=.6, # [m]
+                    sweep_quarter_deg=15., # [m]
+                    taper=.7,
+                    tip_twist_rad=np.deg2rad(2.),
                 )
             ],
             propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5), 2),
@@ -67,8 +76,9 @@ class TestDesignOption:
         matching_diagram_step = MatchingDiagramStep(plot=plot)
         CD0_step = CD0Step()
         class_I_step = WeightEstimationStep(print_)
+        inviscid_step = InviscidAnalysisStep()
 
-        design_option = DesignOption(initial_state, [class_I_step, matching_diagram_step, CD0_step])
+        design_option = DesignOption(initial_state, [inviscid_step, class_I_step, matching_diagram_step, CD0_step])
         design_option.iteration_step()
 
         #checking that the iteration actually happened
@@ -85,14 +95,17 @@ class TestDesignOption:
             print(design_option.state.iterable.performance_parameters.climb_OEI_parameters.glide_ratio_max())
             print(design_option.state.iterable.performance_parameters.climb_OEI_parameters.CL_glide_ratio_max())
             print(design_option.state.iterable.performance_parameters.climb_OEI_parameters.CD0)
+            print(design_option.state.iterable.performance_parameters.climb_OEI_parameters.inviscid_ratio)
             print("\ntakeoff performance")
             print(design_option.state.iterable.performance_parameters.takeoff_parameters.glide_ratio_max())
             print(design_option.state.iterable.performance_parameters.takeoff_parameters.CL_glide_ratio_max())
             print(design_option.state.iterable.performance_parameters.takeoff_parameters.CD0)
+            print(design_option.state.iterable.performance_parameters.takeoff_parameters.inviscid_ratio)
             print("\nmach max")
             print(design_option.state.iterable.performance_parameters.mach_max_parameters.glide_ratio_max())
             print(design_option.state.iterable.performance_parameters.mach_max_parameters.CL_glide_ratio_max())
             print(design_option.state.iterable.performance_parameters.mach_max_parameters.CD0)
+            print(design_option.state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio)
             
 
     

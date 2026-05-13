@@ -71,7 +71,7 @@ class CD0Step(DesignOptionStep):
         components = list()
 
         surface_factors = [
-            (1.00, 1.07),  # main wing (1.00 for high wing, 1.1-1.4 for low wing)
+            (state.fixed.choices.wing_interference_factor, 1.07),  # main wing (1.00 for high wing, 1.1-1.4 for low wing)
             (1.04, 1.05),  # horizontal stabilizer (conv. 1.04-1.05; T-tail 1.04; H-tail 1.06-1.13; V-tail 1.03)
             (1.00, 1.05),  # vertical stabilizer (set IF to 1.00 and then adjust the hor. stab. value)
             (1.05, 1.07),  # canard, only if present (use values similar to the wing, prob lower)
