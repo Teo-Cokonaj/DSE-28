@@ -16,7 +16,7 @@ class LiftingLineTheory():
                  wing_planform: LiftingSurfacePlanform,
                  horizontal_stabilizer_planform: LiftingSurfacePlanform,
                  vertical_stabilizer_planform: LiftingSurfacePlanform,
-                 canard_planform: LiftingSurfacePlanform,
+                 canard_planform: LiftingSurfacePlanform = None,
                  ):
         
         self.aircraft_parameters=aircraft_parameters
@@ -130,7 +130,8 @@ class LiftingLineTheory():
                                                                 self.canard_planform.tip_twist,
                                                                 self.canard_number_of_sections),
                                             airfoils=self.canard_airfoils).translate(
-                                                [-self.aircraft_parameters.canard_distance_in_front_of_wing,0.0,0.0]
+                                                [-self.aircraft_parameters.canard_distance_in_front_of_wing,0.0,
+                                                 self.aircraft_parameters.z_canard]
                                                 ))
 
         if horizontal_stabilizer:
@@ -140,7 +141,8 @@ class LiftingLineTheory():
                                                                              self.horizontal_stabilizer_planform.tip_twist,
                                                                              self.horizontal_stabilizer_number_of_sections),
                                                           airfoils=self.horizontal_stabilizer_airfoils
-                                            ).translate([self.aircraft_parameters.horizontal_stabilizer_distance_from_wing,0.0,0.0])
+                                            ).translate([self.aircraft_parameters.horizontal_stabilizer_distance_from_wing,0.0,
+                                                         self.aircraft_parameters.z_horizontal_stabilizer])
         )
 
         if vertical_stabilizer:
@@ -148,7 +150,8 @@ class LiftingLineTheory():
                                                           self.vertical_stabilizer_number_of_sections,
                                                           twists=np.linspace(0.0,0.0,self.vertical_stabilizer_number_of_sections),
                                                           airfoils=self.vertical_stabilizer_airfoils
-                                            ).translate([self.aircraft_parameters.vertical_stabilizer_distance_from_wing,0.0,0.0])  
+                                            ).translate([self.aircraft_parameters.vertical_stabilizer_distance_from_wing,0.0,
+                                                         self.aircraft_parameters.z_vertical_stabiliser_root])  
         )
 
         self.airplane = asb.Airplane(
@@ -157,6 +160,28 @@ class LiftingLineTheory():
             wings=wings,
         )
     
+
+    def find_aoa_for_force_equilibrium(self,
+                         velocity: float,
+                         altitude_m: float,
+                         alpha_range=np.array([0., 5.]) #NOTE: must start with zero
+                         ) -> float:
+        if not np.isclose(alpha_range[0], 0.):
+            raise ValueError("The range of angle of attacks must start with zero!")
+
+        CL_sweep_results = self.run_llt_alpha_sweep(
+            velocity=velocity,
+            altitude_m=altitude_m,
+            alpha_range_deg=alpha_range
+        )
+        CL_alpha = CL_sweep_results["lift_curve_slope_per_rad"]
+        CL_alpha_equals_0 = CL_sweep_results["CL"][0]
+
+        dynamic_pressure = .5 * velocity**2 * asb.Atmosphere(altitude_m).density()
+        CL_target = self.aircraft_parameters.total_mass * CONSTANTS.G0 / dynamic_pressure / self.wing_planform.wing_area
+        
+        return np.rad2deg((CL_target - CL_alpha_equals_0) / CL_alpha)
+
         
     def run_llt_trim_analysis(self,
                          velocity: float,
@@ -185,7 +210,7 @@ class LiftingLineTheory():
         sol = opti.solve()
         trimmed_alpha_deg = sol(alpha_deg)
         print('Trimmed alpha_deg: ',trimmed_alpha_deg)
-        print('Cruise speed: ',cruise_speed)
+        print('Cruise speed: ',velocity)
 
         self.op_point = asb.OperatingPoint(
             atmosphere=asb.Atmosphere(altitude_m),  # Fixed: include atmosphere
@@ -268,19 +293,23 @@ class LiftingLineTheory():
     def extract_L2_Di_ratio(self,
                             results: Dict) -> float:
         
-        lift_force=results['L']#[0]
-        drag_force=results['D']
+        lift_coefficient=results['CL']#[0]
+        drag_coefficient=results['CD']
 
-        return lift_force**2/drag_force
+        print(lift_coefficient, drag_coefficient)
+
+        return lift_coefficient**2/drag_coefficient
     
     def run_llt_alpha_sweep(self,
                         velocity: float,
                         altitude_m: float,
-                        alpha_range: np.ndarray = np.arange(0, 5, 2),
+                        alpha_range_deg: np.ndarray = np.arange(0, 5, 2),
                         ):
+        Cm_list = []
         CL_list = []
+        alpha_rad_list = []
 
-        for alpha in alpha_range:
+        for alpha in alpha_range_deg:
             self.op_point = asb.OperatingPoint(
                 atmosphere=asb.Atmosphere(altitude_m),
                 velocity=velocity,
@@ -294,48 +323,6 @@ class LiftingLineTheory():
 
             results = self.analysis.run()
 
-            CL_list.append(results["CL"])
-
-        CL = np.array(CL_list)
-
-        # Fit lift curve slope over linear region only
-        lift_curve_slope_per_rad = np.polyfit(np.deg2rad(alpha_range), CL, 1)[0]
-
-        #Kuchemann
-        sweep_quarter_rad=self.wing_planform.sweep_quarter_rad
-        AR=self.wing_planform.aspect_ratio
-        reference_lift_curve_slope_per_rad= 2*np.pi*np.cos(sweep_quarter_rad)/(np.sqrt(1+(2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)**2)+2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)
-
-        return {
-            "alpha": alpha_range,
-            "CL": CL,
-            "lift_curve_slope_per_rad": lift_curve_slope_per_rad,
-            "reference_lift_curve_slope_per_rad":reference_lift_curve_slope_per_rad
-        }
-    
-    def find_aerodynamic_centre(self,
-                             velocity: float,
-                             altitude_m: float,
-                             alpha_range_deg: np.ndarray = np.linspace(-5, 6, 5),
-                             ):
-
-        Cm_list = []
-        CL_list = []
-        alpha_rad_list = []
-
-        for alpha in alpha_range_deg:
-            self.op_point = asb.OperatingPoint(
-                atmosphere=asb.Atmosphere(altitude_m),
-                velocity=velocity,
-                alpha=float(alpha),
-            )
-
-            self.analysis = asb.LiftingLine(
-                airplane=self.airplane,
-                op_point=self.op_point,
-            )
-
-            results = self.analysis.run()
             q = self.op_point.dynamic_pressure()
             s_ref = self.airplane.s_ref
             c_ref = self.airplane.c_ref
@@ -357,22 +344,20 @@ class LiftingLineTheory():
 
         Cmac = np.polyfit(CL, Cm, 1)[1]  # intercept at CL=0
 
-        print(f"dCm/dalpha:  {dCm_dalpha:.4f} /rad")
-        print(f"dCL/dalpha:  {dCL_dalpha:.4f} /rad")
-        print(f"dCm/dCL:     {dCm_dCL:.4f}")
-        print(f"x_ac:        {x_ac:.4f} m from origin")
-        print(f"Cmac:        {Cmac:.4f}")
+        #Kuchemann
+        sweep_quarter_rad=self.wing_planform.sweep_quarter_rad
+        AR=self.wing_planform.aspect_ratio
+        reference_lift_curve_slope_per_rad= 2*np.pi*np.cos(sweep_quarter_rad)/(np.sqrt(1+(2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)**2)+2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)
 
         return {
-            "x_ac": x_ac,
-            "Cmac": Cmac,
-            "dCm_dCL": dCm_dCL,
-            "dCL_dalpha_per_rad": dCL_dalpha,
-            "dCm_dalpha_per_rad": dCm_dalpha,
-            "CL": CL,
-            "Cm": Cm,
             "alpha": alpha_range_deg,
-        }
+            "x_ac": x_ac,
+            "CL": CL,
+            "Cmac": Cmac,
+            "lift_curve_slope_per_rad": dCL_dalpha,
+            "reference_lift_curve_slope_per_rad": reference_lift_curve_slope_per_rad,
+            "dCm_dalpha": dCm_dalpha,
+        }            
         
     
 if __name__ == "__main__":
@@ -424,9 +409,9 @@ if __name__ == "__main__":
                                                       vertical_stabilizer=False)
     #lifting_line_theory.airplane.draw_three_view()
 
-    # velocity = assumptions.MC*np.sqrt(CONSTANTS.GAMMA_AIR*CONSTANTS.GAS_CONSTANT_AIR*assumptions.TEMPERATURE_CRUISE_ALTITUDE)
-    # aerodynamic_centre_results = lifting_line_theory.find_aerodynamic_centre(velocity=velocity,
-    #                                                                          altitude_m=assumptions.ALTITUDE_CRUISE)
+    velocity = assumptions.MC*np.sqrt(CONSTANTS.GAMMA_AIR*CONSTANTS.GAS_CONSTANT_AIR*assumptions.TEMPERATURE_CRUISE_ALTITUDE)
+    aerodynamic_centre_results = lifting_line_theory.find_aerodynamic_centre(velocity=velocity,
+                                                                             altitude_m=assumptions.ALTITUDE_CRUISE)
     
     # print(aerodynamic_centre_results)
 
@@ -435,15 +420,16 @@ if __name__ == "__main__":
     # print('Numerical C_L_alpha: ',alpha_sweep_results['lift_curve_slope_per_rad'] )
     # print('Analytic C_L_alpha: ',alpha_sweep_results['reference_lift_curve_slope_per_rad'] )
 
-    # _,trim_results =lifting_line_theory.run_llt_trim_analysis(velocity=velocity,
-    #                                                           altitude_m=assumptions.ALTITUDE_CRUISE)
+    _,trim_results =lifting_line_theory.run_llt_trim_analysis(velocity=velocity,
+                                                              altitude_m=assumptions.ALTITUDE_CRUISE)
     
-    arbitrary_analysis, arbitrary_results = lifting_line_theory.run_llt_arbitrary_analysis(velocity=238.77,
-                                                                         altitude_m=assumptions.ALTITUDE_CRUISE,
-                         angle_of_attack_deg=10.0,
-                       )
+    # arbitrary_analysis, arbitrary_results = lifting_line_theory.run_llt_arbitrary_analysis(velocity=238.77,
+    #                                                                      altitude_m=assumptions.ALTITUDE_CRUISE,
+    #                      angle_of_attack_deg=10.0,
+    #                    )
     
-    print('Actual total lift: ',arbitrary_results['L'])
+    # print('Actual total lift: ',arbitrary_results['L'])
+    print(trim_results)
     
     distributions = lifting_line_theory.plot_lift_distribution() 
     #print(distributions)
