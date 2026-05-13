@@ -75,6 +75,7 @@ HT_Lambda_qc_DAST_deg = sweep_le_to_qc_deg(
 )
 
 VT_half_span_DAST = 0.83  # m
+VT_Lambda_LE_DAST_deg = 45.0  # deg
 # -----------------------------------------------------------------------------
 # NASA X-56A
 # -----------------------------------------------------------------------------
@@ -113,6 +114,7 @@ tip_twist_TTBW = 0.0  # rad
 HT_span_TTBW = 11.75  # m
 HT_root_TTBW = 3.57 #m
 HT_tip_TTBW = 1.26 #m
+HT_MAC_TTBW = 2.60 #m, calculated from root and tip
 HT_sweep_LE_TTBW_deg = 21.26  # deg
 HT_arm_TTBW = 21.09
 HT_sweep_qc_TTBW_deg = sweep_le_to_qc_deg(
