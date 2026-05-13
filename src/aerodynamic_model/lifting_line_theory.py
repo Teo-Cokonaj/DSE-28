@@ -301,11 +301,13 @@ class LiftingLineTheory():
     def run_llt_alpha_sweep(self,
                         velocity: float,
                         altitude_m: float,
-                        alpha_range: np.ndarray = np.arange(0, 5, 2),
+                        alpha_range_deg: np.ndarray = np.arange(0, 5, 2),
                         ):
+        Cm_list = []
         CL_list = []
+        alpha_rad_list = []
 
-        for alpha in alpha_range:
+        for alpha in alpha_range_deg:
             self.op_point = asb.OperatingPoint(
                 atmosphere=asb.Atmosphere(altitude_m),
                 velocity=velocity,
@@ -319,48 +321,6 @@ class LiftingLineTheory():
 
             results = self.analysis.run()
 
-            CL_list.append(results["CL"])
-
-        CL = np.array(CL_list)
-
-        # Fit lift curve slope over linear region only
-        lift_curve_slope_per_rad = np.polyfit(np.deg2rad(alpha_range), CL, 1)[0]
-
-        #Kuchemann
-        sweep_quarter_rad=self.wing_planform.sweep_quarter_rad
-        AR=self.wing_planform.aspect_ratio
-        reference_lift_curve_slope_per_rad= 2*np.pi*np.cos(sweep_quarter_rad)/(np.sqrt(1+(2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)**2)+2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)
-
-        return {
-            "alpha": alpha_range,
-            "CL": CL,
-            "lift_curve_slope_per_rad": lift_curve_slope_per_rad,
-            "reference_lift_curve_slope_per_rad":reference_lift_curve_slope_per_rad
-        }
-    
-    def find_aerodynamic_centre(self,
-                             velocity: float,
-                             altitude_m: float,
-                             alpha_range_deg: np.ndarray = np.linspace(-5, 6, 5),
-                             ):
-
-        Cm_list = []
-        CL_list = []
-        alpha_rad_list = []
-
-        for alpha in alpha_range_deg:
-            self.op_point = asb.OperatingPoint(
-                atmosphere=asb.Atmosphere(altitude_m),
-                velocity=velocity,
-                alpha=float(alpha),
-            )
-
-            self.analysis = asb.LiftingLine(
-                airplane=self.airplane,
-                op_point=self.op_point,
-            )
-
-            results = self.analysis.run()
             q = self.op_point.dynamic_pressure()
             s_ref = self.airplane.s_ref
             c_ref = self.airplane.c_ref
@@ -382,22 +342,20 @@ class LiftingLineTheory():
 
         Cmac = np.polyfit(CL, Cm, 1)[1]  # intercept at CL=0
 
-        print(f"dCm/dalpha:  {dCm_dalpha:.4f} /rad")
-        print(f"dCL/dalpha:  {dCL_dalpha:.4f} /rad")
-        print(f"dCm/dCL:     {dCm_dCL:.4f}")
-        print(f"x_ac:        {x_ac:.4f} m from origin")
-        print(f"Cmac:        {Cmac:.4f}")
+        #Kuchemann
+        sweep_quarter_rad=self.wing_planform.sweep_quarter_rad
+        AR=self.wing_planform.aspect_ratio
+        reference_lift_curve_slope_per_rad= 2*np.pi*np.cos(sweep_quarter_rad)/(np.sqrt(1+(2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)**2)+2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)
 
         return {
-            "x_ac": x_ac,
-            "Cmac": Cmac,
-            "dCm_dCL": dCm_dCL,
-            "dCL_dalpha_per_rad": dCL_dalpha,
-            "dCm_dalpha_per_rad": dCm_dalpha,
-            "CL": CL,
-            "Cm": Cm,
             "alpha": alpha_range_deg,
-        }
+            "x_ac": x_ac,
+            "CL": CL,
+            "Cmac": Cmac,
+            "lift_curve_slope_per_rad": dCL_dalpha,
+            "reference_lift_curve_slope_per_rad": reference_lift_curve_slope_per_rad,
+            "dCm_dalpha": dCm_dalpha,
+        }            
         
     
 if __name__ == "__main__":

@@ -51,6 +51,9 @@ class Assumptions():
         self.airfield_length = 1275. #m #TODO check with the actual airport
 
         # Geometry Assumptions:
+        #CG position
+        self.CG_EXCURSION_MAC = 0.5
+
         # Fuselage
         self.diameter_fuselage = .15 # m (based on FLEXOP)
         self.fuselage_length1_per_span = .55 / 7.07 # nose cone length / span (based on FLEXOP)
@@ -74,7 +77,7 @@ class Assumptions():
         self.nose_gear_enclosed       = False
 
         #tail arm
-        self.moment_arm_per_span = 1.7 /7.07 # based on FLEXOP
+        self.moment_arm_per_area = 0.80 # based on FLEXOP
 
 
     @property
