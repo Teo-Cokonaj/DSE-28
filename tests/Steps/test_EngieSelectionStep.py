@@ -9,11 +9,11 @@ current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 sys.path.append(project_root)
 
-from src.Sizing_Loop.Steps.MatchingDiagramStep import MatchingDiagramStep
+from src.Sizing_Loop.Steps.EngineSelectionStep import EngineSelectionStep
+from src.objects.possible_engines import PossibleEngines
 from src.Sizing_Loop.DesignOptionState import DesignOptionState
 from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
-from src.MatchingDiagram.ThrustLapse import ThrustLapse
-from src.global_parameters import CONSTANTS
+from src.global_parameters import CONSTANTS, Assumptions
 
 from src.objects.aircraft_parameters import AircraftParameters
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
@@ -21,13 +21,18 @@ from src.objects.performance_parameters import PerformanceParameters, Performanc
 from src.objects.propulsion_parameters import PropulsionParameters, EngineParameters
 
 def initial_state_interior():
+    pe = PossibleEngines()
+    MTOM = 50.
+    epsilon = 1e-3
     return DesignOptionState(
         DesignOptionStateIterable(
             aircraft_parameters=AircraftParameters(
-                total_mass=50.,
+                total_mass=MTOM,
                 horizontal_stabilizer_distance_from_wing=1.5,
                 vertical_stabilizer_distance_from_wing=1.5,
                 canard_distance_in_front_of_wing=0.,
+                #NOTE required TWR to exactly match the TWR of the TJ40_G1 engine pair, with some tolerance (epsilon) to ensure float comparison
+                thrust_weight_ratio=pe.engineTJ40_G1.engine_parameters.thrust_max * pe.engineTJ40_G1.n_engines / MTOM / CONSTANTS.G0 - epsilon
             ),
             lifting_surfaces=[
                 LiftingSurfacePlanform(
@@ -69,33 +74,18 @@ def initial_state():
     return initial_state_interior()
 
 
-class TestMatchingDiagramStep():
-    def test_with_analytical_TW(self, initial_state:DesignOptionState):
-        #reference
-        wing_loading_constraint = initial_state.fixed.assumptions.airspeed_stall**2 * CONSTANTS.AIR_DENSITY_SEA_LEVEL / 2 * initial_state.CL_max()
+class TestEngineSelectionStep:
+    def test_engine_selection(self, initial_state:DesignOptionState):
+        propulsion_reference = PossibleEngines().engineTJ40_G1
 
-        atmosphere_mach_max = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX)
-        thrust_lapse = ThrustLapse(atmosphere_mach_max).thrust_lapse(CONSTANTS.MACH_MAX)
-        CL_mach_max = wing_loading_constraint * 2 / atmosphere_mach_max.density() / (atmosphere_mach_max.speed_of_sound() * CONSTANTS.MACH_MAX)**2
-        CD0_mach_max = initial_state.iterable.performance_parameters.mach_max_parameters.CD0
-        inviscid_ratio_mach_max = initial_state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio
-        CD_CL_mach_max = CD0_mach_max / CL_mach_max + CL_mach_max / inviscid_ratio_mach_max
-        thrust_weight_mach_max = CD_CL_mach_max / thrust_lapse
+        engine_selection_step = EngineSelectionStep()
+        initial_state.iterable = engine_selection_step.update(initial_state)
+        propulsion_result = initial_state.iterable.propulsion_parameters
 
-        old_tail_area_ratios = [planform.wing_area / initial_state.iterable.lifting_surfaces[0].wing_area 
-                                for planform in initial_state.iterable.lifting_surfaces]
-
-        #computed
-        matching_diagram_step = MatchingDiagramStep()
-        new_state = deepcopy(initial_state)
-        new_state.iterable = matching_diagram_step.update(initial_state)
-
-        assert np.isclose(new_state.wing_loading(), wing_loading_constraint, atol=matching_diagram_step.resolution), f"{new_state.wing_loading()} vs ref {wing_loading_constraint}"
-
-        new_thrust_weight = new_state.iterable.aircraft_parameters.thrust_weight_ratio
-        assert np.isclose(new_thrust_weight, thrust_weight_mach_max, rtol=1/matching_diagram_step.resolution), f"{new_thrust_weight} vs ref {thrust_weight_mach_max}"
-
-        new_tail_area_ratios = [planform.wing_area / new_state.iterable.lifting_surfaces[0].wing_area 
-                                for planform in new_state.iterable.lifting_surfaces]
-        assert np.allclose(new_tail_area_ratios, old_tail_area_ratios), f"""{new_tail_area_ratios} vs {old_tail_area_ratios};\n
-        ratios between lifting surface areas shouldn't change in this step!!!"""
+        assert propulsion_result.n_engines == propulsion_reference.n_engines
+        assert np.isclose(propulsion_result.engine_parameters.efficiency_total, propulsion_reference.engine_parameters.efficiency_total)
+        assert np.isclose(propulsion_result.engine_parameters.thrust_max, propulsion_reference.engine_parameters.thrust_max)
+        assert np.isclose(propulsion_result.engine_parameters.mass, propulsion_reference.engine_parameters.mass)
+        assert np.isclose(propulsion_result.engine_parameters.length, propulsion_reference.engine_parameters.length)
+        assert np.isclose(propulsion_result.engine_parameters.diameter, propulsion_reference.engine_parameters.diameter)
+        

@@ -9,11 +9,11 @@ current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 sys.path.append(project_root)
 
-from src.Sizing_Loop.Steps.MatchingDiagramStep import MatchingDiagramStep
+from src.Sizing_Loop.Steps.WeightEstimationStep import WeightEstimationStep
 from src.Sizing_Loop.DesignOptionState import DesignOptionState
 from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
-from src.MatchingDiagram.ThrustLapse import ThrustLapse
-from src.global_parameters import CONSTANTS
+from src.Class_I.fuel_mass_fraction import fuel_mass_fraction
+from src.global_parameters import CONSTANTS, Assumptions
 
 from src.objects.aircraft_parameters import AircraftParameters
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
@@ -68,34 +68,36 @@ def initial_state_interior():
 def initial_state():
     return initial_state_interior()
 
-
-class TestMatchingDiagramStep():
-    def test_with_analytical_TW(self, initial_state:DesignOptionState):
+class TestWeightEstimationStep():
+    def test_weight_estimation_step(self, initial_state:DesignOptionState):
         #reference
-        wing_loading_constraint = initial_state.fixed.assumptions.airspeed_stall**2 * CONSTANTS.AIR_DENSITY_SEA_LEVEL / 2 * initial_state.CL_max()
+        assumptions = Assumptions()
+        fuel_fraction = fuel_mass_fraction(
+            altitude_go_around=assumptions.ALTITUDE_GO_AROUND,
+            altitude_cruise=assumptions.ALTITUDE_CRUISE,
+            CL_max_glide_ratio_go_around=initial_state.iterable.performance_parameters.go_around_parameters.CL_glide_ratio_max(),
+            glide_ratio_cruise=initial_state.iterable.performance_parameters.cruise_parameters.glide_ratio_max(),
+            glide_ratio_mach_max=initial_state.iterable.performance_parameters.mach_max_parameters.glide_ratio_max(),
+            glide_ratio_go_around=initial_state.iterable.performance_parameters.go_around_parameters.glide_ratio_max(),
+            airspeed_approach=assumptions.airspeed_approach,
+            wing_loading=initial_state.wing_loading(),
+            efficiency_engine_total=initial_state.iterable.propulsion_parameters.engine_parameters.efficiency_total,
+            energy_density_saf=assumptions.energy_density_saf,
+            time_half_turn=assumptions.TIME_HALF_CIRCLE
+        )
+        oem_fraction = initial_state.iterable.aircraft_parameters.empty_mass_fraction
 
-        atmosphere_mach_max = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX)
-        thrust_lapse = ThrustLapse(atmosphere_mach_max).thrust_lapse(CONSTANTS.MACH_MAX)
-        CL_mach_max = wing_loading_constraint * 2 / atmosphere_mach_max.density() / (atmosphere_mach_max.speed_of_sound() * CONSTANTS.MACH_MAX)**2
-        CD0_mach_max = initial_state.iterable.performance_parameters.mach_max_parameters.CD0
-        inviscid_ratio_mach_max = initial_state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio
-        CD_CL_mach_max = CD0_mach_max / CL_mach_max + CL_mach_max / inviscid_ratio_mach_max
-        thrust_weight_mach_max = CD_CL_mach_max / thrust_lapse
-
-        old_tail_area_ratios = [planform.wing_area / initial_state.iterable.lifting_surfaces[0].wing_area 
-                                for planform in initial_state.iterable.lifting_surfaces]
+        mtom_reference = CONSTANTS.MASS_PAYLOAD / (1 - oem_fraction - fuel_fraction)
 
         #computed
-        matching_diagram_step = MatchingDiagramStep()
+        weight_estimation_step = WeightEstimationStep()
         new_state = deepcopy(initial_state)
-        new_state.iterable = matching_diagram_step.update(initial_state)
+        new_state.iterable = weight_estimation_step.update(initial_state)
 
-        assert np.isclose(new_state.wing_loading(), wing_loading_constraint, atol=matching_diagram_step.resolution), f"{new_state.wing_loading()} vs ref {wing_loading_constraint}"
+        new_mtom = new_state.iterable.aircraft_parameters.total_mass
+        assert np.isclose(new_mtom, mtom_reference), f"{new_mtom} vs ref {mtom_reference}"
 
-        new_thrust_weight = new_state.iterable.aircraft_parameters.thrust_weight_ratio
-        assert np.isclose(new_thrust_weight, thrust_weight_mach_max, rtol=1/matching_diagram_step.resolution), f"{new_thrust_weight} vs ref {thrust_weight_mach_max}"
-
-        new_tail_area_ratios = [planform.wing_area / new_state.iterable.lifting_surfaces[0].wing_area 
-                                for planform in new_state.iterable.lifting_surfaces]
-        assert np.allclose(new_tail_area_ratios, old_tail_area_ratios), f"""{new_tail_area_ratios} vs {old_tail_area_ratios};\n
-        ratios between lifting surface areas shouldn't change in this step!!!"""
+        assert np.isclose(new_state.iterable.aircraft_parameters.empty_mass_fraction, oem_fraction), f"OEM shouldn't change !!!"
+        
+        new_fuel_fraction = new_state.iterable.aircraft_parameters.fuel_mass_fraction
+        assert np.isclose(new_fuel_fraction, fuel_fraction), f"{new_fuel_fraction} vs ref {fuel_fraction}"

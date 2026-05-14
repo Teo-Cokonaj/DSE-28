@@ -28,7 +28,7 @@ class EngineSelectionStep(DesignOptionStep):
         feasible_engines:list[PropulsionParameters] = list()
         feasible_engine_names = list()
         for engine_name,  possible_engine in PossibleEngines().__dict__.items():
-            if possible_engine.engine_parameters.thrust_max > thrust_minimum:
+            if possible_engine.engine_parameters.thrust_max * possible_engine.n_engines > thrust_minimum:
                 feasible_engines.append(possible_engine)
                 feasible_engine_names.append(engine_name)
         
