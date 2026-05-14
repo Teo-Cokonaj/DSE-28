@@ -95,8 +95,6 @@ class TestInviscidAnalysisStep():
             spanwise_spacing_function=linear_spacing,
         ).run()
         
-        #we have 2 surfaces generating lift and 2 surfaces generating drag (rudder no lift no induced drag)
-        #CL^2/CDi is normalised by aerosandbox wrt total surface
         invisid_ratio_reference = llt_single_wing_result["CL"]**2 / llt_single_wing_result["CD"]
 
         #computed
