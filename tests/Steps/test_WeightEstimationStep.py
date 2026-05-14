@@ -52,7 +52,7 @@ def initial_state_interior():
                     tip_twist_rad=np.deg2rad(2.),
                 )
             ],
-            propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5), 2),
+            propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5, .6), 2),
             performance_parameters=PerformanceParameters(
                 cruise_parameters=PerformanceAtAltitude(np.pi*.8*20., .01),
                 mach_max_parameters=PerformanceAtAltitude(np.pi*.75*20., .02),
@@ -69,21 +69,22 @@ def initial_state():
     return initial_state_interior()
 
 class TestWeightEstimationStep():
-    def test_weight_estimation_step(self, initial_state:DesignOptionState):
+    def test_weight_estimation_step(self, initial_state:DesignOptionState, debug:bool=False):
         #reference
         assumptions = Assumptions()
         fuel_fraction = fuel_mass_fraction(
             altitude_go_around=assumptions.ALTITUDE_GO_AROUND,
             altitude_cruise=assumptions.ALTITUDE_CRUISE,
             CL_max_glide_ratio_go_around=initial_state.iterable.performance_parameters.go_around_parameters.CL_glide_ratio_max(),
-            glide_ratio_cruise=initial_state.iterable.performance_parameters.cruise_parameters.glide_ratio_max(),
-            glide_ratio_mach_max=initial_state.iterable.performance_parameters.mach_max_parameters.glide_ratio_max(),
+            glide_ratio_cruise=initial_state.glide_ratio_cruise(),
+            glide_ratio_mach_max=initial_state.glide_ratio_mach_max(),
             glide_ratio_go_around=initial_state.iterable.performance_parameters.go_around_parameters.glide_ratio_max(),
             airspeed_approach=assumptions.airspeed_approach,
             wing_loading=initial_state.wing_loading(),
             efficiency_engine_total=initial_state.iterable.propulsion_parameters.engine_parameters.efficiency_total,
             energy_density_saf=assumptions.energy_density_saf,
-            time_half_turn=assumptions.TIME_HALF_CIRCLE
+            time_half_turn=assumptions.TIME_HALF_CIRCLE,
+            debug=debug
         )
         oem_fraction = initial_state.iterable.aircraft_parameters.empty_mass_fraction
 
@@ -101,3 +102,15 @@ class TestWeightEstimationStep():
         
         new_fuel_fraction = new_state.iterable.aircraft_parameters.fuel_mass_fraction
         assert np.isclose(new_fuel_fraction, fuel_fraction), f"{new_fuel_fraction} vs ref {fuel_fraction}"
+
+        if debug:
+            print(initial_state.glide_ratio_cruise())
+            print(initial_state.glide_ratio_mach_max())
+            print(initial_state.CL_cruise())
+            print(initial_state.CL_mach_max())
+            print(new_mtom)
+            print(fuel_fraction)
+
+
+if __name__ == "__main__":
+    TestWeightEstimationStep().test_weight_estimation_step(initial_state_interior(), True)

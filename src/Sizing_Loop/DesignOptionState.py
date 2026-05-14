@@ -54,3 +54,33 @@ class DesignOptionState:
         airspeed_go_around = np.sqrt(wing_loading * 2/rho_go_around_altitude * load_factor_go_around/CL_max_glide_ratio)
 
         return airspeed_go_around / atmosphere_go_around.speed_of_sound()
+    
+
+    def CL_mach_max(self) -> float:
+        atmosphere = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX)
+        airspeed_mach_max = atmosphere.speed_of_sound() * CONSTANTS.MACH_MAX
+        return np.sqrt(self.wing_loading() * 2 / atmosphere.density() * 1 / airspeed_mach_max**2)
+    
+
+    def glide_ratio_mach_max(self) -> float:
+        CL = self.CL_mach_max()
+        CD0 = self.iterable.performance_parameters.mach_max_parameters.CD0
+        inviscid_ratio = self.iterable.performance_parameters.mach_max_parameters.inviscid_ratio
+
+        CD_CL = CD0 / CL + CL / inviscid_ratio
+        return 1 / CD_CL
+    
+
+    def CL_cruise(self) -> float:
+        atmosphere = asb.Atmosphere(self.fixed.assumptions.ALTITUDE_CRUISE)
+        airspeed_cruise = atmosphere.speed_of_sound() * CONSTANTS.MACH_CRUISE
+        return np.sqrt(self.wing_loading() * 2 / atmosphere.density() * 1 / airspeed_cruise**2)
+    
+
+    def glide_ratio_cruise(self) -> float:
+        CL = self.CL_cruise()
+        CD0 = self.iterable.performance_parameters.cruise_parameters.CD0
+        inviscid_ratio = self.iterable.performance_parameters.cruise_parameters.inviscid_ratio
+
+        CD_CL = CD0 / CL + CL / inviscid_ratio
+        return 1 / CD_CL
