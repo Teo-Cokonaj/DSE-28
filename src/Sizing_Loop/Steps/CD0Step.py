@@ -103,9 +103,9 @@ class CD0Step(DesignOptionStep):
         'Assumptions'. 
         """
         return {
-            "length1": float(state.fixed.assumptions.fuselage_length1_per_span * state.iterable.lifting_surfaces[0].span),
-            "length2": float(state.fixed.assumptions.fuselage_length2_per_span * state.iterable.lifting_surfaces[0].span),
-            "length3": float(state.fixed.assumptions.fuselage_length3_per_span * state.iterable.lifting_surfaces[0].span),
+            "length1": float(state.fixed.assumptions.fuselage_length1_per_area * state.iterable.lifting_surfaces[0].wing_area),
+            "length2": float(state.fixed.assumptions.fuselage_length2_per_area * state.iterable.lifting_surfaces[0].wing_area),
+            "length3": float(state.fixed.assumptions.fuselage_length3_per_area * state.iterable.lifting_surfaces[0].wing_area),
             "diameter": float(state.fixed.assumptions.diameter_fuselage),
             "upsweep": float(state.fixed.assumptions.fuselage_upsweep),
             "area_base": float(state.fixed.assumptions.fuselage_base_area),

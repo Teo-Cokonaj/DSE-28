@@ -4,7 +4,8 @@ import aerosandbox.numpy as np
 # Global parameters for configurations:
 class CONSTANTS:
 
-    G0 = 9.80665
+    G0 = 9.80665 # [N/kg]
+    SAFETY_FACTOR= 1.5 
     GAS_CONSTANT_AIR = 287.05 # [J/kg/K]
     GAMMA_AIR = 1.4
     PRESSURE_SEA_LEVEL = 101325 # [Pa]
@@ -21,10 +22,15 @@ class CONSTANTS:
     DYNAMIC_VISCOSITY_SEA_LEVEL = 1.789e-5 # [kg/m/s]
 
     #cs-23 requirements
-    OBSTACLE_HEIGHT = 11 #[m]
-    ALTITUDE_OEI_CLIMB = 122 #[m]
+    OBSTACLE_HEIGHT = 11 # [m]
+    ALTITUDE_OEI_CLIMB = 122 # [m]
     CLIMB_GRADIENT_AEO = .04
     CLIMB_GRADIENT_OEI = .01
+
+    #material properties
+    DENSITY_CFRP = 1600.0 # [kg/m^3]
+    YIELD_STRENGTH_CFRP = 600e6 # [Pa]  
+    E_MODULUS_CFRP = 80e9 # [Pa]      
     
 
 class Assumptions():
@@ -56,9 +62,9 @@ class Assumptions():
 
         # Fuselage
         self.diameter_fuselage = .15 # m (based on FLEXOP)
-        self.fuselage_length1_per_span = .55 / 7.07 # nose cone length / span (based on FLEXOP)
-        self.fuselage_length2_per_span = 1.75 / 7.07  # middle fuselage section length /span (based on FLEXOP)
-        self.fuselage_length3_per_span = 1.12 / 7.07  # tail cone length / span (based on FLEXOP)
+        self.fuselage_length1_per_area = .55 / 2.499245 # nose cone length / span (based on FLEXOP)
+        self.fuselage_length2_per_area = 1.75 / 2.499245  # middle fuselage section length /span (based on FLEXOP)
+        self.fuselage_length3_per_area = 1.12 / 2.499245  # tail cone length / span (based on FLEXOP)
         self.fuselage_upsweep = np.radians(11) # [rad] (based on FLEXOP)
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
@@ -78,6 +84,8 @@ class Assumptions():
 
         #tail arm
         self.moment_arm_per_area = 0.80 # based on FLEXOP
+
+        self.statistical_OEM_fraction = 0.4
 
 
     @property
