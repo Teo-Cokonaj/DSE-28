@@ -90,6 +90,10 @@ class Assumptions():
 
     @property
     def airspeed_approach(self) -> float:
+        return self.airspeed_stall * 1.3
+    
+    @property
+    def airspeed_stall(self) -> float:
         return np.sqrt(self.airfield_length / .6)
 
 
