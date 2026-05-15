@@ -33,7 +33,8 @@ class MatchingDiagramStep(DesignOptionStep):
             mach = CONSTANTS.MACH_MAX, 
             CD0 = state.iterable.performance_parameters.mach_max_parameters.CD0,
             inviscid_ratio = state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio,
-            atmosphere = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX)
+            atmosphere = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX),
+            beta = (1 - state.iterable.aircraft_parameters.fuel_mass_fraction / 2) #NOTE: we must be able to perform mach max half-fuelled
         )
         diagram.add_cruise_speed(
             constraint_label = "Cruise speed",

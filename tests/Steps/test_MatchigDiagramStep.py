@@ -80,7 +80,7 @@ class TestMatchingDiagramStep():
         CD0_mach_max = initial_state.iterable.performance_parameters.mach_max_parameters.CD0
         inviscid_ratio_mach_max = initial_state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio
         CD_CL_mach_max = CD0_mach_max / CL_mach_max + CL_mach_max / inviscid_ratio_mach_max
-        thrust_weight_mach_max = CD_CL_mach_max / thrust_lapse
+        thrust_weight_mach_max = CD_CL_mach_max / thrust_lapse * (1 - initial_state.iterable.aircraft_parameters.fuel_mass_fraction / 2)
 
         old_tail_area_ratios = [planform.wing_area / initial_state.iterable.lifting_surfaces[0].wing_area 
                                 for planform in initial_state.iterable.lifting_surfaces]
