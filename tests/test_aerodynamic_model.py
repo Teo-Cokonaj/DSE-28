@@ -11,6 +11,7 @@ from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.flight_envelope.flight_envelope import FlightEnvelope
 from src.aerodynamic_model.lifting_line_theory import LiftingLineTheory
 from airfoil.SymmetricAirfoil import SymmetricAirfoil
+from aerodynamic_model.lifting_line_inviscid import LiftingLineInviscid
 from typing_extensions import assert_type
 
 
@@ -122,7 +123,7 @@ class TestAerodynamicModel:
         difference=analytic_CL-numerical_CL
 
         assert (abs(difference)/min(analytic_CL,numerical_CL)<0.1)
-        assert isinstance(analysis,asb.LiftingLine)
+        assert isinstance(analysis, LiftingLineInviscid)
         assert isinstance(results,dict)
 
     def test_find_aoa_for_trim(self,
