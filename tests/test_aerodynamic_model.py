@@ -1,6 +1,7 @@
 import pytest
 import aerosandbox as asb
 import aerosandbox.numpy as np
+import numpy.testing as nte
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -80,7 +81,7 @@ class TestAerodynamicModel:
     def test_LE_positions(self,
                           lifting_line_theory,
                             wing_planform):
-        np.testing.assert_allclose(lifting_line_theory.calculate_LE_x_positions(lifting_line_theory.wing_number_of_sections,
+        nte.assert_allclose(lifting_line_theory.calculate_LE_x_positions(lifting_line_theory.wing_number_of_sections,
                                                                                        wing_planform),
                                           np.linspace(0.0,
                                                       wing_planform.half_span*np.tan(wing_planform.sweep_LE_rad),
@@ -89,7 +90,7 @@ class TestAerodynamicModel:
     def test_section_y_positions(self,
                           lifting_line_theory,
                             wing_planform):
-        np.testing.assert_allclose(lifting_line_theory.calculate_section_y_positions(lifting_line_theory.wing_number_of_sections,
+        nte.assert_allclose(lifting_line_theory.calculate_section_y_positions(lifting_line_theory.wing_number_of_sections,
                                                                                        wing_planform),
                                           np.linspace(0.0,wing_planform.half_span,
                                                       lifting_line_theory.wing_number_of_sections))

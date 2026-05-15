@@ -52,7 +52,7 @@ def initial_state_interior():
                     tip_twist_rad=np.deg2rad(2.),
                 )
             ],
-            propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5, .6), 2),
+            propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5, .15), 2),
             performance_parameters=PerformanceParameters(
                 cruise_parameters=PerformanceAtAltitude(np.pi*.8*20., .01),
                 mach_max_parameters=PerformanceAtAltitude(np.pi*.75*20., .02),
