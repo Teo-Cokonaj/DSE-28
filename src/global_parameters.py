@@ -4,7 +4,8 @@ import aerosandbox.numpy as np
 # Global parameters for configurations:
 class CONSTANTS:
 
-    G0 = 9.80665
+    G0 = 9.80665 # [N/kg]
+    SAFETY_FACTOR= 1.5 
     GAS_CONSTANT_AIR = 287.05 # [J/kg/K]
     GAMMA_AIR = 1.4
     PRESSURE_SEA_LEVEL = 101325 # [Pa]
@@ -19,7 +20,17 @@ class CONSTANTS:
     N_LANDING_ATTEMPTS = 4
     MASS_PAYLOAD = 5. # [kg]
     DYNAMIC_VISCOSITY_SEA_LEVEL = 1.789e-5 # [kg/m/s]
-    OBSTACLE_HEIGHT = 11 #[m]
+
+    #cs-23 requirements
+    OBSTACLE_HEIGHT = 11 # [m]
+    ALTITUDE_OEI_CLIMB = 122 # [m]
+    CLIMB_GRADIENT_AEO = .04
+    CLIMB_GRADIENT_OEI = .01
+
+    #material properties
+    DENSITY_CFRP = 1600.0 # [kg/m^3]
+    YIELD_STRENGTH_CFRP = 600e6 # [Pa]  
+    E_MODULUS_CFRP = 80e9 # [Pa]      
     
 
 class Assumptions():
@@ -31,6 +42,8 @@ class Assumptions():
         self.AIR_DENSITY_CRUISE_ALTITUDE = 0.695 # [kg/m^3]
         self.TEMPERATURE_CRUISE_ALTITUDE = 252.2 #[K]
 
+        self.energy_density_saf = 42.8e6 # [J/kg]
+
         # TURN ASSUMPTIONS:
         self.ALTITUDE_GO_AROUND = 2000. # [m]
         self.TIME_HALF_CIRCLE = 60.0 # [s]
@@ -41,30 +54,48 @@ class Assumptions():
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
         self.C_L_alpha = 0.5*2*np.pi #CHANGE
 
-        self.airfield_length = 1000. #m #TODO check with the actual airport
+        self.airfield_length = 1275. #m #TODO check with the actual airport
 
         # Geometry Assumptions:
+        #CG position
+        self.CG_EXCURSION_MAC = 0.5
+
         # Fuselage
         self.diameter_fuselage = .15 # m (based on FLEXOP)
-        self.fuselage_length1 = .55 # [m] nose cone length (based on FLEXOP)
-        self.fuselage_length2 = 1.75 # [m] middle fuselage section length (based on FLEXOP)
-        self.fuselage_length3 = 1.12 # [m] tail cone length (based on FLEXOP)
+        self.fuselage_length1_per_area = .55 / 2.499245 # nose cone length / span (based on FLEXOP)
+        self.fuselage_length2_per_area = 1.75 / 2.499245  # middle fuselage section length /span (based on FLEXOP)
+        self.fuselage_length3_per_area = 1.12 / 2.499245  # tail cone length / span (based on FLEXOP)
         self.fuselage_upsweep = np.radians(11) # [rad] (based on FLEXOP)
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
         # Main gear (all are placeholders currently)
-        self.main_gear_diameter_wheel = 0.15   # [m] standard for 50-80kg UAV class
-        self.main_gear_width_wheel    = 0.055  # [m]
-        self.main_gear_height_strut   = 0.20   # [m] sized for belly clearance + rotation angle
-        self.main_gear_width_strut    = 0.035  # [m]
+        self.main_gear_diameter_wheel = 0.05   # [m] standard for 50-80kg UAV class
+        self.main_gear_width_wheel    = 0.025  # [m]
+        self.main_gear_height_strut   = 0.1   # [m] sized for belly clearance + rotation angle
+        self.main_gear_width_strut    = 0.01  # [m]
         self.main_gear_enclosed       = False
 
         # Nose gear (all are placeholders currently)
-        self.nose_gear_diameter_wheel = 0.10   # [m] smaller since lightly loaded
-        self.nose_gear_width_wheel    = 0.045  # [m]
-        self.nose_gear_height_strut   = 0.18   # [m] slightly shorter than main to give nose-up ground attitude
-        self.nose_gear_width_strut    = 0.025  # [m]
+        self.nose_gear_diameter_wheel = 0.04   # [m] smaller since lightly loaded
+        self.nose_gear_width_wheel    = 0.02  # [m]
+        self.nose_gear_height_strut   = 0.1   # [m] slightly shorter than main to give nose-up ground attitude
+        self.nose_gear_width_strut    = 0.008  # [m]
         self.nose_gear_enclosed       = False
+
+        #tail arm
+        self.moment_arm_per_area = 0.80 # based on FLEXOP
+
+        self.statistical_OEM_fraction = 0.4
+
+
+    @property
+    def airspeed_approach(self) -> float:
+        return self.airspeed_stall * 1.3
+    
+    @property
+    def airspeed_stall(self) -> float:
+        return np.sqrt(self.airfield_length / .6)
+
 
 class Engine():
     def __init__(self):

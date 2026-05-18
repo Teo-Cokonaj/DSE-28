@@ -32,8 +32,8 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, time_hal
 
     segment_cruise = Mission_Segment(glide_ratio_cruise, airspeed_cruise, CONSTANTS.TIME_CRUISE, altitude_cruise)
     segment_mach_max = Mission_Segment(glide_ratio_mach_max, airspeed_mach_max, CONSTANTS.TIME_MACH_MAX, CONSTANTS.ALTITUDE_MACH_MAX-altitude_cruise, airspeed_cruise)
-    segment_go_around = Mission_Segment(glide_ratio_go_around, airspeed_go_around, time_half_turn, altitude_go_around, airspeed_approach)
-    segment_go_around.equivalent_range *= CONSTANTS.N_LANDING_ATTEMPTS #we need multiple times the range for one go around
+    segment_go_around = Mission_Segment(glide_ratio_go_around, airspeed_go_around, time_half_turn * 2, altitude_go_around, airspeed_approach) #we make a full 360 turn in a go around
+    segment_go_around.equivalent_range *= CONSTANTS.N_LANDING_ATTEMPTS 
 
     fuel_frac_cruise = segment_cruise.fuel_fraction(efficiency_engine_total, energy_density_saf)
 

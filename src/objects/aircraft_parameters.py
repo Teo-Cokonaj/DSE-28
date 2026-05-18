@@ -8,7 +8,11 @@ class AircraftParameters:
                  canard_distance_in_front_of_wing: float,
                  thrust_weight_ratio: float = 0.,
                  empty_mass_fraction:float = .4,
+                 fuel_mass_fraction:float = .3,
                  x_cg_per_mac:float = .25,
+                 z_horizontal_stabiliser:float = .5,
+                 z_vertical_stabiliser_root:float = 0.,
+                 z_canard:float = 0.
                  ):
 
         self.total_mass=total_mass
@@ -18,7 +22,12 @@ class AircraftParameters:
 
         self.thrust_weight_ratio = thrust_weight_ratio
         self.empty_mass_fraction = empty_mass_fraction
+        self.fuel_mass_fraction = fuel_mass_fraction
         self.x_cg_per_mac = x_cg_per_mac
+
+        self.z_horizontal_stabilizer = z_horizontal_stabiliser
+        self.z_vertical_stabiliser_root = z_vertical_stabiliser_root
+        self.z_canard = z_canard
 
         def example_function(self):
 

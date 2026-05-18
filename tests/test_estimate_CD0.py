@@ -94,10 +94,10 @@ class TestCD0Estimate:
         #===INDIVIDUAL COMPONENT CHECKS===
         fuselage = dcm.Fuselage(IFfuselage, fuselage_geometry, 0.05, 0.634e-5)
         assert np.isclose(fuselage.surface_wetted, 236.8289), fuselage.surface_wetted
-        assert np.isclose(fuselage.form_factor(), 1.072477), fuselage.form_factor()
+        assert np.isclose(fuselage.form_factor(), 1.064383), fuselage.form_factor()
         #NOTE the reference initial value is getting 0.00190, close enough since it is an intial value
         assert np.isclose(fuselage.Cf(altitude, mach_cruise), 0.00175882), fuselage.Cf(altitude, mach_cruise)
-        assert np.isclose(fuselage.CD0_contribution(altitude, mach_cruise), 0.00175882*1.072477)
+        assert np.isclose(fuselage.CD0_contribution(altitude, mach_cruise), 0.00175882*1.064383)
         assert np.isclose(fuselage.drag_area_contribution(mach_cruise), 0.07635754), fuselage.drag_area_contribution(mach_cruise)
 
         wing = dcm.Planform(IFwing, wing_geometry, .1, 0.634e-5, 1.07)

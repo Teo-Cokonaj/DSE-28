@@ -23,9 +23,7 @@ class MatchingDiagramStep(DesignOptionStep):
     def update(self, state:DesignOptionState) -> DesignOptionStateIterable:
         diagram = MatchingDiagramJet(state.iterable.propulsion_parameters.n_engines, resolution=self.resolution)
 
-        CL_A_h = state.fixed.assumptions.positive_C_L_max_airfoil * .9 * np.cos(state.iterable.lifting_surfaces[0].sweep_quarter_rad)
-        CL_h_max = -.35 * state.iterable.lifting_surfaces[1].aspect_ratio**(1/3)
-        CL_max = CL_A_h + state.iterable.lifting_surfaces[0].wing_area / state.iterable.lifting_surfaces[1].wing_area * CL_h_max
+        CL_max = state.CL_max()
 
         diagram.add_landing_field_length("Landing Length", state.fixed.assumptions.airfield_length, CL_max)
         diagram.create_wing_loading_axis()
@@ -35,7 +33,8 @@ class MatchingDiagramStep(DesignOptionStep):
             mach = CONSTANTS.MACH_MAX, 
             CD0 = state.iterable.performance_parameters.mach_max_parameters.CD0,
             inviscid_ratio = state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio,
-            atmosphere = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX)
+            atmosphere = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX),
+            beta = (1 - state.iterable.aircraft_parameters.fuel_mass_fraction / 2) #NOTE: we must be able to perform mach max half-fuelled
         )
         diagram.add_cruise_speed(
             constraint_label = "Cruise speed",
@@ -45,7 +44,23 @@ class MatchingDiagramStep(DesignOptionStep):
             atmosphere = asb.Atmosphere(state.fixed.assumptions.ALTITUDE_CRUISE)
         )
 
-        #TODO: add climb gradients
+        diagram.add_climb_gradient(
+            constraint_label = "Climb gradient AEO",
+            tan_gradient = CONSTANTS.CLIMB_GRADIENT_AEO,
+            CD0 = state.iterable.performance_parameters.takeoff_parameters.CD0,
+            inviscid_ratio = state.iterable.performance_parameters.takeoff_parameters.inviscid_ratio,
+            all_engines_operative = True,
+            atmosphere = asb.Atmosphere(0.)
+        )
+        diagram.add_climb_gradient(
+            constraint_label = "Climb gradient OEI",
+            tan_gradient = CONSTANTS.CLIMB_GRADIENT_OEI,
+            CD0 = state.iterable.performance_parameters.climb_OEI_parameters.CD0,
+            inviscid_ratio = state.iterable.performance_parameters.climb_OEI_parameters.inviscid_ratio,
+            all_engines_operative = False,
+            atmosphere = asb.Atmosphere(CONSTANTS.ALTITUDE_OEI_CLIMB)
+        )
+        #NOTE: there is also a 3% climb gradient on balked landing in the landing configuration, but since our Toff and landing configs are same (no HLDs), we skip that one
 
         diagram.add_takeoff_field_length(
             constraint_label = "Takeoff length", 
@@ -68,7 +83,7 @@ class MatchingDiagramStep(DesignOptionStep):
 
     @staticmethod
     def _update_wing_areas(state:DesignOptionState, wing_loading:float):
-        new_surface = wing_loading * state.iterable.aircraft_parameters.total_mass
+        new_surface = state.iterable.aircraft_parameters.total_mass * CONSTANTS.G0 / wing_loading
         surface_ratio = new_surface / state.iterable.lifting_surfaces[0].wing_area
 
         for lifting_surface in state.iterable.lifting_surfaces:

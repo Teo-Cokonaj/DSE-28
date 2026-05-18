@@ -10,7 +10,7 @@ project_root = os.path.dirname(airfoil_folder)
 sys.path.append(project_root)
 
 class SymmetricAirfoil(asb.Airfoil):
-    def __init__(self, name = "Untitled",):
+    def __init__(self, name = "Untitled"):
 
         coords = np.loadtxt(f"{airfoil_folder}\\NASA SC(2)-0012 AIRFOIL.dat", skiprows=1)
 
@@ -22,11 +22,6 @@ class SymmetricAirfoil(asb.Airfoil):
 
         super().__init__(name, coords_fixed)
 
-        self.generate_polars(
-            alphas = np.linspace(-10., 15., 100),
-            Res = np.geomspace(1e6, 1e8, 100),
-            cache_filename = "src/airfoil/NASA_SC2_0012"
-        )
         self.repanel(n_points_per_side=50)
 
 
