@@ -48,7 +48,7 @@ class CD0Step(DesignOptionStep):
         return airspeed_go_around / atmosphere_go_around.speed_of_sound()
 
 
-    def _planform_geometry(self, planform: LiftingSurfacePlanform, is_main_wing: bool) -> dict[str, float]:
+    def _planform_geometry(self, planform: LiftingSurfacePlanform) -> dict[str, float]:
         """
         Build the geometry dict expected by the drag 'Planform' from a
         'LiftingSurfacePlanform' instance.
@@ -72,7 +72,7 @@ class CD0Step(DesignOptionStep):
         }
 
 
-    def build_planform_components(self, planforms: list[LiftingSurfacePlanform]):
+    def build_planform_components(self, planforms: list[LiftingSurfacePlanform], is_main_wing: bool):
         """
         Turn a list of wing planforms into the drag-model objects used by 
         the component method.
@@ -91,7 +91,7 @@ class CD0Step(DesignOptionStep):
 
         for index, wing_or_planform in enumerate(planforms):
             is_main_wing = index == 0 
-            geometry = self._planform_geometry(wing_or_planform, is_main_wing=is_main_wing)
+            geometry = self._planform_geometry(wing_or_planform, is_main_wing)
             interference_factor, wetted_surface_multiplier = surface_factors[index]
 
             components.append(
