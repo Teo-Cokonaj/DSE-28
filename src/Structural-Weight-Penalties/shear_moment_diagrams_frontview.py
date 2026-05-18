@@ -49,7 +49,6 @@ def canard_lift_distribution(canard_lift_fraction, L_main, W, chord_length, frac
 
     canard_wingspan = wingspan * canard_length_fraction
     chord_length_canard = chord_length*canard_length_fraction
-
     t_canard = fraction_root_thickness * chord_length_canard
 
     if z_location_canard - t_canard < -fuselage_radius:

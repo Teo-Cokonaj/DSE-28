@@ -50,8 +50,9 @@ resolution = 501
 W = mtow * g * max_g_load * safety_factor           # Total weight force under max G-load [N]
 lift = W
 
-L_main = shear_moment_diagrams_sideview.calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc)["L_main"]
-
+L_main, L_empennage = shear_moment_diagrams_sideview.calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc)["L_main"], shear_moment_diagrams_sideview.calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc)["L_empennage"]
+print("L_main", L_main)
+print("L_empennage", L_empennage)
 chord_length = (wingspan / Aspect_ratio)           # Chord length at the root of the wing [m]
 fuselage_radius = fuselage_diameter / 2            # Fuselage radius [m]
 
