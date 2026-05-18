@@ -15,16 +15,23 @@ from src.aerodynamic_model.lifting_line_theory import LiftingLineTheory
 from src.global_parameters import CONSTANTS
 
 class InviscidAnalysisStep(DesignOptionStep):
-    def __init__(self, plot=False, debug=False):
+    def __init__(self, plot=False, debug=False, sample_aoa_deg=5., wing_resolution:int=100, other_resolution:int=5):
         self.plot = plot
         self.debug = debug
+        self.sample_aoa_deg = sample_aoa_deg
+        self.wing_resolution = wing_resolution
+        self.other_resolution = other_resolution
 
     def update(self, state:DesignOptionState) -> DesignOptionStateIterable:
         lifting_line_model = LiftingLineTheory(
             aircraft_parameters=state.iterable.aircraft_parameters,
             wing_planform=state.iterable.lifting_surfaces[0],
             horizontal_stabilizer_planform=state.iterable.lifting_surfaces[1],
-            vertical_stabilizer_planform=state.iterable.lifting_surfaces[2]
+            vertical_stabilizer_planform=state.iterable.lifting_surfaces[2],
+            wing_number_of_sections=self.wing_resolution,
+            canard_number_of_sections=self.other_resolution,
+            horizontal_stabilizer_number_of_sections=self.other_resolution,
+            vertical_stabilizer_number_of_sections=self.other_resolution
         )
 
         lifting_line_model.initialize_airfoils()
@@ -66,7 +73,7 @@ class InviscidAnalysisStep(DesignOptionStep):
             _, results = lifting_line_model.run_llt_arbitrary_analysis(
                     velocity=velocity, 
                     altitude_m=altitude, 
-                    angle_of_attack_deg=5. #NOTE: verified that the AoA does not influence the inviscid ratio
+                    angle_of_attack_deg=self.sample_aoa_deg #NOTE: verified that the AoA does not influence the inviscid ratio, if far from 0.
                 )
 
             return lifting_line_model.extract_L2_Di_ratio(results)

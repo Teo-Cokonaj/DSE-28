@@ -18,7 +18,7 @@ class TestClass_I:
     altitude_cruise = 5000. # [m]
     CL_go_around = .6
     wing_loading = 3000 # [Pa]
-    efficiency_engine_total = .87
+    efficiency_engine_total = .15
     enegy_density_saf = 42.8e6 # [J/kg]
     airspeed_approach = 60. # [m/s]
     oem_fraction = .4
@@ -41,7 +41,7 @@ class TestClass_I:
     def test_single_glide_ratio(self):
         range_nominal = (CONSTANTS.MACH_CRUISE*self.speed_of_sound_cruise*CONSTANTS.TIME_CRUISE 
                         +CONSTANTS.MACH_MAX*self.speed_of_sound_mach_max*CONSTANTS.TIME_MACH_MAX 
-                        +CONSTANTS.N_LANDING_ATTEMPTS*self.airspeed_go_around*self.time_half_turn)
+                        +CONSTANTS.N_LANDING_ATTEMPTS*self.airspeed_go_around*self.time_half_turn*2)
         range_lost = 1/.7*self.single_glide_ratio*(CONSTANTS.ALTITUDE_MACH_MAX+(CONSTANTS.MACH_MAX*self.speed_of_sound_mach_max)**2/2/CONSTANTS.G0
                                                    +CONSTANTS.N_LANDING_ATTEMPTS*(self.altitude_go_around+(self.airspeed_go_around**2-self.airspeed_approach**2)/2/CONSTANTS.G0))
         range_equivalent = range_nominal + range_lost

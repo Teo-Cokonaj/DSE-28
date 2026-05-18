@@ -76,6 +76,8 @@ HT_Lambda_qc_DAST_deg = sweep_le_to_qc_deg(
 
 VT_half_span_DAST = 0.83  # m
 VT_Lambda_LE_DAST_deg = 45.0  # deg
+
+empty_mass_fraction_DAST = 870 / 1008 # based on ARW-I, since ARW-II data is not available
 # -----------------------------------------------------------------------------
 # NASA X-56A
 # -----------------------------------------------------------------------------
@@ -93,7 +95,7 @@ Lambda_qc_X = sweep_le_to_qc_deg(
 )
 tip_twist_X = 0.0  # rad
 
-
+empty_mass_fraction_X = (m_X - 82*0.45359237) / m_X  # based on 82 lb of fuel subtracted from MTOM
 # -----------------------------------------------------------------------------
 # Boeing / NASA Transonic Truss-Braced Wing reference
 # -----------------------------------------------------------------------------
@@ -218,3 +220,10 @@ CN_span_HUGO = 0.20  # m
 CN_taper_HUGO = 0.50
 CN_sweep_quarter_deg_HUGO = 35.0  # deg
 CN_tip_twist_rad_HUGO = 0.0  # rad
+
+
+# ==============================
+# Derived statistics
+# ==============================
+HT_arm_over_area = np.mean([HT_arm_FLEXOP / S_FLEXOP, HT_arm_TTBW / S_TTBW, HT_arm_DAST / np.sqrt(b_DAST * AR_DAST)])
+
