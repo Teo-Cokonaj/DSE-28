@@ -38,7 +38,28 @@ class CD0Step(DesignOptionStep):
         return state.iterable
 
 
+<<<<<<< HEAD
+    @staticmethod
+    def go_around_mach(state:DesignOptionState)->float:
+        assumptions = state.fixed.assumptions
+        wing_loading = state.iterable.aircraft_parameters.total_mass / state.iterable.lifting_surfaces[0].wing_area
+        CL_max_glide_ratio = np.sqrt(state.iterable.performance_parameters.go_around_parameters.CD0 * state.iterable.performance_parameters.go_around_parameters.inviscid_ratio)
+        #determining go around parameters
+        omega_turn = np.pi/assumptions.time_half_turn
+        atmosphere_go_around = asb.Atmosphere(assumptions.altitude_go_around)
+        rho_go_around_altitude = atmosphere_go_around.density()
+        # n**2 - quadratic_b_term*n -1
+        quadratic_b_term = omega_turn**2/CONSTANTS.G0**2 * wing_loading * 2/rho_go_around_altitude / CL_max_glide_ratio
+        load_factor_go_around = .5*(quadratic_b_term + np.sqrt(quadratic_b_term**2+4))
+        airspeed_go_around = np.sqrt(wing_loading * 2/rho_go_around_altitude * load_factor_go_around/CL_max_glide_ratio)
+
+        return airspeed_go_around / atmosphere_go_around.speed_of_sound()
+
+
+    def _planform_geometry(self, planform: LiftingSurfacePlanform) -> dict[str, float]:
+=======
     def _planform_geometry(self, planform: LiftingSurfacePlanform, diameter_fuselage:float) -> dict[str, float]:
+>>>>>>> ee6ad56bc01b36033c80dbe2c03e1347f04f5da2
         """
         Build the geometry dict expected by the drag 'Planform' from a
         'LiftingSurfacePlanform' instance.
@@ -61,7 +82,11 @@ class CD0Step(DesignOptionStep):
         }
 
 
+<<<<<<< HEAD
+    def build_planform_components(self, planforms: list[LiftingSurfacePlanform], is_main_wing: bool):
+=======
     def build_planform_components(self, state:DesignOptionState):
+>>>>>>> ee6ad56bc01b36033c80dbe2c03e1347f04f5da2
         """
         Turn a list of wing planforms into the drag-model objects used by 
         the component method.
@@ -82,7 +107,11 @@ class CD0Step(DesignOptionStep):
 
         for index, wing_or_planform in enumerate(planforms):
             is_main_wing = index == 0 
+<<<<<<< HEAD
+            geometry = self._planform_geometry(wing_or_planform, is_main_wing)
+=======
             geometry = self._planform_geometry(wing_or_planform, diameter_fuselage)
+>>>>>>> ee6ad56bc01b36033c80dbe2c03e1347f04f5da2
             interference_factor, wetted_surface_multiplier = surface_factors[index]
 
             components.append(
