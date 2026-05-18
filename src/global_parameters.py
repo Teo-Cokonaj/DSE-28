@@ -55,8 +55,13 @@ class Assumptions():
         self.ALTITUDE_GO_AROUND = 1500 / .3048 # [m]
         self.TIME_HALF_CIRCLE = 60.0 # [s]
         self.OMEGA_GO_AROUND = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
+
         self.MC=0.75 #cruise Mach number
         self.MD = 0.80 #ADSEE: in general, MD is 0.05M higher than MC
+
+        self.airfoil_thickness_to_chord_max = .12
+        self.airfoil_thickness_to_chord_max_location = .37
+        self.max_camber_position = np.inf #to cancel the camber term
         self.positive_C_L_max_airfoil=1.25 #CHANGE
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
         self.C_L_alpha = 0.5*2*np.pi #CHANGE

@@ -38,7 +38,7 @@ class CD0Step(DesignOptionStep):
         return state.iterable
 
 
-    def _planform_geometry(self, planform: LiftingSurfacePlanform, diameter_fuselage:float) -> dict[str, float]:
+    def _planform_geometry(self, planform: LiftingSurfacePlanform, diameter_fuselage:float, assumptions:Assumptions) -> dict[str, float]:
         """
         Build the geometry dict expected by the drag 'Planform' from a
         'LiftingSurfacePlanform' instance.
@@ -55,9 +55,9 @@ class CD0Step(DesignOptionStep):
             "wing_span": wing_span,
             "taper_ratio": taper_ratio,
             "sweep_LE": sweep_le,
-            "chord_fraction_max_thickness": 0.3, # comes from airfoil (dummy var)
-            "pos_max_camber": 0.25,              # comes from airfoil (dummy var)
-            "thickness_to_chord_ratio": 0.1,     # comes from airfoil (dummy var)
+            "chord_fraction_max_thickness": assumptions.airfoil_thickness_to_chord_max_location, # comes from airfoil (dummy var)
+            "pos_max_camber": assumptions.max_camber_position,              # comes from airfoil (dummy var)
+            "thickness_to_chord_ratio": assumptions.airfoil_thickness_to_chord_max,     # comes from airfoil (dummy var)
         }
 
 
@@ -81,7 +81,7 @@ class CD0Step(DesignOptionStep):
             raise ValueError(f"Expected at most {len(surface_factors)} planforms, got {len(planforms)}.")
 
         for index, wing_or_planform in enumerate(planforms):
-            geometry = self._planform_geometry(wing_or_planform, diameter_fuselage)
+            geometry = self._planform_geometry(wing_or_planform, diameter_fuselage, state.fixed.assumptions)
             interference_factor, wetted_surface_multiplier = surface_factors[index]
 
             components.append(
