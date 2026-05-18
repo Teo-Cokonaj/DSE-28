@@ -1,12 +1,14 @@
 import shear_moment_diagrams_frontview
 import shear_moment_diagrams_sideview
 import canard_port_penalty
+import plots
 import Main_wing_estimations
 
 
 #Constants
+
 g = 9.81                               # Gravitational acceleration [m/s^2]
-CFRP = [1600.0, 600e6, 80e9]           # CFRP Quasi-isotropic properties: Density [kg/m^3], Yield Strength [Pa], Elastic Modulus [Pa]
+CFRP = [1600.0, 600e6, 80e9, 900e6]           # CFRP Quasi-isotropic properties: Density [kg/m^3], Yield Strength [Pa], Elastic Modulus [Pa]
 
 
 #Assumptions
@@ -19,7 +21,7 @@ minimum_thickness=0.001                # Minimum manufacturing thickness [m] - 1
 density=CFRP[0]                   # density [kg/m^3] - CFRP: 1600, Aluminum 7075-T6: 2810.0
 yield_strength=CFRP[1]            # yield strength [Pa] CFRP Quasi-isotropic: 600e6, Aluminum 7075-T6: 500e6
 youngs_modulus=CFRP[2]            # youngs modulus [Pa] CFRP Quasi-isotropic: 80e9, Aluminum 7075-T6: 70e9
-
+bearing_strength = CFRP[3]
 #################################
 #Inputs
 mtow=100.0                      # Maximum Takeoff Weight of the drone [kg]
@@ -37,15 +39,13 @@ wingspan=3.0                                       # Wingspan [m]
 Aspect_ratio=25.0                                  # Wing aspect ratio
 fraction_root_thickness= 0.12                      # Fraction of the chord that defines the root thickness of the wing
 
-target_deflection_m = 0.005                        # Target deflection of the canard port and main wing fuselage-overlapping wingbox.
+target_deflection_at_root = 0.005                  # Target deflection of the canard port and main wing fuselage-overlapping wingbox. [m]
 
 
 oem_fraction = 0.5              # OEM fraction of MTOW
 
 resolution = 501
 ##################################
-
-
 
 W = mtow * g * max_g_load * safety_factor           # Total weight force under max G-load [N]
 lift = W
@@ -57,26 +57,25 @@ fuselage_radius = fuselage_diameter / 2            # Fuselage radius [m]
 
 t_wing = fraction_root_thickness * chord_length    # Root thickness of the wing [m]
 
-
-x, dx, loads, title, fuselage_overlap = shear_moment_diagrams_frontview.mainwing_lift_distribution(resolution, wingspan, lift, fuselage_radius, z_location_canard, t_wing).values()              
+#x, dx, loads, title, fuselage_overlap = shear_moment_diagrams_frontview.mainwing_lift_distribution(resolution, wingspan, lift, fuselage_radius, z_location_canard, t_wing).values()              
 
 x, dx, loads, title, fuselage_overlap, chord_length_canard, t_canard = shear_moment_diagrams_frontview.canard_lift_distribution(canard_lift_fraction, L_main, W, chord_length, fraction_root_thickness, z_location_canard, fuselage_radius, wingspan, lift, resolution).values()
-
 x, shear, moment = shear_moment_diagrams_frontview.cumulative_shear_and_moment(x, dx, loads, title)
-shear_moment_diagrams_frontview.plot_shear_and_moment_diagrams(x, shear, moment)
-
-
-I_req = shear_moment_diagrams_frontview.required_wingbox_stiffness(x, dx, moment, fuselage_overlap, CFRP[2], target_deflection_m)
+I_req = shear_moment_diagrams_frontview.required_wingbox_stiffness(x, dx, moment, fuselage_overlap, CFRP[2], target_deflection_at_root)
 
 I_solid_rod = (t_canard**4) / 64
-deflection = shear_moment_diagrams_frontview.deflection_from_moment(x, dx, moment, CFRP[2], I_solid_rod, fuselage_overlap)
-shear_moment_diagrams_frontview.plot_deflection_diagrams(x, deflection)
-
 deflection = shear_moment_diagrams_frontview.solid_wingbox_deflection_at_root(x, dx, moment, fuselage_overlap, CFRP[2], I_solid_rod)
-rod_wall_thickness = shear_moment_diagrams_frontview.required_canard_rod_thickness(I_req, t_canard, deflection)
+#rod_wall_thickness = shear_moment_diagrams_frontview.required_canard_rod_thickness(I_req, t_canard, deflection)
+rod_wall_thickness = 0.005
+
 
 rod_density=CFRP[0]
-oem_fraction = canard_port_penalty.analyze_canard_structural_impact(mtow, max_g_load, canard_lift_fraction, cg_loc, canard_loc, fuselage_diameter, minimum_thickness, density, yield_strength, safety_factor, t_canard, rod_density, reinforcement_diameter, thickness_multiplier, oem_fraction, rod_wall_thickness)
+skin_density=CFRP[0]
+skin_yield_strength=CFRP[1]
+bearing_strength = CFRP[3]
+rod_outer_diameter=t_canard
+new_oem_fraction = canard_port_penalty.analyze_canard_structural_impact(mtow, W, canard_lift_fraction, cg_loc, canard_loc, fuselage_diameter, minimum_thickness, skin_density, skin_yield_strength, bearing_strength, rod_outer_diameter, rod_density, reinforcement_diameter, thickness_multiplier, oem_fraction, rod_wall_thickness, z_location_canard)
 
 
-print(f"OEM Fraction of MTOW for Canard Port Structural Reinforcement: {oem_fraction:.2%}")
+print(f"OEM Fraction of MTOW for Canard Port Structural Reinforcement: {new_oem_fraction:.2%}")
+print(f"Change in OEM Fraction: {new_oem_fraction - oem_fraction:.2%}")
