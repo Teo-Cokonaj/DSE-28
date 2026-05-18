@@ -17,4 +17,3 @@ class DesignOptionStateIterable:
     lifting_surfaces:list[LiftingSurfacePlanform]
     propulsion_parameters:PropulsionParameters
     performance_parameters:PerformanceParameters
-    

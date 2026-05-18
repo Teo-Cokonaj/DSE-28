@@ -5,7 +5,8 @@ class EngineParameters():
     thrust_max:float
     diameter:float
     length:float
-
+    efficiency_total:float = .9
+    mass:float = 10.
 
 @dataclass
 class PropulsionParameters():
