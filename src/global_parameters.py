@@ -52,7 +52,7 @@ class Assumptions():
         self.MD = 0.80 #ADSEE: in general, MD is 0.05M higher than MC
         self.positive_C_L_max_airfoil=1.25 #CHANGE
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
-        self.C_L_alpha = 0.5*2*np.pi #CHANGE
+        self.airfoil_C_l_alpha = 0.5/np.radians(4.0) #0.5 per 4deg
 
         self.airfield_length = 1275. #m #TODO check with the actual airport
 

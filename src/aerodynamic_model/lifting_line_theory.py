@@ -33,7 +33,7 @@ class LiftingLineTheory():
 
         self.wing_number_of_sections = wing_number_of_sections
         self.horizontal_stabilizer_number_of_sections = horizontal_stabilizer_number_of_sections
-        self.canard_number_of_sections = horizontal_stabilizer_number_of_sections
+        self.canard_number_of_sections = canard_number_of_sections
         self.vertical_stabilizer_number_of_sections = vertical_stabilizer_number_of_sections
 
     def initialize_airfoils(self):
@@ -281,7 +281,6 @@ class LiftingLineTheory():
             )
 
             results = self.analysis.run()
-            print(results)
 
             CL_list.append(results["CL"])
             Cm_list.append(results["Cm"])
@@ -297,7 +296,6 @@ class LiftingLineTheory():
 
         x_ref = 0.0 #origin at [0,0,0]
         x_ac = x_ref - self.airplane.c_ref * dCm_dCL
-        print('Position of x_ac: ',x_ac)
 
         Cmac = np.polyfit(CL, Cm, 1)[1]  # intercept at CL=0
 
@@ -316,64 +314,3 @@ class LiftingLineTheory():
             "dCm_dalpha": dCm_dalpha,
         }            
         
-    
-if __name__ == "__main__":
-    aircraft_parameters=AircraftParameters(total_mass=50.0,
-                            horizontal_stabilizer_distance_from_wing=3.0,
-                            vertical_stabilizer_distance_from_wing=3.0,
-                            canard_distance_in_front_of_wing=0.5)
-
-    main=LiftingSurfacePlanform(aspect_ratio=25.0,
-                                    span=2.0,
-                                    sweep_quarter_deg=0.0,
-                                    taper=1.0,
-                                    tip_twist_rad=0.0)
-
-    horizontal=LiftingSurfacePlanform(aspect_ratio=3.0,
-                                                                    span=0.5,
-                                                                    sweep_quarter_deg=45.0,
-                                                                    taper=1.0,
-                                                                    tip_twist_rad=0.0)
-
-
-    vertical=LiftingSurfacePlanform(aspect_ratio=3.0,
-                                                                    span=0.3,
-                                                                    sweep_quarter_deg=0.0,
-                                                                    taper=0.3,
-                                                                    tip_twist_rad=0.0)
-
-    canard=LiftingSurfacePlanform(aspect_ratio=3.0,
-                                                                    span=0.3,
-                                                                    sweep_quarter_deg=45.0,
-                                                                    taper=1.0,
-                                                                    tip_twist_rad=0.0)
-
-    lifting_line_theory=LiftingLineTheory(aircraft_parameters,
-                                main,
-                                horizontal,
-                                vertical,
-                                canard
-                                            )
-
-    altitude_m = 0.0
-    velocity=50.0
-
-    lifting_line_theory.initialize_airfoils()
-    #Make a wing model
-    lifting_line_theory.make_full_airplane_model(main_wing=True,
-                                                    canard=False,
-                                                    horizontal_stabilizer=False,
-                                                    vertical_stabilizer=False)
-    results=lifting_line_theory.run_llt_alpha_sweep(velocity,
-                                                            altitude_m)
-    
-    computed_lift_curve_slope_per_rad=results["lift_curve_slope_per_rad"]
-    #Kuchemann
-    sweep_quarter_rad=main.sweep_quarter_rad
-    AR=main.aspect_ratio
-    analytic_lift_curve_slope_per_rad= 2*np.pi*np.cos(sweep_quarter_rad)/(np.sqrt(1+(2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)**2)+2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)
-    difference=analytic_lift_curve_slope_per_rad-computed_lift_curve_slope_per_rad
-
-    assert (abs(difference)/min(analytic_lift_curve_slope_per_rad,computed_lift_curve_slope_per_rad)<0.1)
-
-    print('Position of aerodynamic centre: ',results['x_ac'])
