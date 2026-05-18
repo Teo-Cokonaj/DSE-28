@@ -1,6 +1,13 @@
 # Imports
 import aerosandbox.numpy as np
 
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import src.ac_stats as stat
+
 # Global parameters for configurations:
 class CONSTANTS:
 
@@ -83,10 +90,9 @@ class Assumptions():
         self.nose_gear_enclosed       = False
 
         #tail arm
-        self.moment_arm_per_area = 0.80 # based on FLEXOP
+        self.moment_arm_per_area = stat.HT_arm_over_area # based on FLEXOP
 
-        self.statistical_OEM_fraction = 0.4
-
+        self.statistical_OEM_fraction = 870 / 1008
 
     @property
     def airspeed_approach(self) -> float:
