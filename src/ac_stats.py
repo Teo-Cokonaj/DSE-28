@@ -225,3 +225,5 @@ CN_tip_twist_rad_HUGO = 0.0  # rad
 # ==============================
 # Derived statistics
 # ==============================
+HT_arm_over_area = np.mean([HT_arm_FLEXOP / S_FLEXOP, HT_arm_TTBW / S_TTBW, HT_arm_DAST / np.sqrt(b_DAST * AR_DAST)])
+

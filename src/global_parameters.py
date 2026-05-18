@@ -90,7 +90,7 @@ class Assumptions():
         self.nose_gear_enclosed       = False
 
         #tail arm
-        self.moment_arm_per_area = 0.80 # based on FLEXOP
+        self.moment_arm_per_area = stat.HT_arm_over_area # based on FLEXOP
 
         self.statistical_OEM_fraction = 870 / 1008
 

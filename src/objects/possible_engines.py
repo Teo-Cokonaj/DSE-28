@@ -11,14 +11,14 @@ class PossibleEngines:
             thrust_max=425, # [N]
             diameter=.147, # [m]
             length=.304, # [m]
-            efficiency_total=.15, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
+            efficiency_total=.1, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
             mass = 3.4 # [kg]
         ), 2)
         self.engineTJ40_G2 = PropulsionParameters(EngineParameters(
             thrust_max=425, # [N]
             diameter=.147, # [m]
             length=.373, # [m]
-            efficiency_total=.15, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
+            efficiency_total=.1, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
             mass = 3.8 # [kg]
         ), 2)
         # self.engineTJ80_90 = PropulsionParameters(EngineParameters(
@@ -39,7 +39,7 @@ class PossibleEngines:
             thrust_max=492, # [N]
             diameter=.175, # [m]
             length=.416, # [m]
-            efficiency_total=.15, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
+            efficiency_total=.1, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
             mass = 5.4 # [kg]
         ), 2)
         # self.engineP1000_PRO_S_GH = PropulsionParameters(EngineParameters(
