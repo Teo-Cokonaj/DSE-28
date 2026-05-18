@@ -43,6 +43,7 @@ def mainwing_lift_distribution(resolution, wingspan, lift, fuselage_radius, z_lo
 def canard_lift_distribution(canard_lift_fraction, L_main, W, chord_length, fraction_root_thickness, z_location_canard, fuselage_radius, wingspan, lift, resolution):
 
     lift_canard = canard_lift_fraction * lift
+    print ("Lift of Canard: ", lift_canard)
     canard_area_fraction = canard_lift_fraction/(L_main/W) # area of the canard relative to the area of the main wing.
     canard_length_fraction = math.sqrt(canard_area_fraction) # area scales with the square of linear dimensions
 
@@ -91,10 +92,6 @@ def cumulative_shear_and_moment(x, dx, loads, title):
     shear = np.cumsum(loads) * dx
     # Moment is the integral of shear
     moment = np.cumsum(shear) * dx
-    
-    print(f"--- {title} ---")
-    print(f"Residual Shear at right tip: {shear[-1]:.2f} N")
-    print(f"Residual Moment at right tip: {moment[-1]:.2f} Nm")
 
     return x, shear, moment
 
@@ -143,7 +140,7 @@ def required_mainwing_wingbox_skin_thickness(I_req, deflection, chord, t_root):
         )
         
     # 2. Define the equation we want to drive to zero
-    def inertia_error(t_skin):
+    def I_error(t_skin):
         b_in = chord - 2 * t_skin
         h_in = t_root - 2 * t_skin
         
@@ -151,7 +148,7 @@ def required_mainwing_wingbox_skin_thickness(I_req, deflection, chord, t_root):
         
         return I_guess - I_req
         
-    solution = root_scalar(inertia_error, bracket=[0, t_root/2], method='brentq')
+    solution = root_scalar(I_error, bracket=[0, t_root/2], method='brentq')
     
     if solution.converged:
         t_required = solution.root
@@ -175,6 +172,10 @@ def required_canard_rod_thickness(I_required, t_canard, deflection):
     
     return rod_thickness
 
+
+
+
+"""
 def deflection_from_moment(x, dx, moment, E, I, fuselage_overlap):
     free_wing_idx = x > fuselage_overlap/2
     
@@ -194,67 +195,4 @@ def deflection_from_moment(x, dx, moment, E, I, fuselage_overlap):
     deflection[left_side] = np.flip(deflection[right_side])
 
     return deflection
-
-def plot_loads(x, loads, title):
-    plt.figure(figsize=(10, 4))
-    plt.plot(x, loads, label='Distributed Load (N/m)', color='green')
-    plt.title(title)
-    plt.xlabel('Position along Fuselage (m)')
-    plt.ylabel('Load (N/m)')
-    plt.grid()
-    plt.legend()
-    plt.show()
-
-
-def plot_shear_and_moment_diagrams(x, shear, moment):
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-    
-    ax1.plot(x, shear, label='Shear Force (N)', color='blue')
-    ax1.set_title('Shear Force Diagram')
-    ax1.set_xlabel('Position along Fuselage (m)')
-    ax1.set_ylabel('Shear Force (N)')
-    ax1.grid()
-    ax1.legend()
-    
-    ax2.plot(x, moment, label='Bending Moment (Nm)', color='red')
-    ax2.set_title('Bending Moment Diagram')
-    ax2.set_xlabel('Position along Fuselage (m)')
-    ax2.set_ylabel('Bending Moment (Nm)')
-    ax2.grid()
-    ax2.legend()
-    
-    plt.tight_layout()
-    plt.show()
-
-def plot_deflection_diagrams(x, deflection):
-    plt.figure(figsize=(10, 4))
-    plt.plot(x, deflection, label='Deflection (m)', color='purple')
-    plt.title(f"Deflection from Bending Moment")
-    plt.xlabel('Position along Fuselage (m)')
-    plt.ylabel('Deflection (m)')
-    plt.grid()
-    plt.legend()
-    plt.show()
-
-"""
-L_main = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc)["L_main"]
-L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc)["L_canard"]
-
-#Main Wing
-x, dx, loads, title, fuselage_overlap = mainwing_lift_distribution(L_main).values()
-x, shear, moment = cumulative_shear_and_moment(x, dx, loads, title)
-deflection = deflection_from_moment(x, dx, moment, wing_youngs_modulus, wing_I_xx, fuselage_overlap)
-#plot_loads(x, loads, title)
-#plot_shear_and_moment_diagrams(x, shear, moment)
-#plot_deflection_diagrams(x, deflection)
-print(required_wingbox_skin_thickness(required_fuselage_wingbox_stiffness(x, dx, moment, fuselage_overlap), chord_length, t_wing))
-
-#Canard
-x, dx, loads, title, fuselage_overlap = canard_lift_distribution(L_canard).values()
-x, shear, moment = cumulative_shear_and_moment(x, dx, loads, title)
-deflection = deflection_from_moment(x, dx, moment, wing_youngs_modulus, wing_I_xx, fuselage_overlap)
-#plot_loads(x, loads, title)
-#plot_shear_and_moment_diagrams(x, shear, moment)
-#plot_deflection_diagrams(x, deflection)
-
 """
