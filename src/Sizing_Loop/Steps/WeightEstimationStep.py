@@ -29,11 +29,12 @@ class WeightEstimationStep(DesignOptionStep):
             debug=self.debug
         )
 
+        #NOTE: for cruise and mach max, we need to fly at a particular speed so we don NOT fly at the optimal glide ratio!
         class_I_result = class_I.run_estimation(
             oem_fraction=state.iterable.aircraft_parameters.empty_mass_fraction,
             CL_max_glide_ratio_go_around=state.iterable.performance_parameters.go_around_parameters.CL_glide_ratio_max(),
-            glide_ratio_mach_max=state.iterable.performance_parameters.mach_max_parameters.glide_ratio_max(),
-            glide_ratio_cruise=state.iterable.performance_parameters.cruise_parameters.glide_ratio_max(),
+            glide_ratio_mach_max=state.glide_ratio_mach_max(),
+            glide_ratio_cruise=state.glide_ratio_cruise(),
             glide_ratio_go_around=state.iterable.performance_parameters.go_around_parameters.glide_ratio_max(),
             airspeed_approach=state.fixed.assumptions.airspeed_approach,
             wing_loading=state.wing_loading()

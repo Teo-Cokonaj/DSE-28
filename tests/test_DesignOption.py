@@ -33,6 +33,7 @@ def initial_state_interior():
                 horizontal_stabilizer_distance_from_wing=1.5,
                 vertical_stabilizer_distance_from_wing=1.5,
                 canard_distance_in_front_of_wing=0.,
+                empty_mass_fraction=.86
             ),
             lifting_surfaces=[
                 LiftingSurfacePlanform(
@@ -74,7 +75,7 @@ def initial_state():
     return initial_state_interior()
 
 class TestDesignOption:
-    def test_twoIterations(self, initial_state, print_:bool=False, plot:bool=False):
+    def test_forward(self, initial_state, print_:bool=False, plot:bool=False):
         matching_diagram_step = MatchingDiagramStep(plot=plot)
         CD0_step = CD0Step()
         class_I_step = WeightEstimationStep(print_)
@@ -110,9 +111,46 @@ class TestDesignOption:
             print(design_option.state.iterable.performance_parameters.mach_max_parameters.CL_glide_ratio_max())
             print(design_option.state.iterable.performance_parameters.mach_max_parameters.CD0)
             print(design_option.state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio)
-            
+
+    
+    def test_multiple_iterations(self, initial_state, print_:bool=False, plot:bool=False, n_iter=5, plot_final=False):      
+        matching_diagram_step = MatchingDiagramStep(plot=plot)
+        CD0_step = CD0Step()
+        class_I_step = WeightEstimationStep(print_)
+        inviscid_step = InviscidAnalysisStep(plot, False)
+        tail_sizing_step = TailSizingStep(print_)
+        engine_step = EngineSelectionStep(print_)
+
+        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, engine_step, CD0_step])
+
+        def convergence_criterion(state:DesignOptionState):
+            return np.array([
+                state.iterable.aircraft_parameters.total_mass / 50.,
+                state.iterable.aircraft_parameters.fuel_mass_fraction,
+                state.iterable.aircraft_parameters.thrust_weight_ratio,
+                state.iterable.performance_parameters.mach_max_parameters.CD0 * 10,
+                state.iterable.performance_parameters.takeoff_parameters.CD0 * 10,
+            ])
+
+        iteration_results = design_option.iterate_for_n_steps(n_iter, convergence_criterion)
+        assert abs(iteration_results[0, -1]-iteration_results[0, -2]) < abs(iteration_results[0, 0]-iteration_results[0, 1])
+        
+        if plot_final:
+            legend = [
+                "MTOM / 50 [kg]",
+                "mf / m [-]",
+                "T / W [-]",
+                "CD0 M max * 10 [-]",
+                "CD0 toff * 10[-]"
+            ]
+
+            for i in range(iteration_results.shape[0]):
+                plt.plot(iteration_results[i, :], label=legend[i])
+                plt.legend()
+            plt.show()
 
     
 if __name__ == "__main__":
     test_design_option = TestDesignOption()
-    test_design_option.test_twoIterations(initial_state_interior(), True, True)
+    #test_design_option.test_forward(initial_state_interior(), False, False)
+    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True)

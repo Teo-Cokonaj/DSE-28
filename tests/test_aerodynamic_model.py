@@ -1,6 +1,7 @@
 import pytest
 import aerosandbox as asb
 import aerosandbox.numpy as np
+import numpy.testing as nte
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -10,6 +11,7 @@ from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.flight_envelope.flight_envelope import FlightEnvelope
 from src.aerodynamic_model.lifting_line_theory import LiftingLineTheory
 from airfoil.SymmetricAirfoil import SymmetricAirfoil
+from aerodynamic_model.lifting_line_inviscid import LiftingLineInviscid
 from typing_extensions import assert_type
 
 
@@ -80,7 +82,7 @@ class TestAerodynamicModel:
     def test_LE_positions(self,
                           lifting_line_theory,
                             wing_planform):
-        np.testing.assert_allclose(lifting_line_theory.calculate_LE_x_positions(lifting_line_theory.wing_number_of_sections,
+        nte.assert_allclose(lifting_line_theory.calculate_LE_x_positions(lifting_line_theory.wing_number_of_sections,
                                                                                        wing_planform),
                                           np.linspace(0.0,
                                                       wing_planform.half_span*np.tan(wing_planform.sweep_LE_rad),
@@ -89,7 +91,7 @@ class TestAerodynamicModel:
     def test_section_y_positions(self,
                           lifting_line_theory,
                             wing_planform):
-        np.testing.assert_allclose(lifting_line_theory.calculate_section_y_positions(lifting_line_theory.wing_number_of_sections,
+        nte.assert_allclose(lifting_line_theory.calculate_section_y_positions(lifting_line_theory.wing_number_of_sections,
                                                                                        wing_planform),
                                           np.linspace(0.0,wing_planform.half_span,
                                                       lifting_line_theory.wing_number_of_sections))
@@ -121,7 +123,7 @@ class TestAerodynamicModel:
         difference=analytic_CL-numerical_CL
 
         assert (abs(difference)/min(analytic_CL,numerical_CL)<0.1)
-        assert isinstance(analysis,asb.LiftingLine)
+        assert isinstance(analysis, LiftingLineInviscid)
         assert isinstance(results,dict)
 
     def test_find_aoa_for_trim(self,

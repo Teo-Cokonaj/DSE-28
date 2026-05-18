@@ -19,6 +19,10 @@ class LiftingLineTheory():
                  horizontal_stabilizer_planform: LiftingSurfacePlanform,
                  vertical_stabilizer_planform: LiftingSurfacePlanform,
                  canard_planform: LiftingSurfacePlanform = None,
+                 wing_number_of_sections:int = 100,
+                 horizontal_stabilizer_number_of_sections:int = 5,
+                 canard_number_of_sections:int = 5,
+                 vertical_stabilizer_number_of_sections:int = 5
                  ):
         
         self.aircraft_parameters=aircraft_parameters
@@ -27,10 +31,10 @@ class LiftingLineTheory():
         self.vertical_stabilizer_planform=vertical_stabilizer_planform
         self.canard_planform=canard_planform
 
-        self.wing_number_of_sections = 100
-        self.horizontal_stabilizer_number_of_sections = 5
-        self.canard_number_of_sections = 5
-        self.vertical_stabilizer_number_of_sections = 5
+        self.wing_number_of_sections = wing_number_of_sections
+        self.horizontal_stabilizer_number_of_sections = horizontal_stabilizer_number_of_sections
+        self.canard_number_of_sections = horizontal_stabilizer_number_of_sections
+        self.vertical_stabilizer_number_of_sections = vertical_stabilizer_number_of_sections
 
     def initialize_airfoils(self):
         symmetric_airfoil = SymmetricAirfoil()
