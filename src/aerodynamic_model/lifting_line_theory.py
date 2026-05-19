@@ -52,7 +52,6 @@ class LiftingLineTheory():
     def calculate_LE_x_positions(self,
                                  number_of_sections: int,
                                  planform: LiftingSurfacePlanform):
-        print('LE x positions: ',np.linspace(0.0,planform.half_span*np.tan(planform.sweep_LE_rad),number_of_sections))
         return np.linspace(0.0,planform.half_span*np.tan(planform.sweep_LE_rad),number_of_sections)
 
     def calculate_section_y_positions(self,
@@ -301,10 +300,6 @@ class LiftingLineTheory():
         C_L_alpha=(CL_list[-1]-CL_list[-2])/(alpha_rad_list[-2]-alpha_rad_list[-1])
 
         Cmac = np.polyfit(CL, Cm, 1)[1]  # intercept at CL=0
-
-        print('LEMAC coordinates: ',(self.wing_planform.x_MAC,self.wing_planform.y_MAC
-                                     ))
-
 
         CL = np.array(CL_list)
         Cm = np.array(Cm_list)
