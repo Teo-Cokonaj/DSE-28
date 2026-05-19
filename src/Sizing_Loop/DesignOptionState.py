@@ -84,3 +84,11 @@ class DesignOptionState:
 
         CD_CL = CD0 / CL + CL / inviscid_ratio
         return 1 / CD_CL
+    
+
+    def x_cg_from_nose(self) -> float:
+        x_LEMAC = self.iterable.lifting_surfaces[0].x_MAC
+        MAC = self.iterable.lifting_surfaces[0].MAC
+        x_cg_per_mac = self.iterable.aircraft_parameters.x_cg_per_mac
+        
+        return x_LEMAC + x_cg_per_mac * MAC
