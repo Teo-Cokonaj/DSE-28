@@ -136,12 +136,12 @@ if __name__ == '__main__': # Will only run if this file is run directly
 
     L1 = 1
     L2 = 2.5
-    L3 = 1.25
+    L3 = 1.5
     x_cg = 3
-    up_sweep_angle = 13
-    diameter_fuselage = 1
-    wing_height_from_centre_line = 0.5
-    wing_span = 4
+    up_sweep_angle = 17
+    diameter_fuselage = 1.25
+    wing_height_from_centre_line = - 0.625
+    wing_span = 6
 
 
     l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt = lg_pos_and_length(
@@ -153,3 +153,20 @@ if __name__ == '__main__': # Will only run if this file is run directly
     print(f"MLG x-position       : {x_mlg_opt:.4f} m from nose")
     print(f"MLG lateral track    : {Y_lg_opt:.4f} m from centreline")
     print(f"NLG x-position       : {x_nlg_opt:.4f} m from nose")
+
+
+
+"""
+### Results for the above values. This is super not correct
+
+l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt = lg_pos_and_length(
+        L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage,
+        wing_height_from_centre_line, wing_span
+    )
+
+    print(f"Strut length  l_gear : {l_opt:.4f} m")
+    print(f"MLG x-position       : {x_mlg_opt:.4f} m from nose")
+    print(f"MLG lateral track    : {Y_lg_opt:.4f} m from centreline")
+    print(f"NLG x-position       : {x_nlg_opt:.4f} m from nose")
+
+"""
