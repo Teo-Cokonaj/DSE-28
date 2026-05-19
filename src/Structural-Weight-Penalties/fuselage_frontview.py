@@ -1,11 +1,10 @@
-from shear_moment_diagrams_sideview import calculate_flight_case
 from scipy.optimize import root_scalar
 
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-
+#TODO edit lift distribution to take aerosandbox format
 
 def mainwing_lift_distribution(resolution, wingspan, lift, fuselage_radius, z_location_mainwing, t_wing):
 
@@ -37,8 +36,8 @@ def mainwing_lift_distribution(resolution, wingspan, lift, fuselage_radius, z_lo
     loads[right_wing_idx] = q_lift_right
     loads[fuselage_idx] = q_fuselage
 
-    title = f"Main Wing Lift Distribution"
-    return {"x": x, "dx": dx, "loads": loads, "title": title, "fuselage_overlap": fuselage_overlap}
+    return {"x": x, "dx": dx, "loads": loads, "fuselage_overlap": fuselage_overlap}
+
 
 def canard_lift_distribution(canard_lift_fraction, L_main, W, chord_length, fraction_root_thickness, z_location_canard, fuselage_radius, wingspan, lift, resolution):
 
@@ -81,18 +80,9 @@ def canard_lift_distribution(canard_lift_fraction, L_main, W, chord_length, frac
     loads[right_wing_idx] = q_lift_right
     loads[fuselage_idx] = q_fuselage
 
-    title = f"Canard Lift Distribution"
 
-    return {"x": x, "dx": dx, "loads": loads, "title": title, "fuselage_overlap": fuselage_overlap, "chord_length_canard": chord_length_canard, "t_canard": t_canard}
+    return {"x": x, "dx": dx, "loads": loads, "fuselage_overlap": fuselage_overlap, "chord_length_canard": chord_length_canard, "t_canard": t_canard}
 
-
-def cumulative_shear_and_moment(x, dx, loads, title):
-    # Shear is the integral of load
-    shear = np.cumsum(loads) * dx
-    # Moment is the integral of shear
-    moment = np.cumsum(shear) * dx
-
-    return x, shear, moment
 
 def solid_wingbox_deflection_at_root(x, dx, moment, fuselage_overlap, youngs_modulus, I):
     center_idx = (x > 0) & (x <= fuselage_overlap/2)

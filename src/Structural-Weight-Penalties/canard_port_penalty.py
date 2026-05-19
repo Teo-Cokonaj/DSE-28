@@ -1,5 +1,4 @@
 import math
-import shear_moment_diagrams_frontview
 
 #Evaluate the total structural weight penalty and of adding a transverse canard port to a drone fuselage.
 def analyze_canard_structural_impact(mtow, W, canard_lift_fraction, cg_location, tip_to_canard_distance, fuselage_diameter, minimum_thickness, skin_density, skin_yield_strength, bearing_strength, rod_outer_diameter, rod_density, reinforcement_diameter, thickness_multiplier, oem_fraction, rod_wall_thickness, canard_z_location):

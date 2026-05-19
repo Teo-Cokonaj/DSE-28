@@ -69,6 +69,11 @@ deflection = shear_moment_diagrams_frontview.solid_wingbox_deflection_at_root(x,
 #rod_wall_thickness = shear_moment_diagrams_frontview.required_canard_rod_thickness(I_req, t_canard, deflection)
 rod_wall_thickness = 0.005
 
+alpha = math.asin(z_location_canard / fuselage_radius)
+R = fuselage_radius
+t = fuselage_skin_thickness
+I_x = R**3 * t * ((1 - (3 * t) / (2 * R) + (t**2) / (R**2) - (t**3) / (4 * R**3)) * (alpha + math.sin(alpha) * math.cos(alpha) - (2 * math.sin(alpha)**2) / alpha) + ((t**2 * math.sin(alpha)**2) / (3 * R**2 * alpha * (2 - t / R))) * (1 - t / R + (t**2) / (6 * R**2)))
+I_y = R**3 * t * (1 - (3 * t) / (2 * R) + (t**2) / (R**2) - (t**3) / (4 * R**3)) * (alpha - math.sin(alpha) * math.cos(alpha))
 
 rod_density=CFRP[0]
 skin_density=CFRP[0]
