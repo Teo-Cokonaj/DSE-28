@@ -6,14 +6,22 @@ import aerosandbox.numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
-def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
+### Assumptions
+    # CG at centre-line of fuselage
+    # Landing gear length given from centre-line
+    # No deformation of wings on landing (Rigid Body)
+    # For wing distance from centreline, down is negative, and up is positive
+
+
+def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage, wing_height_from_centre_line, wing_span):
 
     sigma = up_sweep_angle * np.pi / 180
     theta = 15 * np.pi / 180
+    phi_min =  7.0 * np.pi / 180  
 
     x_cone_start = L1 + L2
-    x_tail_tip   = L1 + L2 + L3
-    R            = diameter_fuselage / 2
+    x_tail_tip = L1 + L2 + L3
+    R = diameter_fuselage / 2
 
     def tail_point_near(l_landing_gear):
         return (x_cone_start, l_landing_gear - R)
@@ -32,10 +40,16 @@ def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
 
     def turn_over_angle(x_main_lg, Y_lg, l_landing_gear):
         x_nose_lg = nose_gear_pos(x_main_lg)
-        d         = x_main_lg - x_nose_lg
-        alpha     = np.arctan2(Y_lg, d)                       
-        c         = (x_cg - x_nose_lg) * np.sin(alpha)
+        d = x_main_lg - x_nose_lg
+        alpha = np.arctan2(Y_lg, d)                       
+        c = (x_cg - x_nose_lg) * np.sin(alpha)
         return np.arctan2(c, l_landing_gear)
+    
+    def wing_tip_to_lg_angle(Y_lg, l_landing_gear, wing_height_from_centre_line, wing_span):
+        vertical   = l_landing_gear + wing_height_from_centre_line
+        horizontal = (wing_span / 2) - Y_lg
+        return np.arctan2(vertical, horizontal)
+
 
     def objective(v):
         l_landing_gear, x_main_lg, Y_lg = v
@@ -77,6 +91,12 @@ def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
     def constraint_Y_lg_min(v):
         l_landing_gear, x_main_lg, Y_lg = v
         return Y_lg - R
+    
+    def constraint_wing_tip_clearance(v):
+        l_landing_gear, x_main_lg, Y_lg = v
+        phi = wing_tip_to_lg_angle(Y_lg, l_landing_gear, wing_height_from_centre_line, wing_span)
+        return phi - phi_min   
+    
 
     constraints = [                                           
         {'type': 'ineq', 'fun': constraint_scrape_near},
@@ -87,6 +107,7 @@ def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
         {'type': 'ineq', 'fun': constraint_main_lg_behind_cg},
         {'type': 'ineq', 'fun': constraint_main_lg_ahead_tail_cone},
         {'type': 'ineq', 'fun': constraint_Y_lg_min},
+        {'type': 'ineq', 'fun': constraint_wing_tip_clearance},
     ]
 
     x0 = [R + 1.0, x_cg + 1.0, R]
@@ -108,18 +129,27 @@ def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
     return l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt
 
 
+if __name__ == '__main__': # Will only run if this file is run directly
+
+    # Small note: 
+    # please let me know if the optimiser works. I don't have values to test it with.
+
+    L1 = 1
+    L2 = 2.5
+    L3 = 1.25
+    x_cg = 3
+    up_sweep_angle = 13
+    diameter_fuselage = 1
+    wing_height_from_centre_line = 0.5
+    wing_span = 4
 
 
-# Small note: 
-# please let me know if the optimiser works. I don't have values to test it with.
+    l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt = lg_pos_and_length(
+        L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage,
+        wing_height_from_centre_line, wing_span
+    )
 
-L1 = 1
-L2 = 2.5
-L3 = 1.25
-x_cg = 3
-up_sweep_angle = 13
-diameter_fuselage = 1
-
-
-
-print(lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage))
+    print(f"Strut length  l_gear : {l_opt:.4f} m")
+    print(f"MLG x-position       : {x_mlg_opt:.4f} m from nose")
+    print(f"MLG lateral track    : {Y_lg_opt:.4f} m from centreline")
+    print(f"NLG x-position       : {x_nlg_opt:.4f} m from nose")
