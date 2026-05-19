@@ -116,7 +116,7 @@ class CD0Step(DesignOptionStep):
         """
         geometry = self._fuselage_geometry(state)
         interference_factor = 1.0  # fuselage reference IF
-        laminar_fraction = 0.05  # assume very low laminar fraction for fuselage
+        laminar_fraction = state.fixed.assumptions.fuselage_laminar_frac
         
         return dcm.Fuselage(
             interference_factor,
@@ -130,10 +130,13 @@ class CD0Step(DesignOptionStep):
         Build nose and main landing-gear geometry dicts from 'Assumptions'.
         Returns a tuple: (nose_geometry, main_geometry)
         """
+        gear_effective_height = state.iterable.landing_gear.length_z if state.fixed.choices.landing_gear_sideways_extendable else state.iterable.landing_gear.length_pythagorean()
+        gear_exposed_height = gear_effective_height - state.fixed.assumptions.diameter_fuselage
+
         nose_geometry = {
             "diameter_wheel": float(state.fixed.assumptions.nose_gear_diameter_wheel),
             "width_wheel": float(state.fixed.assumptions.nose_gear_width_wheel),
-            "height_strut": float(state.fixed.assumptions.nose_gear_height_strut),
+            "height_strut": gear_exposed_height,
             "width_strut": float(state.fixed.assumptions.nose_gear_width_strut),
             "height_total": float(state.fixed.assumptions.nose_gear_diameter_wheel / 2 + state.fixed.assumptions.nose_gear_height_strut),
             "width_total": float(state.fixed.assumptions.nose_gear_width_strut + state.fixed.assumptions.nose_gear_width_wheel),
@@ -142,7 +145,7 @@ class CD0Step(DesignOptionStep):
         main_geometry = {
             "diameter_wheel": float(state.fixed.assumptions.main_gear_diameter_wheel),
             "width_wheel": float(state.fixed.assumptions.main_gear_width_wheel),
-            "height_strut": float(state.fixed.assumptions.main_gear_height_strut),
+            "height_strut": gear_exposed_height,
             "width_strut": float(state.fixed.assumptions.main_gear_width_strut),
             "height_total": float(state.fixed.assumptions.main_gear_diameter_wheel / 2 + state.fixed.assumptions.main_gear_height_strut),
             "width_total": float(state.fixed.assumptions.main_gear_width_strut + state.fixed.assumptions.main_gear_width_wheel),
@@ -158,6 +161,7 @@ class CD0Step(DesignOptionStep):
         nose_component = dcm.LandingGear(nose_geom, bool(state.fixed.assumptions.nose_gear_enclosed))
         main_component = dcm.LandingGear(main_geom, bool(state.fixed.assumptions.main_gear_enclosed))
         return [nose_component, main_component, main_component] #NOTE: there is a pair of main landing gears!
+
 
     def _bay_geometry(self, state:DesignOptionState) -> dict[str, float]:
         """
@@ -179,7 +183,7 @@ class CD0Step(DesignOptionStep):
         """
         gps = self._bay_geometry(state)
         interference_factor = 1.3
-        laminar_fraction = 0.1  # placeholder
+        laminar_fraction = state.fixed.assumptions.wing_bay_laminar_frac  # placeholder
         bays = list()
         for gp in gps:
             bays.append(dcm.Bay(
@@ -189,6 +193,19 @@ class CD0Step(DesignOptionStep):
                 laminar_fraction,
                 0.405e-5  # reynolds factor (Production sheet metal)
         ))
+            
+        if not state.fixed.choices.landing_gear_sideways_extendable:
+            retracting_landing_gear_height = state.fixed.assumptions.main_gear_diameter_wheel / 2 + state.iterable.landing_gear.length_z
+
+            bays.extend([
+                dcm.Bay(
+                    interference_factor=1.3,
+                    laminar_fraction=laminar_fraction,
+                    length=state.fixed.assumptions.lg_bay_length_safety_factor * retracting_landing_gear_height,
+                    diameter=state.fixed.assumptions.lg_bay_wheel_diameter_ratio * state.fixed.assumptions.main_gear_diameter_wheel
+                )
+            ] * 2)
+
         return bays
 
     

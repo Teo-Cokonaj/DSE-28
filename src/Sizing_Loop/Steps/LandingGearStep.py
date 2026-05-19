@@ -22,7 +22,7 @@ class LandingGearStep(DesignOptionStep):
             L1=state.fixed.assumptions.fuselage_length1_per_area * state.iterable.lifting_surfaces[0].wing_area,
             L2=state.fixed.assumptions.fuselage_length2_per_area * state.iterable.lifting_surfaces[0].wing_area,
             L3=state.fixed.assumptions.fuselage_length3_per_area * state.iterable.lifting_surfaces[0].wing_area,
-            x_cg=state.x_cg_from_nose(),
+            x_cg_from_nose=state.x_cg_from_nose(),
             up_sweep_angle=state.fixed.assumptions.fuselage_upsweep,
             diameter_fuselage=state.fixed.assumptions.diameter_fuselage
         )

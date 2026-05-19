@@ -19,6 +19,7 @@ from src.Sizing_Loop.Steps.WeightEstimationStep import WeightEstimationStep
 from src.Sizing_Loop.Steps.InviscidAnalysisStep import InviscidAnalysisStep
 from src.Sizing_Loop.Steps.tail_sizing_step import TailSizingStep
 from src.Sizing_Loop.Steps.EngineSelectionStep import EngineSelectionStep
+from src.Sizing_Loop.Steps.LandingGearStep import LandingGearStep
 
 from src.objects.aircraft_parameters import AircraftParameters
 from src.objects.lading_gear import LandingGear
@@ -122,8 +123,9 @@ class TestDesignOption:
         inviscid_step = InviscidAnalysisStep(plot, False)
         tail_sizing_step = TailSizingStep(print_)
         engine_step = EngineSelectionStep(print_)
+        lg_step = LandingGearStep()
 
-        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, engine_step, CD0_step])
+        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, engine_step, lg_step, CD0_step])
 
         def convergence_criterion(state:DesignOptionState):
             return np.array([
