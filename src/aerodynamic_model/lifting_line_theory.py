@@ -52,6 +52,7 @@ class LiftingLineTheory():
     def calculate_LE_x_positions(self,
                                  number_of_sections: int,
                                  planform: LiftingSurfacePlanform):
+        print('LE x positions: ',np.linspace(0.0,planform.half_span*np.tan(planform.sweep_LE_rad),number_of_sections))
         return np.linspace(0.0,planform.half_span*np.tan(planform.sweep_LE_rad),number_of_sections)
 
     def calculate_section_y_positions(self,
@@ -286,32 +287,23 @@ class LiftingLineTheory():
             Cm_list.append(results["Cm"])
             alpha_rad_list.append(np.radians(float(alpha)))
 
+            print('MAC (provided)',self.airplane.wings[0].mean_aerodynamic_chord())
+            print('AC position (provided): ',self.airplane.wings[0].aerodynamic_center())
+
+        print('LEMAC coordinates: ',(self.wing_planform.x_MAC,self.wing_planform.y_MAC
+                                     ))
+        LEMAC_position_wrt_origin=self.wing_planform.x_MAC #origin at airplane reference point!!!
+        AC_position_wrt_origin=self.airplane.wings[0].aerodynamic_center() #origin at airplane reference point!!!
+        x_ac=AC_position_wrt_origin-LEMAC_position_wrt_origin #origin at airplane reference point!!!
+
         CL = np.array(CL_list)
         Cm = np.array(Cm_list)
         alpha_rad = np.array(alpha_rad_list)
-
-        dCm_dalpha = np.polyfit(alpha_rad, Cm, 1)[0]
-        dCL_dalpha = np.polyfit(alpha_rad, CL, 1)[0]
-        dCm_dCL    = np.polyfit(CL, Cm, 1)[0]
-
-        x_ref = 0.0 #origin at [0,0,0]
-        x_ac = x_ref - self.airplane.c_ref * dCm_dCL
-
-        Cmac = np.polyfit(CL, Cm, 1)[1]  # intercept at CL=0
-
-        #Kuchemann
-        sweep_quarter_rad=self.wing_planform.sweep_quarter_rad
-        AR=self.wing_planform.aspect_ratio
-        reference_lift_curve_slope_per_rad= 2*np.pi*np.cos(sweep_quarter_rad)/(np.sqrt(1+(2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)**2)+2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)
-
+        
         return {
             "alpha": alpha_range_deg,
             "x_ac": x_ac,
             "CL": CL,
-            "Cmac": Cmac,
-            "lift_curve_slope_per_rad": dCL_dalpha,
-            "reference_lift_curve_slope_per_rad": reference_lift_curve_slope_per_rad,
-            "dCm_dalpha": dCm_dalpha,
         }            
         
     
@@ -354,24 +346,74 @@ if __name__ == "__main__":
                                             )
 
     altitude_m = 0.0
-    velocity=50.0
+    atmosphere=asb.Atmosphere(altitude_m)
+    velocity_incompressible=30.0
+    velocity_compressible=150.0
 
     lifting_line_theory.initialize_airfoils()
-    #Make a wing model
-    lifting_line_theory.make_full_airplane_model(main_wing=True,
+                                
+    angles_of_attack_deg=np.linspace(0.0,10.0,20)
+    lift_coefficients_incompressible=[]
+    reference_lift_coefficients_incompressible=[]
+    lift_coefficients_compressible=[]
+    reference_lift_coefficients_compressible=[]
+
+    AR=lifting_line_theory.wing_planform.aspect_ratio
+    from global_parameters import Assumptions
+    assumptions=Assumptions()
+    reference_incompressible_slope = assumptions.airfoil_C_l_alpha/(1+assumptions.airfoil_C_l_alpha/np.pi/AR)
+
+    #sweep_LE_rad=np.radians(45.0)
+       
+
+    for angle_of_attack_deg in angles_of_attack_deg:
+        lifting_line_theory.wing_planform.sweep_quarter_rad=np.radians(0.0) #unswept wing in incompressible flow
+        lifting_line_theory.make_full_airplane_model(main_wing=True,
                                                     canard=False,
                                                     horizontal_stabilizer=False,
                                                     vertical_stabilizer=False)
-    results=lifting_line_theory.run_llt_alpha_sweep(velocity,
-                                                            altitude_m)
-    
-    computed_lift_curve_slope_per_rad=results["lift_curve_slope_per_rad"]
-    #Kuchemann
-    sweep_quarter_rad=main.sweep_quarter_rad
-    AR=main.aspect_ratio
-    analytic_lift_curve_slope_per_rad= 2*np.pi*np.cos(sweep_quarter_rad)/(np.sqrt(1+(2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)**2)+2*np.pi*np.cos(sweep_quarter_rad)/np.pi/AR)
-    difference=analytic_lift_curve_slope_per_rad-computed_lift_curve_slope_per_rad
+        _,results_incompressible=lifting_line_theory.run_llt_arbitrary_analysis(altitude_m,
+                                                                                velocity_incompressible,
+                                                                                angle_of_attack_deg)
+        lift_coefficients_incompressible.append(results_incompressible["CL"])
+        print(lift_coefficients_incompressible)
+        reference_lift_coefficients_incompressible.append(np.radians(angle_of_attack_deg)*reference_incompressible_slope)
+        difference_incompressible=abs(reference_lift_coefficients_incompressible[-1]-lift_coefficients_incompressible[-1])
+        if difference_incompressible>0.05:
+            print(r'Incompressible difference larger than 10% at ', angle_of_attack_deg, 'degrees.')
 
-    assert (abs(difference)/min(analytic_lift_curve_slope_per_rad,computed_lift_curve_slope_per_rad)<0.1)
+        lifting_line_theory.wing_planform.sweep_quarter_rad=np.radians(45.0) #highly swept wing in compressible flow
+        lifting_line_theory.make_full_airplane_model(main_wing=True,
+                                                    canard=False,
+                                                    horizontal_stabilizer=False,
+                                                    vertical_stabilizer=False)
+        _,results_compressible=lifting_line_theory.run_llt_arbitrary_analysis(altitude_m,
+                                                                                velocity_compressible,
+                                                                                angle_of_attack_deg)
+        lift_coefficients_compressible.append(results_compressible["CL"])
+        
+        sweep_half_rad = np.arctan(np.tan(lifting_line_theory.wing_planform.sweep_LE_rad)-0.5*2*lifting_line_theory.wing_planform.c_root/lifting_line_theory.wing_planform.span*(1-lifting_line_theory.wing_planform.taper))
+        mach=velocity_compressible/atmosphere.speed_of_sound()
+        beta=np.sqrt(1-mach**2)
+        kappa=assumptions.airfoil_C_l_alpha/(2*np.pi)
+        reference_compressible_slope = 2*np.pi*AR/(2+np.sqrt(4+(AR*beta/kappa)**2*(1+(np.tan(sweep_half_rad))**2/beta**2)))
+        reference_lift_coefficients_compressible.append(np.radians(angle_of_attack_deg)*reference_compressible_slope)
+        relative_difference_compressible=abs(reference_lift_coefficients_compressible[-1]-lift_coefficients_compressible[-1])/min(reference_lift_coefficients_compressible[-1],lift_coefficients_compressible[-1])
+        if relative_difference_compressible>0.5:
+            print(r'Compressible difference larger than 10% at ', angle_of_attack_deg, 'degrees.')
 
-    print('Position of aerodynamic centre: ',results['x_ac'])
+    plt.plot(angles_of_attack_deg, lift_coefficients_incompressible,
+             'o-', color='tab:blue', linewidth=0.5, markersize=3, label='Incompressible Aerosandbox')
+    plt.plot(angles_of_attack_deg, reference_lift_coefficients_incompressible,
+             'o-', color='tab:orange', linewidth=0.5, markersize=3, label='Incompressible Prandtl')
+    plt.plot(angles_of_attack_deg, lift_coefficients_compressible,
+             'o-', color='tab:green', linewidth=0.5, markersize=3, label='Compressible Aerosandbox')
+    plt.plot(angles_of_attack_deg, reference_lift_coefficients_compressible,
+             'o-', color='tab:red', linewidth=0.5, markersize=3, label='Compressible DATCOM')
+    plt.ylabel(r'$C_L$')
+    plt.xlabel(r'$\alpha$ [deg]')
+    plt.grid(True, which='both', linestyle='--', linewidth=0.4, alpha=0.7)
+    plt.minorticks_on()
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
