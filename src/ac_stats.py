@@ -96,6 +96,10 @@ Lambda_qc_X = sweep_le_to_qc_deg(
 tip_twist_X = 0.0  # rad
 
 empty_mass_fraction_X = (m_X - 82*0.45359237) / m_X  # based on 82 lb of fuel subtracted from MTOM
+
+LG_height_X = 15.8*0.0254  # m, from a NASA document
+LG_track_X = 1.54  # m, measured from drawings
+LG_wheelbase_X = 1.88  # m, measured from drawings
 # -----------------------------------------------------------------------------
 # Boeing / NASA Transonic Truss-Braced Wing reference
 # -----------------------------------------------------------------------------

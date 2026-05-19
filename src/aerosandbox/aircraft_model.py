@@ -6,7 +6,7 @@ from typing import Optional
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from objects.lifting_surface_planform import LiftingSurfacePlanform
 from objects.aircraft_parameters import AircraftParameters
-import ac_params as acp
+import ac_stats as acp
 
 def calculate_LE_x_positions(number_of_sections: int,
                            planform: LiftingSurfacePlanform):
