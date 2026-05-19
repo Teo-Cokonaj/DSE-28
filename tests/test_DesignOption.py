@@ -33,6 +33,7 @@ def initial_state_interior():
                 horizontal_stabilizer_distance_from_wing=1.5,
                 vertical_stabilizer_distance_from_wing=1.5,
                 canard_distance_in_front_of_wing=0.,
+                empty_mass_fraction=870 / 1008
             ),
             lifting_surfaces=[
                 LiftingSurfacePlanform(

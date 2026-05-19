@@ -45,18 +45,23 @@ class Assumptions():
     def __init__(self):
     
         # Cruise Assumptions:
-        self.ALTITUDE_CRUISE = 5500.0 # [m] (up for review)
-        self.AIR_DENSITY_CRUISE_ALTITUDE = 0.695 # [kg/m^3]
-        self.TEMPERATURE_CRUISE_ALTITUDE = 252.2 #[K]
+        self.ALTITUDE_CRUISE = CONSTANTS.ALTITUDE_MACH_MAX # [m]
+        self.AIR_DENSITY_CRUISE_ALTITUDE = 0.38 # [kg/m^3]
+        self.TEMPERATURE_CRUISE_ALTITUDE = 273-35 #[K]
 
         self.energy_density_saf = 42.8e6 # [J/kg]
 
         # TURN ASSUMPTIONS:
-        self.ALTITUDE_GO_AROUND = 2000. # [m]
+        self.ALTITUDE_GO_AROUND = 1500 / .3048 # [m]
         self.TIME_HALF_CIRCLE = 60.0 # [s]
         self.OMEGA_GO_AROUND = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
+
         self.MC=0.75 #cruise Mach number
         self.MD = 0.80 #ADSEE: in general, MD is 0.05M higher than MC
+
+        self.airfoil_thickness_to_chord_max = .12
+        self.airfoil_thickness_to_chord_max_location = .37
+        self.max_camber_position = np.inf #to cancel the camber term
         self.positive_C_L_max_airfoil=1.25 #CHANGE
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
         self.airfoil_C_l_alpha = 0.5/np.radians(4.0) #0.5 per 4deg
@@ -101,10 +106,4 @@ class Assumptions():
     @property
     def airspeed_stall(self) -> float:
         return np.sqrt(self.airfield_length / .6)
-
-
-class Engine():
-    def __init__(self):
-        # ENGINE CONSTANTS --- ENGINE TBD ---
-        pass
     

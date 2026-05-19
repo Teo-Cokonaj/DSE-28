@@ -55,7 +55,7 @@ def initial_state_interior() -> DesignOptionState:
                     tip_twist_rad=0.,
                 )
             ],
-            propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5), 2),
+            propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5, .15), 2),
             performance_parameters=PerformanceParameters(
                 cruise_parameters=PerformanceAtAltitude(np.pi*.8*20., .01),
                 mach_max_parameters=PerformanceAtAltitude(np.pi*.75*20., .02),
