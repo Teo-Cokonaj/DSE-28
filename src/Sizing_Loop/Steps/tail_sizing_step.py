@@ -16,8 +16,10 @@ from src.aerodynamic_model.lifting_line_theory import LiftingLineTheory
 from src.global_parameters import CONSTANTS
 
 class TailSizingStep(DesignOptionStep):
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, number_of_sections_wing:int=100, number_of_sections_others:int=5):
         self.debug = debug
+        self.number_of_sections_wing = number_of_sections_wing
+        self.number_of_sections_others = number_of_sections_others
 
 
     def update(self, state) -> DesignOptionStateIterable:
@@ -38,6 +40,12 @@ class TailSizingStep(DesignOptionStep):
                                                 horizontal_stabilizer_planform=state.iterable.lifting_surfaces[1],
                                                 vertical_stabilizer_planform=state.iterable.lifting_surfaces[2])
                                                 #canard_planform=state.iterable.lifting_surfaces[3])
+
+        lifting_line_theory.wing_number_of_sections = self.number_of_sections_wing
+        lifting_line_theory.canard_number_of_sections = self.number_of_sections_others
+        lifting_line_theory.horizontal_stabilizer_number_of_sections = self.number_of_sections_others
+        lifting_line_theory.vertical_stabilizer_number_of_sections = self.number_of_sections_others
+
         lifting_line_theory.initialize_airfoils()
 
         #Aircraft without tail
