@@ -42,7 +42,7 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         x_nose_lg = nose_gear_pos(x_main_lg)
         d = x_main_lg - x_nose_lg
         alpha = np.arctan2(Y_lg, d)                       
-        c = (x_cg - x_nose_lg) * np.sin(alpha)
+        c = (x_cg_from_nose - x_nose_lg) * np.sin(alpha)
         return np.arctan2(c, l_landing_gear)
     
     def wing_tip_to_lg_angle(Y_lg, l_landing_gear, wing_height_from_centre_line, wing_span):
