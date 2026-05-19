@@ -295,7 +295,9 @@ class LiftingLineTheory():
         dCm_dCL    = np.polyfit(CL, Cm, 1)[0]
 
         LEMAC_position_wrt_origin=self.wing_planform.x_MAC #origin at airplane reference point!!!
-        AC_position_wrt_origin=self.airplane.wings[0].aerodynamic_center() #origin at airplane reference point!!!
+
+        AC_position_wrt_origin=self.airplane.wings[0].aerodynamic_center()[0] #origin at airplane reference point!!!
+
         x_ac=AC_position_wrt_origin-LEMAC_position_wrt_origin #origin at airplane reference point!!!
         C_L_alpha=(CL_list[-1]-CL_list[-2])/(alpha_rad_list[-2]-alpha_rad_list[-1])
 
@@ -304,6 +306,8 @@ class LiftingLineTheory():
         CL = np.array(CL_list)
         Cm = np.array(Cm_list)
         alpha_rad = np.array(alpha_rad_list)
+
+        #x_ac, C_L_alpha, Cmac = float(x_ac), float(C_L_alpha), float(Cmac)
         
         return {
             "alpha": alpha_range_deg,
