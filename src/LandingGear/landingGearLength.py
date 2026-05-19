@@ -70,10 +70,6 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         #     scrape_angle(x_main_lg, tail_point_far(l_landing_gear))
         # )
         theta_crit = theta
-        print(min(
-            scrape_angle(x_main_lg, tail_point_near(l_landing_gear)),
-            scrape_angle(x_main_lg, tail_point_far(l_landing_gear))
-        ))
         return beta_angle(x_main_lg, l_landing_gear) - theta_crit
 
     def constraint_turnover(v):                             
@@ -91,7 +87,7 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
 
     def constraint_main_lg_ahead_tail_cone(v):
         l_landing_gear, x_main_lg, Y_lg = v
-        return x_cone_start - x_main_lg
+        return x_cone_start + L3 - x_main_lg
 
     def constraint_Y_lg_min(v):
         l_landing_gear, x_main_lg, Y_lg = v
