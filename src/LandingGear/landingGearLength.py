@@ -117,7 +117,7 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         x0,
         method='SLSQP',
         constraints=constraints,
-        options={'ftol': 1e-9, 'disp': True, 'maxiter': 1000}
+        options={'ftol': 1e-3, 'disp': True, 'maxiter': 2000}
     )
 
     if not result.success:
@@ -139,8 +139,8 @@ if __name__ == '__main__': # Will only run if this file is run directly
     L3 = 1.5
     x_cg = 3
     up_sweep_angle = 17
-    diameter_fuselage = 1.25
-    wing_height_from_centre_line = - 0.625
+    diameter_fuselage = .6
+    wing_height_from_centre_line = - 0.3
     wing_span = 6
 
 

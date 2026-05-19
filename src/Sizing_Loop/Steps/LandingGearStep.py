@@ -19,7 +19,7 @@ class LandingGearStep(DesignOptionStep):
     def update(self, state:DesignOptionState) -> DesignOptionStateIterable:
 
         wing_height_sign = 1 if np.isclose(state.fixed.choices.wing_interference_factor, 1.) else -1
-        wing_height_from_centre_line = state.fixed.assumptions.diameter_fuselage/ 2 *wing_height_sign
+        wing_height_from_centre_line = state.fixed.assumptions.diameter_fuselage / 2 * wing_height_sign
 
         l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt = lg_pos_and_length(
             L1=state.fixed.assumptions.fuselage_length1_per_area * state.iterable.lifting_surfaces[0].wing_area,

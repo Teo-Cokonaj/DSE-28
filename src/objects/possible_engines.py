@@ -21,27 +21,27 @@ class PossibleEngines:
             efficiency_total=.1, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
             mass = 3.8 # [kg]
         ), 2)
-        # self.engineTJ80_90 = PropulsionParameters(EngineParameters(
-        #     thrust_max=900, # [N]
-        #     diameter=.235, # [m]
-        #     length=.511, # [m]
-        #     efficiency_total=.15, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
-        #     mass = 12.5 # [kg]
-        # ), 1)
-        # self.engineTJ80_120 = PropulsionParameters(EngineParameters(
-        #     thrust_max=1200, # [N]
-        #     diameter=.235, # [m]
-        #     length=.512, # [m]
-        #     efficiency_total=.15, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
-        #     mass = 13.0 # [kg]
-        # ), 1)
-        # self.engineP1000_PRO_S_GH = PropulsionParameters(EngineParameters(
-        #     thrust_max=1100, # [N]
-        #     diameter=.234, # [m]
-        #     length=.505, # [m]
-        #     efficiency_total=.15, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
-        #     mass = 11.57 # [kg]
-        # ), 1)
+        self.engineTJ80_90 = PropulsionParameters(EngineParameters(
+            thrust_max=900, # [N]
+            diameter=.235, # [m]
+            length=.511, # [m]
+            efficiency_total=.15, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
+            mass = 12.5 # [kg]
+        ), 2)
+        self.engineTJ80_120 = PropulsionParameters(EngineParameters(
+            thrust_max=1200, # [N]
+            diameter=.235, # [m]
+            length=.512, # [m]
+            efficiency_total=.15, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
+            mass = 13.0 # [kg]
+        ), 2)
+        self.engineP1000_PRO_S_GH = PropulsionParameters(EngineParameters(
+            thrust_max=1100, # [N]
+            diameter=.234, # [m]
+            length=.505, # [m]
+            efficiency_total=.15, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
+            mass = 11.57 # [kg]
+        ), 2)
         self.engineP250_PRO_S = PropulsionParameters(EngineParameters(
             thrust_max=250, # [N]
             diameter=.121, # [m]
