@@ -287,14 +287,24 @@ class LiftingLineTheory():
             Cm_list.append(results["Cm"])
             alpha_rad_list.append(np.radians(float(alpha)))
 
-            print('MAC (provided)',self.airplane.wings[0].mean_aerodynamic_chord())
-            print('AC position (provided): ',self.airplane.wings[0].aerodynamic_center())
+        CL = np.array(CL_list)
+        Cm = np.array(Cm_list)
+        alpha_rad = np.array(alpha_rad_list)
 
-        print('LEMAC coordinates: ',(self.wing_planform.x_MAC,self.wing_planform.y_MAC
-                                     ))
+        dCm_dalpha = np.polyfit(alpha_rad, Cm, 1)[0]
+        dCL_dalpha = np.polyfit(alpha_rad, CL, 1)[0]
+        dCm_dCL    = np.polyfit(CL, Cm, 1)[0]
+
         LEMAC_position_wrt_origin=self.wing_planform.x_MAC #origin at airplane reference point!!!
         AC_position_wrt_origin=self.airplane.wings[0].aerodynamic_center() #origin at airplane reference point!!!
         x_ac=AC_position_wrt_origin-LEMAC_position_wrt_origin #origin at airplane reference point!!!
+        C_L_alpha=(CL_list[-1]-CL_list[-2])/(alpha_rad_list[-2]-alpha_rad_list[-1])
+
+        Cmac = np.polyfit(CL, Cm, 1)[1]  # intercept at CL=0
+
+        print('LEMAC coordinates: ',(self.wing_planform.x_MAC,self.wing_planform.y_MAC
+                                     ))
+
 
         CL = np.array(CL_list)
         Cm = np.array(Cm_list)
@@ -304,6 +314,8 @@ class LiftingLineTheory():
             "alpha": alpha_range_deg,
             "x_ac": x_ac,
             "CL": CL,
+            "lift_curve_slope_per_rad":C_L_alpha,
+            "Cmac":Cmac
         }            
         
     
@@ -376,7 +388,6 @@ if __name__ == "__main__":
                                                                                 velocity_incompressible,
                                                                                 angle_of_attack_deg)
         lift_coefficients_incompressible.append(results_incompressible["CL"])
-        print(lift_coefficients_incompressible)
         reference_lift_coefficients_incompressible.append(np.radians(angle_of_attack_deg)*reference_incompressible_slope)
         difference_incompressible=abs(reference_lift_coefficients_incompressible[-1]-lift_coefficients_incompressible[-1])
         if difference_incompressible>0.05:
