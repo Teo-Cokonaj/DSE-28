@@ -6,9 +6,9 @@ import aerosandbox.numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
-def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
+def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_fuselage):
 
-    sigma = up_sweep_angle * np.pi / 180
+    sigma = up_sweep_angle_rad
     theta = 15 * np.pi / 180
 
     x_cone_start = L1 + L2
@@ -25,21 +25,21 @@ def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
         return np.arctan2(tail_point[1], tail_point[0] - x_main_lg) 
 
     def beta_angle(x_main_lg, l_landing_gear):
-        return np.arctan2(x_main_lg - x_cg, l_landing_gear)
+        return np.arctan2(x_main_lg - x_cg_from_nose, l_landing_gear)
 
     def nose_gear_pos(x_main_lg):
-        return (x_cg - x_main_lg * 0.85) / 0.15
+        return (x_cg_from_nose - x_main_lg * 0.85) / 0.15
 
     def turn_over_angle(x_main_lg, Y_lg, l_landing_gear):
         x_nose_lg = nose_gear_pos(x_main_lg)
         d         = x_main_lg - x_nose_lg
         alpha     = np.arctan2(Y_lg, d)                       
-        c         = (x_cg - x_nose_lg) * np.sin(alpha)
+        c         = (x_cg_from_nose - x_nose_lg) * np.sin(alpha)
         return np.arctan2(c, l_landing_gear)
 
     def objective(v):
         l_landing_gear, x_main_lg, Y_lg = v
-        return l_landing_gear
+        return np.sqrt(l_landing_gear**2 + Y_lg**2)
 
     def constraint_scrape_near(v):
         l_landing_gear, x_main_lg, Y_lg = v
@@ -68,7 +68,7 @@ def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
 
     def constraint_main_lg_behind_cg(v):
         l_landing_gear, x_main_lg, Y_lg = v
-        return x_main_lg - x_cg
+        return x_main_lg - x_cg_from_nose
 
     def constraint_main_lg_ahead_tail_cone(v):
         l_landing_gear, x_main_lg, Y_lg = v
@@ -89,7 +89,7 @@ def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
         {'type': 'ineq', 'fun': constraint_Y_lg_min},
     ]
 
-    x0 = [R + 1.0, x_cg + 1.0, R]
+    x0 = [R + 1.0, x_cg_from_nose + 1.0, R]
 
     result = opti.minimize(
         objective,
@@ -116,10 +116,10 @@ def lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage):
 L1 = 1
 L2 = 2.5
 L3 = 1.25
-x_cg = 3
+x_cg_from_nose = 3
 up_sweep_angle = 13
 diameter_fuselage = 1
 
 
 
-print(lg_pos_and_length(L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage))
+print(lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle, diameter_fuselage))

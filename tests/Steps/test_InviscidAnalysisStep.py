@@ -17,6 +17,7 @@ from src.airfoil.SymmetricAirfoil import SymmetricAirfoil
 from src.global_parameters import CONSTANTS
 
 from src.objects.aircraft_parameters import AircraftParameters
+from src.objects.lading_gear import LandingGear
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
 from src.objects.propulsion_parameters import PropulsionParameters, EngineParameters
@@ -56,6 +57,7 @@ def initial_state_interior() -> DesignOptionState:
                 )
             ],
             propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5, .15), 2),
+            landing_gear=LandingGear(2., .5, .15, .1),
             performance_parameters=PerformanceParameters(
                 cruise_parameters=PerformanceAtAltitude(np.pi*.8*20., .01),
                 mach_max_parameters=PerformanceAtAltitude(np.pi*.75*20., .02),
