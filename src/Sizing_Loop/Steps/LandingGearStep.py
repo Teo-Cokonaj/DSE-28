@@ -36,8 +36,18 @@ class LandingGearStep(DesignOptionStep):
                 wing_height_from_centre_line=wing_height_from_centre_line,
                 debug = True
             )
-            for c in constraints:
-                print(c['fun'](result.x))
+            labels = ["theta1", "theta2", "beta", "turnover", "keel", "behind cg", "front of tail", "min y", "wingtipclearance"]
+            for cname, c in zip(labels, constraints):
+                print(f"{cname}: {c['fun'](result.x)}")
+
+            print(f"height landing gear: {l_opt}")
+            print(f"y landing gear: {Y_lg_opt}")
+            print(f"x mlg: {x_mlg_opt} vs fuselage length: {state.total_fuselage_length()}")
+            print(f"x_nlg: {x_nlg_opt}")
+
+            print(f"x_cg_per_MAC: {state.iterable.aircraft_parameters.x_cg_per_mac}")
+            print(f"tail arm: {state.fixed.assumptions.moment_arm_per_area * state.iterable.lifting_surfaces[0].wing_area}")
+            print(f"x_cg: {state.x_cg_from_nose()}")
 
         else:
             l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt = lg_pos_and_length(

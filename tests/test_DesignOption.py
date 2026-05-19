@@ -85,8 +85,9 @@ class TestDesignOption:
         inviscid_step = InviscidAnalysisStep(plot, False)
         tail_sizing_step = TailSizingStep(print_)
         engine_step = EngineSelectionStep(print_)
+        lg_step = LandingGearStep(print_)
 
-        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, engine_step, CD0_step])
+        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, lg_step, engine_step, CD0_step])
         design_option.iteration_step()
 
         #checking that the iteration actually happened
@@ -123,7 +124,7 @@ class TestDesignOption:
         inviscid_step = InviscidAnalysisStep(plot, False)
         tail_sizing_step = TailSizingStep(print_)
         engine_step = EngineSelectionStep(print_)
-        lg_step = LandingGearStep()
+        lg_step = LandingGearStep(print_)
 
         design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, engine_step, lg_step, CD0_step])
 
@@ -156,5 +157,5 @@ class TestDesignOption:
     
 if __name__ == "__main__":
     test_design_option = TestDesignOption()
-    #test_design_option.test_forward(initial_state_interior(), False, False)
-    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True)
+    test_design_option.test_forward(initial_state_interior(), True, True)
+    #test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True)
