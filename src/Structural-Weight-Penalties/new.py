@@ -110,6 +110,12 @@ def thickness_for_yield_stress(V, tau_yield, fuselage_radius):
     else:
         raise RuntimeError("Failed to converge on a valid skin thickness.")
     
+def cylindricalBucklingStress(E, t_skin, fuselage_radius):
+    # sigma_cr = (E * t_skin) / (sqrt(3*(1-nu^2)) * R)
+    nu = 0.3  # Poisson's ratio for CFRP
+    sigma_cr = (E * t_skin) / (math.sqrt(3*(1-nu**2)) * fuselage_radius)
+    return sigma_cr
+    
 x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc).values()
 plot_loads(x, loads, title)
 
