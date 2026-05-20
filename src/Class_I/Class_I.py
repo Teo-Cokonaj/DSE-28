@@ -20,6 +20,8 @@ class Class_I:
         self.energy_density_saf = energy_density_saf
         self.time_half_turn = time_half_turn
         self.debug = debug
+        self.efficiency_engine_go_around = efficiency_engine_go_around
+        self.efficiency_engine_mach_max = efficiency_engine_mach_max
 
         if efficiency_engine_go_around is None:
             self.efficiency_engine_go_around = efficiency_engine_cruise
