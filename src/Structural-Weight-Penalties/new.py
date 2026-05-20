@@ -145,7 +145,7 @@ def cylindricalBucklingStress(E, t_skin, fuselage_radius):
     
 
 x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc).values()
-#plot_loads(x, loads, title)
+plot_loads(x, loads, title)
 
 
 x, shear, moment = cumulative_shear_and_moment(x, dx, loads).values()
