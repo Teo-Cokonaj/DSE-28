@@ -198,9 +198,9 @@ plot_loads(x, loads, title)
 x, shear, moment = cumulative_shear_and_moment(x, dx, loads).values()
 plot_shear_and_moment_diagrams(x, shear, moment)
 
-sigma_allow = 400e6  # Allowable bending stress for CFRP (example value)
+sigma_allow = CFRP[1]  # Allowable bending stress for CFRP (example value)
 tau_allow = sigma_allow  # Tresca criterion for shear yield from bending yield strength
-E = 200e9  # Young's modulus for CFRP
+E = CFRP[2]  # Young's modulus for CFRP
 
 t_skin, critical_mode = thickness_for_combined_failure(
     shear=shear,
