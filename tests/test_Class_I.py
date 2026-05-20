@@ -18,7 +18,7 @@ class TestClass_I:
     altitude_cruise = 5000. # [m]
     CL_go_around = .6
     wing_loading = 3000 # [Pa]
-    efficiency_engine_total = .15
+    efficiency_engine_total = 0.05
     enegy_density_saf = 42.8e6 # [J/kg]
     airspeed_approach = 60. # [m/s]
     oem_fraction = .4
