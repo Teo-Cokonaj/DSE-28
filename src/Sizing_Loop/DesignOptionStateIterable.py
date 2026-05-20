@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import sys
+import copy
 import os
 
 # Add the 'src' directory to the python path
@@ -10,6 +11,7 @@ from src.objects.aircraft_parameters import AircraftParameters
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.objects.propulsion_parameters import PropulsionParameters
 from src.objects.performance_parameters import PerformanceParameters
+from src.objects.lading_gear import LandingGear
 
 @dataclass
 class DesignOptionStateIterable:
@@ -17,3 +19,4 @@ class DesignOptionStateIterable:
     lifting_surfaces:list[LiftingSurfacePlanform]
     propulsion_parameters:PropulsionParameters
     performance_parameters:PerformanceParameters
+    landing_gear:LandingGear

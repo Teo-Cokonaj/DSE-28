@@ -64,7 +64,7 @@ class Assumptions():
         self.max_camber_position = np.inf #to cancel the camber term
         self.positive_C_L_max_airfoil=1.25 #CHANGE
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
-        self.C_L_alpha = 0.5*2*np.pi #CHANGE
+        self.airfoil_C_l_alpha = 0.5/np.radians(4.0) #0.5 per 4deg
 
         self.airfield_length = 1275. #m #TODO check with the actual airport
 
@@ -83,16 +83,20 @@ class Assumptions():
         # Main gear (all are placeholders currently)
         self.main_gear_diameter_wheel = 0.05   # [m] standard for 50-80kg UAV class
         self.main_gear_width_wheel    = 0.025  # [m]
-        self.main_gear_height_strut   = 0.1   # [m] sized for belly clearance + rotation angle
         self.main_gear_width_strut    = 0.01  # [m]
         self.main_gear_enclosed       = False
 
         # Nose gear (all are placeholders currently)
         self.nose_gear_diameter_wheel = 0.04   # [m] smaller since lightly loaded
         self.nose_gear_width_wheel    = 0.02  # [m]
-        self.nose_gear_height_strut   = 0.1   # [m] slightly shorter than main to give nose-up ground attitude
         self.nose_gear_width_strut    = 0.008  # [m]
         self.nose_gear_enclosed       = False
+
+        self.lg_bay_wheel_diameter_ratio = 2.5
+        self.lg_bay_length_safety_factor = 1.25
+
+        self.wing_bay_laminar_frac = 0.1
+        self.fuselage_laminar_frac = .05
 
         #tail arm
         self.moment_arm_per_area = stat.HT_arm_over_area # based on FLEXOP
