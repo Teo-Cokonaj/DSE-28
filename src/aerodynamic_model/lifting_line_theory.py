@@ -36,6 +36,7 @@ class LiftingLineTheory():
         self.canard_number_of_sections = canard_number_of_sections
         self.vertical_stabilizer_number_of_sections = vertical_stabilizer_number_of_sections
 
+
     def initialize_airfoils(self):
         symmetric_airfoil = SymmetricAirfoil()
         self.wing_airfoil = symmetric_airfoil
@@ -49,15 +50,18 @@ class LiftingLineTheory():
                                                    self.vertical_stabilizer_number_of_sections)
         self.canard_airfoils=np.array([self.canard_airfoil]*self.canard_number_of_sections)
 
+
     def calculate_LE_x_positions(self,
                                  number_of_sections: int,
                                  planform: LiftingSurfacePlanform):
         return np.linspace(0.0,planform.half_span*np.tan(planform.sweep_LE_rad),number_of_sections)
 
+
     def calculate_section_y_positions(self,
                                       number_of_sections: int,
                                       planform: LiftingSurfacePlanform):
         return np.linspace(0.0,planform.half_span,number_of_sections)
+
 
     def make_horizontal_lifting_surface(self,
         planform: LiftingSurfacePlanform,
@@ -86,6 +90,7 @@ class LiftingLineTheory():
             symmetric=True,
             xsecs=xsecs,
         )
+    
 
     def make_vertical_lifting_surface(self,
         planform: LiftingSurfacePlanform,
@@ -114,6 +119,7 @@ class LiftingLineTheory():
             symmetric=False,
             xsecs=xsecs,
         )
+    
     
     def make_full_airplane_model(self,
                                  main_wing: bool = True,
@@ -218,6 +224,7 @@ class LiftingLineTheory():
 
             return self.analysis, results
     
+    
     def plot_lift_distribution(self):
 
         y = self.analysis.vortex_centers[:, 1]
@@ -259,6 +266,7 @@ class LiftingLineTheory():
 
         return lift_coefficient**2/drag_coefficient
     
+    
     def run_llt_alpha_sweep(self,
                         velocity: float,
                         altitude_m: float,
@@ -272,7 +280,7 @@ class LiftingLineTheory():
             self.op_point = asb.OperatingPoint(
                 atmosphere=asb.Atmosphere(altitude_m),
                 velocity=velocity,
-                alpha=float(alpha),  # explicit scalar cast to be safe
+                alpha=float(alpha),
             )
 
             self.analysis = LiftingLineInviscid(
@@ -288,11 +296,6 @@ class LiftingLineTheory():
 
         CL = np.array(CL_list)
         Cm = np.array(Cm_list)
-        alpha_rad = np.array(alpha_rad_list)
-
-        dCm_dalpha = np.polyfit(alpha_rad, Cm, 1)[0]
-        dCL_dalpha = np.polyfit(alpha_rad, CL, 1)[0]
-        dCm_dCL    = np.polyfit(CL, Cm, 1)[0]
 
         LEMAC_position_wrt_origin=self.wing_planform.x_MAC #origin at airplane reference point!!!
 
@@ -305,9 +308,6 @@ class LiftingLineTheory():
 
         CL = np.array(CL_list)
         Cm = np.array(Cm_list)
-        alpha_rad = np.array(alpha_rad_list)
-
-        #x_ac, C_L_alpha, Cmac = float(x_ac), float(C_L_alpha), float(Cmac)
         
         return {
             "alpha": alpha_range_deg,
@@ -373,10 +373,7 @@ if __name__ == "__main__":
     from global_parameters import Assumptions
     assumptions=Assumptions()
     reference_incompressible_slope = assumptions.airfoil_C_l_alpha/(1+assumptions.airfoil_C_l_alpha/np.pi/AR)
-
-    #sweep_LE_rad=np.radians(45.0)
        
-
     for angle_of_attack_deg in angles_of_attack_deg:
         lifting_line_theory.wing_planform.sweep_quarter_rad=np.radians(0.0) #unswept wing in incompressible flow
         lifting_line_theory.make_full_airplane_model(main_wing=True,
