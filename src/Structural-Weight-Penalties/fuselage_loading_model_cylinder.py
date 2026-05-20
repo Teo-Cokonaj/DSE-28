@@ -173,6 +173,18 @@ def cylindricalBucklingStress(E, t_skin, fuselage_radius):
     sigma_cr = (E * t_skin) / (math.sqrt(3*(1-nu**2)) * fuselage_radius)
     return sigma_cr
 
+def fuselage_skin_mass(x, dx, t_skin, fuselage_radius):
+    # volume = area of ring * dx
+    volume = 0
+    for i in range(len(x)):
+        r_i = fuselage_radius - t_skin[i]
+        area = (math.pi/2)*(fuselage_radius**2 - r_i**2)
+        volume = volume + area * dx
+
+    fuselage_mass = volume * CFRP[0]
+
+    return fuselage_mass
+
 def plotReqThickness(x, t_skin):
     plt.figure(figsize=(10, 4))
     plt.plot(x, t_skin * 1000)
@@ -181,7 +193,8 @@ def plotReqThickness(x, t_skin):
     plt.title("Required Fuselage Skin Thickness")
     plt.grid()
     plt.show()
-    
+
+
 
 x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc).values()
 plot_loads(x, loads, title)
@@ -195,5 +208,6 @@ E = CFRP[2]  # Young's modulus for CFRP
 
 t_skin, critical_mode = thickness_for_combined_failure(shear, moment, x, sigma_allow, E, fuselage_radius)
 plotReqThickness(x, t_skin)
-print(critical_mode)
-print(t_skin)    
+
+fuselage_mass = fuselage_skin_mass(x, dx, t_skin, fuselage_radius)
+print(fuselage_mass)
