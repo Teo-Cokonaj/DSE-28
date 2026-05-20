@@ -81,3 +81,4 @@ if z_location_canard > fuselage_radius or z_location_canard < -fuselage_radius:
 
 #Analysis parameters
 resolution = 501                                    # Higher resolution for integration accuracy
+

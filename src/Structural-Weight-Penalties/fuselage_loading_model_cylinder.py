@@ -4,13 +4,12 @@ import math
 from scipy.optimize import root_scalar
 from parameters import *
 
-
-
-def calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc):
+def x_range(fuselage_length, resolution):
     x = np.linspace(0, fuselage_length, resolution)
     dx = x[1] - x[0]
- 
+    return x, dx
 
+def calculate_flight_case(x, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc):
     L_canard = W * canard_lift_fraction             # Assumed quantity from statistics
     
     # Set up the matrices for A * x = B
@@ -34,7 +33,7 @@ def calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, 
     
     title = f"In-Flight"
 
-    return {"x": x, "dx": dx, "loads": loads, "title": title, "L_main": L_main, "L_empennage": L_empennage, "L_canard": L_canard}
+    return {"loads": loads, "title": title, "L_main": L_main, "L_empennage": L_empennage, "L_canard": L_canard}
 
 def plot_loads(x, loads, title):
     plt.figure(figsize=(10, 4))
@@ -47,13 +46,13 @@ def plot_loads(x, loads, title):
     plt.show()
 
 
-def cumulative_shear_and_moment(x, dx, loads, **kwargs):
+def cumulative_shear_and_moment(dx, loads, **kwargs):
     # Shear is the integral of load
     shear = np.cumsum(loads)
     # Moment is the integral of shear
     moment = np.cumsum(shear) * dx
 
-    return {"x" : x, "shear": shear, "moment": moment}
+    return {"shear": shear, "moment": moment}
 
 
 def plot_shear_and_moment_diagrams(x, shear, moment):
@@ -87,7 +86,7 @@ def moments_of_area(fuselage_radius, t_skin):
 
     return Q, I_xx
 
-def thickness_for_combined_failure(shear, moment, x,  sigma_allow, E, fuselage_radius, t_min=0.0003):
+def thickness_for_combined_failure(shear, moment, x,  yield_strength, E, fuselage_radius, t_min=0.0003):
     t_skin = []
     critical_mode = []
 
@@ -101,8 +100,8 @@ def thickness_for_combined_failure(shear, moment, x,  sigma_allow, E, fuselage_r
         sigma_bending = M_i * fuselage_radius / I
         sigma_buckling = cylindricalBucklingStress(E, t, fuselage_radius)
 
-        shear_util = tau_shear / tau_allow
-        bending_util = sigma_bending / sigma_allow
+        shear_util = tau_shear / yield_strength
+        bending_util = sigma_bending / yield_strength
         buckling_util = sigma_bending / sigma_buckling
 
         return {
@@ -195,19 +194,44 @@ def plotReqThickness(x, t_skin):
     plt.show()
 
 
+x, dx = x_range(fuselage_length = fuselage_length, resolution = resolution)
 
-x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc).values()
+loads, title, L_main, L_empennage, L_canard = calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=main_wing_loc, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc).values()
+
+shear, moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
+
+t_skin, critical_mode = thickness_for_combined_failure(shear=shear, moment=moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+
+fuselage_mass = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin, fuselage_radius=fuselage_radius)
+
 plot_loads(x, loads, title)
-
-x, shear, moment = cumulative_shear_and_moment(x, dx, loads).values()
 plot_shear_and_moment_diagrams(x, shear, moment)
-
-sigma_allow = CFRP[1]  # Allowable bending stress for CFRP (example value)
-tau_allow = sigma_allow  # Tresca criterion for shear yield from bending yield strength
-E = CFRP[2]  # Young's modulus for CFRP
-
-t_skin, critical_mode = thickness_for_combined_failure(shear, moment, x, sigma_allow, E, fuselage_radius)
 plotReqThickness(x, t_skin)
+print(f"Static Port Fuselage Mass: {fuselage_mass} kg")
 
-fuselage_mass = fuselage_skin_mass(x, dx, t_skin, fuselage_radius)
-print(fuselage_mass)
+
+def variable_port_iteration(x, wing_location, chord):
+    main_lift_range = (x >= (wing_location - chord)) & (x <= (wing_location + chord))
+    wing_loc_range= x[main_lift_range]
+
+    max_shear = np.zeros_like(x)
+    max_moment = np.zeros_like(x)
+    
+    #for i in wing_loc_range:         
+    loads = calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=wing_loc_range[0], empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc)["loads"]
+    shear, moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
+    
+    max_shear = np.maximum(np.abs(max_shear), np.abs(shear))
+    max_moment = np.maximum(np.abs(max_moment), np.abs(moment))
+
+    return shear, moment
+
+max_shear, max_moment = variable_port_iteration(x=x, wing_location=main_wing_loc, chord=chord_length)
+
+#t_skin, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+#fuselage_mass = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin, fuselage_radius=fuselage_radius)
+#plot_shear_and_moment_diagrams(x=x, shear=max_shear, moment=max_moment)
+#plotReqThickness(x, t_skin)
+
+#print(f"Variable Port Fuselage Mass: {fuselage_mass} kg")
+
