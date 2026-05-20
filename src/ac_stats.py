@@ -179,7 +179,7 @@ canard_distance_in_front_of_wing = 0.5  # m
 # HUGO MAIN WING
 # =============================================================================
 
-AR_HUGO = 23.0
+AR_HUGO = 27.
 b_HUGO = 3.36  # m
 lambda_HUGO = 0.50
 

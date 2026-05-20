@@ -21,7 +21,7 @@ class DesignOption:
             self.state.iterable = step.update(self.state)
 
 
-    def iterate_for_n_steps(self, n:int, convergence_criterion:ty.Callable[[DesignOptionState], nt.NDArray[np.float64]]) -> list[float]:
+    def iterate_for_n_steps(self, n:int, convergence_criterion:ty.Callable[[DesignOptionState], nt.NDArray[np.float64]]) -> list[nt.NDArray[np.float64]]:
         convergence_quantities_initial = convergence_criterion(self.state)
         assert convergence_quantities_initial.ndim == 1
 
