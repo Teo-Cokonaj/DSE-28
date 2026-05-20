@@ -12,6 +12,7 @@ def get_base_setup(fuselage_length, resolution, W):
     return x, dx, w_dist
 
 def calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc):
+    
     x, dx, loads = get_base_setup(fuselage_length, resolution, W)
         
     L_canard = W * canard_lift_fraction             # Assumed quantity from statistics
