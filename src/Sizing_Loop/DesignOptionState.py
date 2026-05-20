@@ -101,3 +101,24 @@ class DesignOptionState:
         L2 = self.fixed.assumptions.fuselage_length2
         L3 = self.fixed.assumptions.fuselage_length3
         return L1 + L2 + L3
+    
+
+    def x_le_root_wing_from_nose(self):
+        MAC = self.iterable.lifting_surfaces[0].MAC
+        tail_arm = self.fixed.assumptions.moment_arm
+        
+        x_LEMAC = self.total_fuselage_length() - tail_arm - MAC / 4
+        x_LE_root = x_LEMAC - self.iterable.lifting_surfaces[0].x_MAC
+        return x_LE_root
+    
+
+    def x_c4_root_wing_from_nose(self):
+        return self.x_le_root_wing_from_nose() - self.iterable.lifting_surfaces[0].c_root / 4
+    
+
+    def x_c4_tail_from_nose(self):
+        return self.total_fuselage_length() #TODO: to improve later on
+    
+    
+
+    

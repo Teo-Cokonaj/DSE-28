@@ -9,7 +9,7 @@ current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 sys.path.append(project_root)
 
-from src.Sizing_Loop.Steps.CD0Step import CD0Step
+from src.Sizing_Loop.Steps.OEMStep import OEMStep
 from src.objects.possible_engines import PossibleEngines
 from src.Sizing_Loop.DesignOptionState import DesignOptionState
 from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
@@ -20,11 +20,6 @@ from src.objects.lading_gear import LandingGear
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
 from src.objects.propulsion_parameters import PropulsionParameters, EngineParameters
-
-import src.Drag.LandingGear as dlg
-from src.Drag.Bay import Bay
-from src.Drag.Fuselage import Fuselage
-from src.Drag.Planform import Planform
 
 def initial_state_interior():
     pe = PossibleEngines()
@@ -80,36 +75,29 @@ def initial_state_interior():
 def initial_state():
     return initial_state_interior()
 
-@pytest.fixture
-def extendable_landing_gear_state():
-    init_state = initial_state_interior()
-    init_state.fixed.choices.landing_gear_sideways_extendable = True
-    return init_state
-
-@pytest.fixture
-def cd0_step():
-    return CD0Step()
+class TestOEMStep():
+    def test_not_applicable(self, initial_state:DesignOptionState):
+        oem_step = OEMStep()
+        initial_state.iterable = oem_step.update(initial_state)
+        assert np.isclose(initial_state.iterable.aircraft_parameters.empty_mass_fraction, 0.699*initial_state.iterable.aircraft_parameters.total_mass**-.051)
 
 
-class TestCD0Step:
-    def test_bays(self, initial_state:DesignOptionState, extendable_landing_gear_state:DesignOptionState, cd0_step:CD0Step):
-        bays_bay_lg = cd0_step.build_bay_components(initial_state)
-        assert len(bays_bay_lg)==4
-        retracting_landing_gear_height = initial_state.fixed.assumptions.main_gear_diameter_wheel / 2 + initial_state.iterable.landing_gear.length_z
+    def test_applicable(self, initial_state:DesignOptionState):
+        state_canard_only = deepcopy(initial_state)
+        state_canard_only.fixed.choices.canard_capability = True
 
-        assert np.isclose(bays_bay_lg[0].length_to_diameter, initial_state.iterable.propulsion_parameters.engine_parameters.length / initial_state.iterable.propulsion_parameters.engine_parameters.diameter)
-        assert np.isclose(bays_bay_lg[-1].length_to_diameter, initial_state.fixed.assumptions.lg_bay_length_safety_factor*retracting_landing_gear_height / initial_state.fixed.assumptions.lg_bay_wheel_diameter_ratio/initial_state.fixed.assumptions.main_gear_diameter_wheel)
-        
-        bays_no_lg = cd0_step.build_bay_components(extendable_landing_gear_state)
-        assert len(bays_no_lg)==2
-        assert np.isclose(bays_no_lg[0].length_to_diameter, initial_state.iterable.propulsion_parameters.engine_parameters.length / initial_state.iterable.propulsion_parameters.engine_parameters.diameter)
+        state_both_options = deepcopy(state_canard_only)
+        state_both_options.fixed.choices.main_wing_x_movable = True
 
-    def test_landing_gear(self, initial_state:DesignOptionState, extendable_landing_gear_state:DesignOptionState, cd0_step:CD0Step):
-        lgs_straight_retract = cd0_step.build_landing_gear_components(initial_state)
-        assert len(lgs_straight_retract)==3
+        oem_step = OEMStep(print_=True, minimum_thickness=1e-6)
+        initial_state.iterable = oem_step.update(initial_state)
+        state_canard_only.iterable = oem_step.update(state_canard_only)
+        state_both_options.iterable = oem_step.update(state_both_options)
 
-        lstrut = initial_state.iterable.landing_gear.length_z - initial_state.fixed.assumptions.diameter_fuselage / 2
-
-        #drag_area_main = 0.05328 * np.exp(5.615*surface_frontal_main/surface_reference_main) * surface_reference_main
+        #assert state_both_options.iterable.aircraft_parameters.empty_mass_fraction > state_canard_only.iterable.aircraft_parameters.empty_mass_fraction
+        assert state_canard_only.iterable.aircraft_parameters.empty_mass_fraction > initial_state.iterable.aircraft_parameters.empty_mass_fraction
 
 
+
+
+    
