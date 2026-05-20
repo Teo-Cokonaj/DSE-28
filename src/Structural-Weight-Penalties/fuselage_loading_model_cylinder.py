@@ -87,33 +87,23 @@ def moments_of_area(fuselage_radius, t_skin):
 
     return Q, I_xx
 
-def thickness_for_combined_failure(
-    shear,
-    moment,
-    x,
-    tau_allow,
-    sigma_allow,
-    E,
-    fuselage_radius,
-    safety_factor=1.0,
-    t_min=0.0005,   # 0.5 mm min thickness
-):
+def thickness_for_combined_failure(shear, moment, x,  sigma_allow, E, fuselage_radius, t_min=0.0003):
     t_skin = []
     critical_mode = []
 
-    def get_utils(t, V_i, M_i):
+    def get_utils(t, V, M):
         Q, I = moments_of_area(fuselage_radius, t)
 
-        V_i = abs(V_i)
-        M_i = abs(M_i)
+        V_i = abs(V)
+        M_i = abs(M)
 
         tau_shear = V_i * Q / (I * t)
         sigma_bending = M_i * fuselage_radius / I
         sigma_buckling = cylindricalBucklingStress(E, t, fuselage_radius)
 
-        shear_util = safety_factor * tau_shear / tau_allow
-        bending_util = safety_factor * sigma_bending / sigma_allow
-        buckling_util = safety_factor * sigma_bending / sigma_buckling
+        shear_util = tau_shear / tau_allow
+        bending_util = sigma_bending / sigma_allow
+        buckling_util = sigma_bending / sigma_buckling
 
         return {
             "shear": shear_util,
@@ -183,7 +173,7 @@ def cylindricalBucklingStress(E, t_skin, fuselage_radius):
     sigma_cr = (E * t_skin) / (math.sqrt(3*(1-nu**2)) * fuselage_radius)
     return sigma_cr
 
-def plotReqThickness(x, t_skin, critical_mode):
+def plotReqThickness(x, t_skin):
     plt.figure(figsize=(10, 4))
     plt.plot(x, t_skin * 1000)
     plt.xlabel("Position along fuselage x [m]")
@@ -192,6 +182,7 @@ def plotReqThickness(x, t_skin, critical_mode):
     plt.grid()
     plt.show()
     
+
 x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc).values()
 plot_loads(x, loads, title)
 
@@ -202,15 +193,7 @@ sigma_allow = CFRP[1]  # Allowable bending stress for CFRP (example value)
 tau_allow = sigma_allow  # Tresca criterion for shear yield from bending yield strength
 E = CFRP[2]  # Young's modulus for CFRP
 
-t_skin, critical_mode = thickness_for_combined_failure(
-    shear=shear,
-    moment=moment,
-    x=x,
-    tau_allow=tau_allow,
-    sigma_allow=sigma_allow,
-    E=E,
-    fuselage_radius=fuselage_radius,
-    safety_factor=1.5
-)
-plotReqThickness(x, t_skin, critical_mode)
+t_skin, critical_mode = thickness_for_combined_failure(shear, moment, x, sigma_allow, E, fuselage_radius)
+plotReqThickness(x, t_skin)
+print(critical_mode)
 print(t_skin)    
