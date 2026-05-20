@@ -77,7 +77,7 @@ class TestLandingGearStep():
     def test_update(self, initial_state:DesignOptionState, print_=False):
         lg_step = LandingGearStep(print_)
         if print_:
-            print((initial_state.fixed.assumptions.fuselage_length1_per_area + initial_state.fixed.assumptions.fuselage_length2_per_area) * initial_state.iterable.lifting_surfaces[0].wing_area)
+            print(initial_state.fixed.assumptions.fuselage_length1 + initial_state.fixed.assumptions.fuselage_length2)
 
         for x_cg_per_mac in np.linspace(0., 0.9, 5):
             modified_state = copy.deepcopy(initial_state)

@@ -30,7 +30,7 @@ class TailSizingStep(DesignOptionStep):
 
         self.wing_downwash_gradient=0.0
         self.approach_speed = state.fixed.assumptions.airspeed_approach
-        self.horizontal_stabilizer_arm = state.fixed.assumptions.moment_arm_per_area*state.iterable.lifting_surfaces[0].wing_area
+        self.horizontal_stabilizer_arm = state.fixed.assumptions.moment_arm
 
         aircraft_parameters=AircraftParameters(total_mass=state.iterable.aircraft_parameters.total_mass,
                  horizontal_stabilizer_distance_from_wing=self.horizontal_stabilizer_arm,

@@ -85,7 +85,7 @@ class TestEngineSelectionStep:
         propulsion_result = initial_state.iterable.propulsion_parameters
 
         assert propulsion_result.n_engines == propulsion_reference.n_engines
-        assert np.isclose(propulsion_result.engine_parameters.efficiency_total, propulsion_reference.engine_parameters.efficiency_total)
+        assert np.isclose(propulsion_result.engine_parameters.sfc, propulsion_reference.engine_parameters.sfc)
         assert np.isclose(propulsion_result.engine_parameters.thrust_max, propulsion_reference.engine_parameters.thrust_max)
         assert np.isclose(propulsion_result.engine_parameters.mass, propulsion_reference.engine_parameters.mass)
         assert np.isclose(propulsion_result.engine_parameters.length, propulsion_reference.engine_parameters.length)

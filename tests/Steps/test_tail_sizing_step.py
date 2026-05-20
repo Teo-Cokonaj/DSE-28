@@ -150,7 +150,7 @@ class TestTailSizingStep:
         original_state = copy.deepcopy(design_option_state)
         original_state.wing_downwash_gradient=0.0
         original_state.approach_speed = design_option_state.fixed.assumptions.airspeed_approach
-        self.horizontal_stabilizer_arm = design_option_state.fixed.assumptions.moment_arm_per_area*design_option_state.iterable.lifting_surfaces[0].wing_area
+        self.horizontal_stabilizer_arm = design_option_state.fixed.assumptions.moment_arm
 
         numerical_results = tail_sizing_step.update(design_option_state)
         computed_new_wing_area=numerical_results.lifting_surfaces[1].wing_area

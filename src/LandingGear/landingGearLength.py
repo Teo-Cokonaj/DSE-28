@@ -127,8 +127,8 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         {'type': 'ineq', 'fun': constraint_main_lg_ahead_tail_cone},
         {'type': 'ineq', 'fun': constraint_Y_lg_min},
         {'type': 'ineq', 'fun': constraint_wing_tip_clearance},
-        {'type': 'ineq', 'fun': constraint_nose_load_min},
-        {'type': 'ineq', 'fun': constraint_nose_load_max},
+        # {'type': 'ineq', 'fun': constraint_nose_load_min},
+        # {'type': 'ineq', 'fun': constraint_nose_load_max},
         {'type': 'ineq', 'fun': constraint_nose_gear_behind_cg},
     ]
 

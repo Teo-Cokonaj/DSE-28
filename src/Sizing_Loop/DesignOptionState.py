@@ -88,7 +88,7 @@ class DesignOptionState:
 
     def x_cg_from_nose(self) -> float:
         MAC = self.iterable.lifting_surfaces[0].MAC
-        tail_arm = self.fixed.assumptions.moment_arm_per_area * self.iterable.lifting_surfaces[0].wing_area
+        tail_arm = self.fixed.assumptions.moment_arm
         
         x_LEMAC = self.total_fuselage_length() - tail_arm - MAC / 4
         x_cg_per_mac = self.iterable.aircraft_parameters.x_cg_per_mac
@@ -97,7 +97,7 @@ class DesignOptionState:
     
 
     def total_fuselage_length(self):
-        L1 = self.fixed.assumptions.fuselage_length1_per_area * self.iterable.lifting_surfaces[0].wing_area
-        L2 = self.fixed.assumptions.fuselage_length2_per_area * self.iterable.lifting_surfaces[0].wing_area
-        L3 = self.fixed.assumptions.fuselage_length3_per_area * self.iterable.lifting_surfaces[0].wing_area
+        L1 = self.fixed.assumptions.fuselage_length1
+        L2 = self.fixed.assumptions.fuselage_length2
+        L3 = self.fixed.assumptions.fuselage_length3
         return L1 + L2 + L3

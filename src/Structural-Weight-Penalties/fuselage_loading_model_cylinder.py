@@ -244,49 +244,49 @@ def plotReqThickness(x, t_skin):
     plt.grid()
     plt.show()
 
+if __name__ == "__main__":
+    canard_lift_fraction = 0
 
-canard_lift_fraction = 0
+    x, dx = x_range(fuselage_length = fuselage_length, resolution = resolution)
 
-x, dx = x_range(fuselage_length = fuselage_length, resolution = resolution)
+    loads, title, L_main, L_empennage, L_canard = calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=main_wing_loc, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc).values()
 
-loads, title, L_main, L_empennage, L_canard = calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=main_wing_loc, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc).values()
+    shear, moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
 
-shear, moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
+    t_skin_no_canard_static, critical_mode = thickness_for_combined_failure(shear=shear, moment=moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
 
-t_skin_no_canard_static, critical_mode = thickness_for_combined_failure(shear=shear, moment=moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+    fuselage_mass_no_canard_static = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_no_canard_static, fuselage_radius=fuselage_radius)
 
-fuselage_mass_no_canard_static = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_no_canard_static, fuselage_radius=fuselage_radius)
+    #plot_loads(x, loads, title)
+    #plot_shear_and_moment_diagrams(x, shear, moment)
+    #plotReqThickness(x, t_skin_no_canard_static)
+    #print(f"Static Port, No Canard Fuselage Mass: {fuselage_mass_no_canard_static} kg")
 
-#plot_loads(x, loads, title)
-#plot_shear_and_moment_diagrams(x, shear, moment)
-#plotReqThickness(x, t_skin_no_canard_static)
-#print(f"Static Port, No Canard Fuselage Mass: {fuselage_mass_no_canard_static} kg")
+    max_shear, max_moment = variable_port_iteration(x=x, wing_location=main_wing_loc, chord=chord_length, canard_lift_fraction=canard_lift_fraction)
+    t_skin_no_canard_variable, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+    fuselage_mass_no_canard_variable = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_no_canard_variable, fuselage_radius=fuselage_radius)
+    #plot_shear_and_moment_diagrams(x, max_shear, max_moment)
+    #plotReqThickness(x, t_skin_no_canard_variable)
 
-max_shear, max_moment = variable_port_iteration(x=x, wing_location=main_wing_loc, chord=chord_length, canard_lift_fraction=canard_lift_fraction)
-t_skin_no_canard_variable, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
-fuselage_mass_no_canard_variable = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_no_canard_variable, fuselage_radius=fuselage_radius)
-#plot_shear_and_moment_diagrams(x, max_shear, max_moment)
-#plotReqThickness(x, t_skin_no_canard_variable)
-
-#print(f"Variable-Port, No Canard Fuselage Mass: {fuselage_mass_no_canard_variable} kg")
+    #print(f"Variable-Port, No Canard Fuselage Mass: {fuselage_mass_no_canard_variable} kg")
 
 
 
-canard_lift_fraction = parameters.canard_lift_fraction
+    canard_lift_fraction = parameters.canard_lift_fraction
 
-loads= calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=main_wing_loc, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc)["loads"]
-shear, moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
-t_skin_canard_static, critical_mode = thickness_for_combined_failure(shear=shear, moment=moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
-t_skin_fuselage = np.maximum(t_skin_no_canard_static, t_skin_canard_static)
-fuselage_mass_canard_static = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_fuselage, fuselage_radius=fuselage_radius)
+    loads= calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=main_wing_loc, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc)["loads"]
+    shear, moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
+    t_skin_canard_static, critical_mode = thickness_for_combined_failure(shear=shear, moment=moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+    t_skin_fuselage = np.maximum(t_skin_no_canard_static, t_skin_canard_static)
+    fuselage_mass_canard_static = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_fuselage, fuselage_radius=fuselage_radius)
 
-#plot_loads(x, loads, title)
-#plot_shear_and_moment_diagrams(x, shear, moment)
-#plotReqThickness(x, t_skin_canard_static)
-#print(f"Static Port, Canard Fuselage Mass: {fuselage_mass_canard_static} kg")
+    #plot_loads(x, loads, title)
+    #plot_shear_and_moment_diagrams(x, shear, moment)
+    #plotReqThickness(x, t_skin_canard_static)
+    #print(f"Static Port, Canard Fuselage Mass: {fuselage_mass_canard_static} kg")
 
-max_shear, max_moment = variable_port_iteration(x=x, wing_location=main_wing_loc, chord=chord_length, canard_lift_fraction=canard_lift_fraction)
-t_skin_canard_variable, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
-t_skin_fuselage = np.maximum(t_skin_no_canard_variable, t_skin_canard_variable)
-fuselage_mass_canard_variable = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_fuselage, fuselage_radius=fuselage_radius)
-#print(f"Variable Port, Canard Fuselage Mass: {fuselage_mass_canard_variable} kg")
+    max_shear, max_moment = variable_port_iteration(x=x, wing_location=main_wing_loc, chord=chord_length, canard_lift_fraction=canard_lift_fraction)
+    t_skin_canard_variable, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+    t_skin_fuselage = np.maximum(t_skin_no_canard_variable, t_skin_canard_variable)
+    fuselage_mass_canard_variable = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_fuselage, fuselage_radius=fuselage_radius)
+    #print(f"Variable Port, Canard Fuselage Mass: {fuselage_mass_canard_variable} kg")

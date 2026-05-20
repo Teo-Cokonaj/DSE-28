@@ -74,9 +74,9 @@ class Assumptions():
 
         # Fuselage
         self.diameter_fuselage = .315 # m (based on FLEXOP)
-        self.fuselage_length1_per_area = .55 / 2.499245 # nose cone length / span (based on FLEXOP)
-        self.fuselage_length2_per_area = 1.75 / 2.499245  # middle fuselage section length /span (based on FLEXOP)
-        self.fuselage_length3_per_area = 1.12 / 2.499245  # tail cone length / span (based on FLEXOP)
+        self.fuselage_length1 = .55 # nose cone length / span (based on FLEXOP)
+        self.fuselage_length2 = 1.75   # middle fuselage section length /span (based on FLEXOP)
+        self.fuselage_length3 = 1.12  # tail cone length / span (based on FLEXOP)
         self.fuselage_upsweep = np.radians(11) # [rad] (based on FLEXOP)
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
@@ -99,7 +99,7 @@ class Assumptions():
         self.fuselage_laminar_frac = .05
 
         #tail arm
-        self.moment_arm_per_area = stat.HT_arm_over_area # based on FLEXOP
+        self.moment_arm = stat.HT_arm_FLEXOP # based on FLEXOP
 
         self.statistical_OEM_fraction = 870 / 1008
 
