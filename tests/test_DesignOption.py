@@ -158,4 +158,4 @@ class TestDesignOption:
 if __name__ == "__main__":
     test_design_option = TestDesignOption()
     #test_design_option.test_forward(initial_state_interior(), True, True)
-    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True, plot=True)
+    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True, plot=False, print_=True)

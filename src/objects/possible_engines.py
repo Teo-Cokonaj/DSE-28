@@ -89,3 +89,11 @@ class PossibleEngines:
             efficiency_total=.1, # [-] NOTE: thermal_efficiency*propulsive_efficiency
             mass=5.4 # [kg]
         ), 2)
+
+        self.engine_for_overflows = PropulsionParameters(EngineParameters(
+            thrust_max=2500, # [N]
+            diameter=.175, # [m]
+            length=.416, # [m]
+            efficiency_total=.1, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            mass=10 # [kg]
+        ), 2)
