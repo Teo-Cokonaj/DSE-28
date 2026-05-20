@@ -30,19 +30,30 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         return (x_tail_tip, l_landing_gear - R + L3 * np.tan(sigma))
 
     def scrape_angle(x_main_lg, tail_point):
-        return np.arctan2(tail_point[1], tail_point[0] - x_main_lg) 
+        dy = tail_point[1]
+        dx = tail_point[0] - x_main_lg
+        return np.arctan2(dy, dx) 
 
     def beta_angle(x_main_lg, l_landing_gear):
         return np.arctan2(x_main_lg - x_cg_from_nose, l_landing_gear)
 
-    def nose_gear_pos(x_main_lg):
-        return (x_cg_from_nose - x_main_lg * 0.85) / 0.15
+    def nose_gear_pos(l_landing_gear):
+        # Dynamic calculation: Since it retracts forwards, the pivot point (x_nose_lg) 
+        # must be at least one gear-length away from the nose tip (L1 * 0.1)
+        # Plus an arbitrary small margin (e.g., 0.05m) for structural clearance.
+        x_nose_tip_clearance = L1 * 0.1
+        return x_nose_tip_clearance + l_landing_gear + 0.05
+
+    def nose_gear_load_fraction(x_main_lg, l_landing_gear):
+        x_nlg = nose_gear_pos(l_landing_gear)
+        # Static weight fraction on nose gear = (x_mlg - x_cg) / (x_mlg - x_nlg)
+        return (x_main_lg - x_cg_from_nose) / (x_main_lg - x_nlg)
 
     def turn_over_angle(x_main_lg, Y_lg, l_landing_gear):
-        x_nose_lg = nose_gear_pos(x_main_lg)
-        d = x_main_lg - x_nose_lg
+        x_nlg = nose_gear_pos(l_landing_gear)
+        d = x_main_lg - x_nlg
         alpha = np.arctan2(Y_lg, d)                       
-        c = (x_cg_from_nose - x_nose_lg) * np.sin(alpha)
+        c = (x_cg_from_nose - x_nlg) * np.sin(alpha)
         return np.arctan2(c, l_landing_gear)
     
     def wing_tip_to_lg_angle(Y_lg, l_landing_gear, wing_height_from_centre_line, wing_span):
@@ -65,16 +76,7 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
 
     def constraint_beta_scrape(v):
         l_landing_gear, x_main_lg, Y_lg = v
-        # theta_crit = min(
-        #     scrape_angle(x_main_lg, tail_point_near(l_landing_gear)),
-        #     scrape_angle(x_main_lg, tail_point_far(l_landing_gear))
-        # )
-        theta_crit = theta
-        print(min(
-            scrape_angle(x_main_lg, tail_point_near(l_landing_gear)),
-            scrape_angle(x_main_lg, tail_point_far(l_landing_gear))
-        ))
-        return beta_angle(x_main_lg, l_landing_gear) - theta_crit
+        return beta_angle(x_main_lg, l_landing_gear) - theta
 
     def constraint_turnover(v):                             
         l_landing_gear, x_main_lg, Y_lg = v
@@ -102,6 +104,18 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         phi = wing_tip_to_lg_angle(Y_lg, l_landing_gear, wing_height_from_centre_line, wing_span)
         return phi - phi_min   
     
+    def constraint_nose_load_min(v):
+        l_landing_gear, x_main_lg, Y_lg = v
+        return nose_gear_load_fraction(x_main_lg, l_landing_gear) - 0.08
+
+    def constraint_nose_load_max(v):
+        l_landing_gear, x_main_lg, Y_lg = v
+        return 0.15 - nose_gear_load_fraction(x_main_lg, l_landing_gear)
+
+    def constraint_nose_gear_behind_cg(v):
+        l_landing_gear, x_main_lg, Y_lg = v
+        return x_cg_from_nose - nose_gear_pos(l_landing_gear)
+
 
     constraints = [                                           
         {'type': 'ineq', 'fun': constraint_scrape_near},
@@ -113,9 +127,12 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         {'type': 'ineq', 'fun': constraint_main_lg_ahead_tail_cone},
         {'type': 'ineq', 'fun': constraint_Y_lg_min},
         {'type': 'ineq', 'fun': constraint_wing_tip_clearance},
+        {'type': 'ineq', 'fun': constraint_nose_load_min},
+        {'type': 'ineq', 'fun': constraint_nose_load_max},
+        {'type': 'ineq', 'fun': constraint_nose_gear_behind_cg},
     ]
 
-    x0 = [R*1.25, x_cg_from_nose*1.01, R*1.25]
+    x0 = [R*1.5, x_cg_from_nose*1.05, R*1.5]
 
     result = opti.minimize(
         objective,
@@ -129,7 +146,7 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         print(f"Warning: optimiser did not converge — {result.message}")
 
     l_opt, x_mlg_opt, Y_lg_opt = result.x
-    x_nlg_opt = nose_gear_pos(x_mlg_opt)
+    x_nlg_opt = nose_gear_pos(l_opt)
 
     if debug:
         return l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt, constraints, result
@@ -137,47 +154,28 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
     return l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt
 
 
-if __name__ == '__main__': # Will only run if this file is run directly
+if __name__ == '__main__':
 
-    # Small note: 
-    # please let me know if the optimiser works. I don't have values to test it with.
-
-    L1=.3
-    L2=.3
-    L3=.3
-    x_cg=.5
-    up_sweep_angle_rad=15 * np.pi / 180
-    diameter_fuselage=.15
-    wing_height_from_centre_line=-.075
-    wing_span=8.0
-
+    L1 = 1.0
+    L2 = 1.5
+    L3 = 0.8
+    x_cg = 1.6
+    up_sweep_angle_rad = 15 * np.pi / 180
+    diameter_fuselage = 0.315
+    wing_height_from_centre_line = -0.315 / 2
+    wing_span = 6.0
 
     l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt, constr, res = lg_pos_and_length(
         L1, L2, L3, x_cg, up_sweep_angle_rad, diameter_fuselage,
         wing_height_from_centre_line, wing_span, debug=True
     )
 
+    print("\n--- Optimized Configurations ---")
     print(f"Strut length  l_gear : {l_opt:.4f} m")
     print(f"MLG x-position       : {x_mlg_opt:.4f} m from nose")
     print(f"MLG lateral track    : {Y_lg_opt:.4f} m from centreline")
     print(f"NLG x-position       : {x_nlg_opt:.4f} m from nose")
 
+    print("\n--- Constraint Violations (Negative values mean violated) ---")
     for c in constr:
-        print(c['fun'](res.x))
-
-
-
-"""
-### Results for the above values. This is super not correct
-
-l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt = lg_pos_and_length(
-        L1, L2, L3, x_cg, up_sweep_angle, diameter_fuselage,
-        wing_height_from_centre_line, wing_span
-    )
-
-    print(f"Strut length  l_gear : {l_opt:.4f} m")
-    print(f"MLG x-position       : {x_mlg_opt:.4f} m from nose")
-    print(f"MLG lateral track    : {Y_lg_opt:.4f} m from centreline")
-    print(f"NLG x-position       : {x_nlg_opt:.4f} m from nose")
-
-"""
+        print(f"{c['fun'].__name__}: {c['fun'](res.x):.6f}")
