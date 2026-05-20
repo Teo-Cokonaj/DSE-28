@@ -12,6 +12,7 @@ def get_base_setup(fuselage_length, resolution, W):
     return x, dx, w_dist
 
 def calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc):
+    
     x, dx, loads = get_base_setup(fuselage_length, resolution, W)
         
     L_canard = W * canard_lift_fraction             # Assumed quantity from statistics
@@ -52,13 +53,6 @@ def calculate_ground_case(fuselage_length, resolution, W, main_gear_loc, nose_ge
 
     return {"x": x, "dx": dx, "loads": loads, "title": title}
 
-def cumulative_shear_and_moment(x, dx, loads, **kwargs):
-    # Shear is the integral of load
-    shear = np.cumsum(loads)
-    # Moment is the integral of shear
-    moment = np.cumsum(shear) * dx
-
-    return x, shear, moment
 
 
 
