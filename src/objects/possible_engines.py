@@ -39,7 +39,7 @@ class PossibleEngines:
             thrust_max=1100, # [N]
             diameter=.234, # [m]
             length=.505, # [m]
-            sfc=0.151/60, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
+            sfc=2.900/60, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
             mass = 11.57 # [kg]
         ), 2)
         self.engineP250_PRO_S = PropulsionParameters(EngineParameters(
@@ -54,7 +54,7 @@ class PossibleEngines:
             thrust_max=300, # [N]
             diameter=.132, # [m]
             length=.381, # [m]
-            sfc=0.151/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            sfc=0.980/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
             mass=2.73 # [kg]
         ), 2)
 
@@ -62,7 +62,7 @@ class PossibleEngines:
             thrust_max=360, # [N]
             diameter=.136, # [m]
             length=.350, # [m]
-            sfc=0.151/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            sfc=1.185/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
             mass=2.89 # [kg]
         ), 2)
 
@@ -70,7 +70,7 @@ class PossibleEngines:
             thrust_max=425, # [N] (Latest standard PRO outputs up to 425N; older units are 397N)
             diameter=.148, # [m]
             length=.390, # [m]
-            sfc=0.151/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            sfc=1.392/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
             mass=4.14 # [kg]
         ), 2)
 
@@ -78,7 +78,7 @@ class PossibleEngines:
             thrust_max=492, # [N] 
             diameter=.175, # [m]
             length=.419, # [m]
-            sfc=0.151/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            sfc=1.550/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
             mass=5.4 # [kg]
         ), 2)
 
@@ -86,7 +86,7 @@ class PossibleEngines:
             thrust_max=550, # [N]
             diameter=.175, # [m]
             length=.416, # [m]
-            sfc=0.151/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            sfc=1.650/60, # [-] NOTE: thermal_efficiency*propulsive_efficiency
             mass=5.4 # [kg]
         ), 2)
 
