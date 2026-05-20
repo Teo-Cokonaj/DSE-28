@@ -20,6 +20,7 @@ from src.Sizing_Loop.Steps.InviscidAnalysisStep import InviscidAnalysisStep
 from src.Sizing_Loop.Steps.tail_sizing_step import TailSizingStep
 from src.Sizing_Loop.Steps.EngineSelectionStep import EngineSelectionStep
 from src.Sizing_Loop.Steps.LandingGearStep import LandingGearStep
+from src.Sizing_Loop.Steps.OEMStep import OEMStep
 
 from src.objects.aircraft_parameters import AircraftParameters
 from src.objects.lading_gear import LandingGear
@@ -86,8 +87,9 @@ class TestDesignOption:
         tail_sizing_step = TailSizingStep(print_)
         engine_step = EngineSelectionStep(print_)
         lg_step = LandingGearStep(print_)
+        oem_step = OEMStep()
 
-        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, lg_step, engine_step, CD0_step])
+        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, oem_step, matching_diagram_step, lg_step, engine_step, CD0_step])
         design_option.iteration_step()
 
         #checking that the iteration actually happened
@@ -117,7 +119,7 @@ class TestDesignOption:
             print(design_option.state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio)
 
     
-    def test_multiple_iterations(self, initial_state, print_:bool=False, plot:bool=False, n_iter=5, plot_final=False):      
+    def test_multiple_iterations(self, initial_state:DesignOptionState, print_:bool=False, plot:bool=False, n_iter=5, plot_final=False):      
         matching_diagram_step = MatchingDiagramStep(plot=plot)
         CD0_step = CD0Step()
         class_I_step = WeightEstimationStep(print_)
@@ -125,8 +127,12 @@ class TestDesignOption:
         tail_sizing_step = TailSizingStep(print_)
         engine_step = EngineSelectionStep(print_)
         lg_step = LandingGearStep(print_)
+        oem_step = OEMStep()
 
-        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, engine_step, lg_step, CD0_step])
+        # initial_state.fixed.choices.canard_capability = True
+        # initial_state.fixed.choices.main_wing_x_movable = True
+
+        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step,  oem_step, class_I_step, matching_diagram_step, engine_step, lg_step, CD0_step])
 
         def convergence_criterion(state:DesignOptionState):
             return np.array([
@@ -158,4 +164,4 @@ class TestDesignOption:
 if __name__ == "__main__":
     test_design_option = TestDesignOption()
     #test_design_option.test_forward(initial_state_interior(), True, True)
-    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True, plot=False, print_=True)
+    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True, plot=True, print_=True)
