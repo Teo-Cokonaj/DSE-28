@@ -131,7 +131,7 @@ class CD0Step(DesignOptionStep):
         Returns a tuple: (nose_geometry, main_geometry)
         """
         gear_effective_height = state.iterable.landing_gear.length_z if state.fixed.choices.landing_gear_sideways_extendable else state.iterable.landing_gear.length_pythagorean()
-        gear_exposed_height = gear_effective_height - state.fixed.assumptions.diameter_fuselage
+        gear_exposed_height = gear_effective_height - state.fixed.assumptions.diameter_fuselage / 2
 
         nose_geometry = {
             "diameter_wheel": float(state.fixed.assumptions.nose_gear_diameter_wheel),

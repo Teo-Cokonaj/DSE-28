@@ -180,7 +180,7 @@ class SizingForTradeoff():
                 )
 
                 convergence_history = design_option.iterate_for_n_steps(n_iteration_steps, convergence_criterion)
-                sizing_result_for_param.append(convergence_history[-1])
+                sizing_result_for_param.append(convergence_history[:, -1])
         
             sweep_results.append(sizing_result_for_param)
 
