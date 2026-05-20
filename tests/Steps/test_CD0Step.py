@@ -107,6 +107,10 @@ class TestCD0Step:
     def test_landing_gear(self, initial_state:DesignOptionState, extendable_landing_gear_state:DesignOptionState, cd0_step:CD0Step):
         lgs_straight_retract = cd0_step.build_landing_gear_components(initial_state)
         assert len(lgs_straight_retract)==3
-        #TODO tbd later
+
+        lstrut = initial_state.iterable.landing_gear.length_z - initial_state.fixed.assumptions.diameter_fuselage / 2
+        lstrut = 
+
+        drag_area_main = 0.05328 * np.exp(5.615*surface_frontal_main/surface_reference_main) * surface_reference_main
 
 
