@@ -61,7 +61,7 @@ class CD0Step(DesignOptionStep):
         }
 
 
-    def build_planform_components(self, state:DesignOptionState):
+    def build_planform_components(self, state:DesignOptionState) -> list[dcm.Planform]:
         """
         Turn a list of wing planforms into the drag-model objects used by 
         the component method.
@@ -130,8 +130,11 @@ class CD0Step(DesignOptionStep):
         Build nose and main landing-gear geometry dicts from 'Assumptions'.
         Returns a tuple: (nose_geometry, main_geometry)
         """
-        gear_effective_height = state.iterable.landing_gear.length_z if state.fixed.choices.landing_gear_sideways_extendable else state.iterable.landing_gear.length_pythagorean()
-        gear_exposed_height = gear_effective_height - state.fixed.assumptions.diameter_fuselage
+        gear_effective_height = state.iterable.landing_gear.length_z
+        gear_exposed_height = gear_effective_height - state.fixed.assumptions.diameter_fuselage / 2
+
+        gear_effective_length = gear_exposed_height if state.fixed.choices.landing_gear_sideways_extendable else state.iterable.landing_gear.length_pythagorean()
+        gear_exposed_length = gear_effective_length - state.fixed.assumptions.diameter_fuselage / 2
 
         nose_geometry = {
             "diameter_wheel": float(state.fixed.assumptions.nose_gear_diameter_wheel),
@@ -145,7 +148,7 @@ class CD0Step(DesignOptionStep):
         main_geometry = {
             "diameter_wheel": float(state.fixed.assumptions.main_gear_diameter_wheel),
             "width_wheel": float(state.fixed.assumptions.main_gear_width_wheel),
-            "height_strut": gear_exposed_height,
+            "height_strut": gear_exposed_length,
             "width_strut": float(state.fixed.assumptions.main_gear_width_strut),
             "height_total": float(state.fixed.assumptions.main_gear_diameter_wheel / 2 + gear_exposed_height),
             "width_total": float(state.fixed.assumptions.main_gear_width_strut + state.fixed.assumptions.main_gear_width_wheel),
@@ -153,7 +156,7 @@ class CD0Step(DesignOptionStep):
 
         return nose_geometry, main_geometry
 
-    def build_landing_gear_components(self, state:DesignOptionState) -> list:
+    def build_landing_gear_components(self, state:DesignOptionState) -> list[dcm.LandingGear]:
         """
         Build 'LandingGear' components using assumptions.
         """
@@ -176,7 +179,7 @@ class CD0Step(DesignOptionStep):
         ] * state.iterable.propulsion_parameters.n_engines
 
     
-    def build_bay_components(self, state:DesignOptionState) -> dcm.Bay:
+    def build_bay_components(self, state:DesignOptionState) -> list[dcm.Bay]:
         """
         Build a 'Bay' (nacelle) component using fuselage-derived length
         and diameter.
@@ -202,7 +205,8 @@ class CD0Step(DesignOptionStep):
                     interference_factor=1.3,
                     laminar_fraction=laminar_fraction,
                     length=state.fixed.assumptions.lg_bay_length_safety_factor * retracting_landing_gear_height,
-                    diameter=state.fixed.assumptions.lg_bay_wheel_diameter_ratio * state.fixed.assumptions.main_gear_diameter_wheel
+                    diameter=state.fixed.assumptions.lg_bay_wheel_diameter_ratio * state.fixed.assumptions.main_gear_diameter_wheel,
+                    surface_reynolds_factor=0.405e-5  # reynolds factor (Production sheet metal)
                 )
             ] * 2)
 

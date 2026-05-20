@@ -53,7 +53,7 @@ def initial_state_interior():
                     tip_twist_rad=np.deg2rad(2.),
                 )
             ],
-            propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5, .15), 2),
+            propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5), 2),
             landing_gear=LandingGear(2., .5, .15, .1),
             performance_parameters=PerformanceParameters(
                 cruise_parameters=PerformanceAtAltitude(np.pi*.8*20., .01),
@@ -72,18 +72,31 @@ def initial_state():
 
 class TestWeightEstimationStep():
     def test_weight_estimation_step(self, initial_state:DesignOptionState, debug:bool=False):
+        atmosphere_cruise = asb.Atmosphere(initial_state.fixed.assumptions.ALTITUDE_CRUISE)
+        atmosphere_go_around = asb.Atmosphere(initial_state.fixed.assumptions.ALTITUDE_GO_AROUND)
+        atmosphere_mach_max = asb.Atmosphere(CONSTANTS.ALTITUDE_MACH_MAX)
+
+        sfc = initial_state.iterable.propulsion_parameters.engine_parameters.sfc
+        ef = initial_state.fixed.assumptions.energy_density_saf
+
+        efficiency_cruise = CONSTANTS.MACH_CRUISE * atmosphere_cruise.speed_of_sound() / sfc / ef
+        efficiency_go_around = initial_state.mach_go_around() * atmosphere_go_around.speed_of_sound() / sfc / ef 
+        efficiency_mach_max = CONSTANTS.MACH_MAX * atmosphere_mach_max.speed_of_sound() /sfc / ef
+
         #reference
         assumptions = Assumptions()
         fuel_fraction = fuel_mass_fraction(
             altitude_go_around=assumptions.ALTITUDE_GO_AROUND,
             altitude_cruise=assumptions.ALTITUDE_CRUISE,
-            CL_max_glide_ratio_go_around=initial_state.iterable.performance_parameters.go_around_parameters.CL_glide_ratio_max(),
+            CL_max_glide_ratio_go_around=initial_state.iterable.performance_parameters.go_around_parameters.CL_range_jet_max(),
             glide_ratio_cruise=initial_state.glide_ratio_cruise(),
             glide_ratio_mach_max=initial_state.glide_ratio_mach_max(),
-            glide_ratio_go_around=initial_state.iterable.performance_parameters.go_around_parameters.glide_ratio_max(),
+            glide_ratio_go_around=initial_state.iterable.performance_parameters.go_around_parameters.glide_ratio_range_jet_max(),
             airspeed_approach=assumptions.airspeed_approach,
             wing_loading=initial_state.wing_loading(),
-            efficiency_engine_total=initial_state.iterable.propulsion_parameters.engine_parameters.efficiency_total,
+            efficiency_cruise=efficiency_cruise,
+            efficiency_go_around=efficiency_go_around,
+            efficiency_mach_max=efficiency_mach_max,
             energy_density_saf=assumptions.energy_density_saf,
             time_half_turn=assumptions.TIME_HALF_CIRCLE,
             debug=debug
@@ -93,7 +106,7 @@ class TestWeightEstimationStep():
         mtom_reference = CONSTANTS.MASS_PAYLOAD / (1 - oem_fraction - fuel_fraction)
 
         #computed
-        weight_estimation_step = WeightEstimationStep()
+        weight_estimation_step = WeightEstimationStep(debug=debug)
         new_state = deepcopy(initial_state)
         new_state.iterable = weight_estimation_step.update(initial_state)
 
@@ -112,6 +125,7 @@ class TestWeightEstimationStep():
             print(initial_state.CL_mach_max())
             print(new_mtom)
             print(fuel_fraction)
+            print(initial_state.iterable.aircraft_parameters.empty_mass_fraction)
 
 
 if __name__ == "__main__":

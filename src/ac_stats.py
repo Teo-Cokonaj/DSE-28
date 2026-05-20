@@ -179,7 +179,7 @@ canard_distance_in_front_of_wing = 0.5  # m
 # HUGO MAIN WING
 # =============================================================================
 
-AR_HUGO = 23.0
+AR_HUGO = 27.
 b_HUGO = 3.36  # m
 lambda_HUGO = 0.50
 
@@ -229,5 +229,5 @@ CN_tip_twist_rad_HUGO = 0.0  # rad
 # ==============================
 # Derived statistics
 # ==============================
-HT_arm_over_area = np.mean([HT_arm_FLEXOP / S_FLEXOP, HT_arm_TTBW / S_TTBW, HT_arm_DAST / np.sqrt(b_DAST * AR_DAST)])
+HT_arm_over_area = HT_arm_FLEXOP / S_FLEXOP#np.mean([HT_arm_FLEXOP / S_FLEXOP, HT_arm_TTBW / S_TTBW, HT_arm_DAST / np.sqrt(b_DAST * AR_DAST)])
 

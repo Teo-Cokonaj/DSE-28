@@ -25,6 +25,9 @@ class EngineSelectionStep(DesignOptionStep):
         weight = state.iterable.aircraft_parameters.total_mass * CONSTANTS.G0
         thrust_minimum = thrust_weight * weight
 
+        if self.print_:
+            print(f"Thrust minimum: {thrust_minimum}")
+
         feasible_engines:list[PropulsionParameters] = list()
         feasible_engine_names = list()
         for engine_name,  possible_engine in PossibleEngines().__dict__.items():
