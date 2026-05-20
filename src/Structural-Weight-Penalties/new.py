@@ -2,19 +2,9 @@ import aerosandbox.numpy as np
 import matplotlib.pyplot as plt
 import math
 from scipy.optimize import root_scalar
-import parameters
+from parameters import *
 
 
-
-def get_base_setup(fuselage_length, resolution, W):
-    x = np.linspace(0, fuselage_length, resolution)
-    dx = x[1] - x[0]
-    # Distributed weight load (N per node)
-    # Total Weight * G-load spread across the length
-    w_dist = np.full_like(x, -(W / resolution))
-    return x, dx, w_dist
-
-resolution = 501
 
 def calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc):
     x = np.linspace(0, fuselage_length, resolution)
@@ -38,7 +28,7 @@ def calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, 
     loads = np.zeros_like(x)
 
     # Apply point loads to the load vector
-    for loc, val in [(canard_loc, L_canard), (cg_loc, W), (main_wing_loc, L_main), (empennage_loc, L_empennage)]:
+    for loc, val in [(canard_loc, L_canard), (cg_loc, -W), (main_wing_loc, L_main), (empennage_loc, L_empennage)]:
         idx = (np.abs(x - loc)).argmin()
         loads[idx] += val
     
@@ -97,59 +87,36 @@ def moments_of_area(fuselage_radius, t_skin):
 
     return Q, I_xx
 
-def thickness_for_yield_stress(V, fuselage_radius, tau_yield):
+def thickness_for_yield_stress(V, tau_yield, fuselage_radius):
     # t =  V*Q/(I*tau_yield)
     # t, Q, I are all dependant on thickness, thus t_vars = (t*I)/Q
     t_vars =  V/tau_yield
 
-    I, Q = moments_of_area(fuselage_radius, t_vars)
+    
     def t_vars_error(t):
 
+        Q, I = moments_of_area(fuselage_radius, t)
 
         t_vars_guess = (t*I)/Q
-        b_in = chord - 2 * t_skin
-        h_in = t_root - 2 * t_skin
         
-        I_guess = (chord * t_root**3) / 12.0 - (b_in * h_in**3) / 12.0
+        return t_vars_guess - t_vars
         
-        return I_guess - I_req
-        
-    solution = root_scalar(I_error, bracket=[0, t_root/2], method='brentq')
+    solution = root_scalar(t_vars_error, bracket=[0.000000001, fuselage_radius], method='brentq')
     
     if solution.converged:
         t_required = solution.root
-        print(f"Required Skin Thickness for {I_req:.2e} m^4: {t_required * 1000:.2f} mm")
+        print(f"Required Skin Thickness for {t_vars:.2e} m^4: {t_required * 1000:.2f} mm")
         return t_required
     else:
         raise RuntimeError("Failed to converge on a valid skin thickness.")
-
-
-
-
-def required_mainwing_wingbox_skin_thickness(I_req, deflection, chord, t_root):
-    I_solid = (chord * t_root**3) / 12.0
     
-    # Sanity check: If required I is larger than a solid block, it's impossible.
-    if I_req > I_solid:
-        raise ValueError(
-            f"Required I ({I_req:.2e}) cannot be fulfilled by a hollow wingbox of these dimensions. "
-            f"Deflection at the root with a solid wingbox: {deflection:.2f} m."
-        )
-        
-    # 2. Define the equation we want to drive to zero
-    def I_error(t_skin):
-        b_in = chord - 2 * t_skin
-        h_in = t_root - 2 * t_skin
-        
-        I_guess = (chord * t_root**3) / 12.0 - (b_in * h_in**3) / 12.0
-        
-        return I_guess - I_req
-        
-    solution = root_scalar(I_error, bracket=[0, t_root/2], method='brentq')
-    
-    if solution.converged:
-        t_required = solution.root
-        print(f"Required Skin Thickness for {I_req:.2e} m^4: {t_required * 1000:.2f} mm")
-        return t_required
-    else:
-        raise RuntimeError("Failed to converge on a valid skin thickness.")
+x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc).values()
+plot_loads(x, loads, title)
+
+
+x, shear, moment = cumulative_shear_and_moment(x, dx, loads).values()
+plot_shear_and_moment_diagrams(x, shear, moment)
+
+t_skin = thickness_for_yield_stress(shear, CFRP[1], fuselage_radius)
+
+print(t_skin)    
