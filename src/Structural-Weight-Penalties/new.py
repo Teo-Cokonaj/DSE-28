@@ -96,37 +96,65 @@ def thickness_for_yield_stress(V, x, tau_yield, fuselage_radius):
 
     def t_vars_error(t):
         Q, I = moments_of_area(fuselage_radius, t)
-        print(f"DEBUG: Q is {type(Q)}, I is {type(I)}")
         t_vars_guess = (t*I)/Q
-        print(f"DEBUG: t_vars_guess is {t_vars_guess}")
         return t_vars_guess - t_vars_req
     
     for i in range(len(x)):
-        t_vars_req = t_vars[i] 
-        solution = root_scalar(t_vars_error, bracket=[0.000000001, fuselage_radius], method='brentq')
+        try: 
+            t_vars_req = float(t_vars[i])
+            if t_vars_req <= 1e-64:
+                t_skin.append(0)
+                continue
+            else:
+
+                solution = root_scalar(t_vars_error, bracket=[0.0000001, fuselage_radius], method='brentq')
+                
+                if solution.converged:
+                    t_required = solution.root
+                    t_skin.append(t_required)
+                else:
+                    raise RuntimeError("Failed to converge on a valid skin thickness.")
+        except ValueError as e:
+        # This catches the "f(a) and f(b) must have different signs" error
+            t_skin.append(0) # Or handle as 0 or np.nan
         
-        if solution.converged:
-            t_required = solution.root
-            t_skin.append(t_required)
-        else:
-            raise RuntimeError("Failed to converge on a valid skin thickness.")
+        except RuntimeError as e:
+            # Handles other potential convergence issues
+            t_skin.append(0)
         
     return t_skin
 
-    
+
+
+def plot_thickness(x, loads, title):
+    plt.figure(figsize=(10, 4))
+    plt.plot(x, loads, label='Skin thickness (m)', color='green')
+    plt.title(title)
+    plt.xlabel('Position along Fuselage (m)')
+    plt.ylabel('Thickness (m)')
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+
 def cylindricalBucklingStress(E, t_skin, fuselage_radius):
     # sigma_cr = (E * t_skin) / (sqrt(3*(1-nu^2)) * R)
     nu = 0.3  # Poisson's ratio for CFRP
     sigma_cr = (E * t_skin) / (math.sqrt(3*(1-nu**2)) * fuselage_radius)
     return sigma_cr
     
+
 x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc).values()
-plot_loads(x, loads, title)
+#plot_loads(x, loads, title)
 
 
 x, shear, moment = cumulative_shear_and_moment(x, dx, loads).values()
 plot_shear_and_moment_diagrams(x, shear, moment)
 
-t_skin = thickness_for_yield_stress(shear, x, CFRP[1], fuselage_radius)
 
-print(t_skin)    
+
+
+
+t_skin = thickness_for_yield_stress(shear, x, CFRP[1], fuselage_radius)
+plot_thickness(x, t_skin, "Skin Thickness")
+
