@@ -73,7 +73,7 @@ class Assumptions():
         self.CG_EXCURSION_MAC = 0.5
 
         # Fuselage
-        self.diameter_fuselage = .15 # m (based on FLEXOP)
+        self.diameter_fuselage = .315 # m (based on FLEXOP)
         self.fuselage_length1_per_area = .55 / 2.499245 # nose cone length / span (based on FLEXOP)
         self.fuselage_length2_per_area = 1.75 / 2.499245  # middle fuselage section length /span (based on FLEXOP)
         self.fuselage_length3_per_area = 1.12 / 2.499245  # tail cone length / span (based on FLEXOP)
