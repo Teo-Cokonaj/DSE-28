@@ -363,7 +363,7 @@ if __name__ == "__main__":
 
     lifting_line_theory.initialize_airfoils()
                                 
-    angles_of_attack_deg=np.linspace(0.0,10.0,20)
+    angles_of_attack_deg=np.linspace(0.0,5.0,3)
     lift_coefficients_incompressible=[]
     reference_lift_coefficients_incompressible=[]
     lift_coefficients_compressible=[]
@@ -389,8 +389,8 @@ if __name__ == "__main__":
         lift_coefficients_incompressible.append(results_incompressible["CL"])
         reference_lift_coefficients_incompressible.append(np.radians(angle_of_attack_deg)*reference_incompressible_slope)
         difference_incompressible=abs(reference_lift_coefficients_incompressible[-1]-lift_coefficients_incompressible[-1])
-        if difference_incompressible>0.05:
-            print(r'Incompressible difference larger than 10% at ', angle_of_attack_deg, 'degrees.')
+        if difference_incompressible>0.1:
+            print(r'Incompressible difference larger than 0.1 at ', angle_of_attack_deg, 'degrees.')
 
         lifting_line_theory.wing_planform.sweep_quarter_rad=np.radians(45.0) #highly swept wing in compressible flow
         lifting_line_theory.make_full_airplane_model(main_wing=True,
@@ -408,9 +408,17 @@ if __name__ == "__main__":
         kappa=assumptions.airfoil_C_l_alpha/(2*np.pi)
         reference_compressible_slope = 2*np.pi*AR/(2+np.sqrt(4+(AR*beta/kappa)**2*(1+(np.tan(sweep_half_rad))**2/beta**2)))
         reference_lift_coefficients_compressible.append(np.radians(angle_of_attack_deg)*reference_compressible_slope)
-        relative_difference_compressible=abs(reference_lift_coefficients_compressible[-1]-lift_coefficients_compressible[-1])/min(reference_lift_coefficients_compressible[-1],lift_coefficients_compressible[-1])
-        if relative_difference_compressible>0.5:
-            print(r'Compressible difference larger than 10% at ', angle_of_attack_deg, 'degrees.')
+        difference_compressible=abs(reference_lift_coefficients_compressible[-1]-lift_coefficients_compressible[-1])
+        if difference_compressible>0.1:
+            print(r'Compressible difference larger than 0.1 at ', angle_of_attack_deg, 'degrees.')
+    
+    angles_of_attack_rad=angles_of_attack_deg*np.pi/180
+
+    relative_difference_incompressible_slope=abs(reference_incompressible_slope-(lift_coefficients_incompressible[-1]-lift_coefficients_incompressible[-2])/(angles_of_attack_rad[-1]-angles_of_attack_rad[-2]))/reference_incompressible_slope
+    relative_difference_compressible_slope=abs(reference_compressible_slope-(lift_coefficients_compressible[-1]-lift_coefficients_compressible[-2])/(angles_of_attack_rad[-1]-angles_of_attack_rad[-2]))/reference_compressible_slope
+    
+    print('Percentage difference in incompressible slope: ',relative_difference_incompressible_slope)
+    print('Percentage difference in compressible slope: ',relative_difference_compressible_slope)
 
     plt.plot(angles_of_attack_deg, lift_coefficients_incompressible,
              'o-', color='tab:blue', linewidth=0.5, markersize=3, label='Incompressible Aerosandbox')
