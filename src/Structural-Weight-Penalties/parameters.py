@@ -5,7 +5,7 @@
 g = 9.81                        # Gravitational acceleration [m/s^2]
 
 Aluminum = [2810.0, 500e6, 70e9]       # Aluminum 7075-T6 properties: Density [kg/m^3], Yield Strength [Pa], Elastic Modulus [Pa]
-CFRP = [1600.0, 600e6, 80e9]           # CFRP Quasi-isotropic properties: Density [kg/m^3], Yield Strength [Pa], Elastic Modulus [Pa]
+CFRP = [1600.0, 600e6, 80e9, 542e6, 0.305]           # CFRP Quasi-isotropic properties: Density [kg/m^3], Yield Strength [Pa], Elastic Modulus [Pa], Compressive Strength [Pa], Poisson's Ratio
 
 
 
