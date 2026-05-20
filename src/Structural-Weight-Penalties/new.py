@@ -87,28 +87,32 @@ def moments_of_area(fuselage_radius, t_skin):
 
     return Q, I_xx
 
-def thickness_for_yield_stress(V, tau_yield, fuselage_radius):
+def thickness_for_yield_stress(V, x, tau_yield, fuselage_radius):
+
     # t =  V*Q/(I*tau_yield)
     # t, Q, I are all dependant on thickness, thus t_vars = (t*I)/Q
-    t_vars =  V/tau_yield
+    t_vars =  np.abs(V)/tau_yield
+    t_skin = []
 
-    
     def t_vars_error(t):
-
         Q, I = moments_of_area(fuselage_radius, t)
-
+        print(f"DEBUG: Q is {type(Q)}, I is {type(I)}")
         t_vars_guess = (t*I)/Q
-        
-        return t_vars_guess - t_vars
-        
-    solution = root_scalar(t_vars_error, bracket=[0.000000001, fuselage_radius], method='brentq')
+        print(f"DEBUG: t_vars_guess is {t_vars_guess}")
+        return t_vars_guess - t_vars_req
     
-    if solution.converged:
-        t_required = solution.root
-        print(f"Required Skin Thickness for {t_vars:.2e} m^4: {t_required * 1000:.2f} mm")
-        return t_required
-    else:
-        raise RuntimeError("Failed to converge on a valid skin thickness.")
+    for i in range(len(x)):
+        t_vars_req = t_vars[i] 
+        solution = root_scalar(t_vars_error, bracket=[0.000000001, fuselage_radius], method='brentq')
+        
+        if solution.converged:
+            t_required = solution.root
+            t_skin.append(t_required)
+        else:
+            raise RuntimeError("Failed to converge on a valid skin thickness.")
+        
+    return t_skin
+
     
 x, dx, loads, title, L_main, L_empennage, L_canard = calculate_flight_case(fuselage_length, resolution, W, canard_lift_fraction, main_wing_loc, empennage_loc, cg_loc, canard_loc).values()
 plot_loads(x, loads, title)
@@ -117,6 +121,6 @@ plot_loads(x, loads, title)
 x, shear, moment = cumulative_shear_and_moment(x, dx, loads).values()
 plot_shear_and_moment_diagrams(x, shear, moment)
 
-t_skin = thickness_for_yield_stress(shear, CFRP[1], fuselage_radius)
+t_skin = thickness_for_yield_stress(shear, x, CFRP[1], fuselage_radius)
 
 print(t_skin)    
