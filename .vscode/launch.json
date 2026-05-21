@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug print_landinggear.py",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/tools/print_landinggear.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "Debug pytest single file",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/test_estimate_CD0.py", "-q"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    }
+  ]
+}
