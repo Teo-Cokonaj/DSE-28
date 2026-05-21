@@ -111,3 +111,27 @@ class PossibleEngines:
             sfc=0.151/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
             mass=10. # [kg]
         ), 2)
+
+        self.engineP100_RX = PropulsionParameters(EngineParameters(
+            thrust_max=100, # [N]
+            diameter=.097, # [m]
+            length=.241, # [m]
+            sfc=0.187/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            mass=1.08 # [kg]
+        ), 2)
+
+        self.engineP130_RX = PropulsionParameters(EngineParameters(
+            thrust_max=130, # [N] 
+            diameter=.099, # [m]
+            length=.284, # [m]
+            sfc=0.185/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            mass=1.326 # [kg]
+        ), 2)
+
+        self.engineP150_RX = PropulsionParameters(EngineParameters(
+            thrust_max=150, # [N] 
+            diameter=.099, # [m]
+            length=.284, # [m]
+            sfc=0.185/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            mass=1.326 # [kg]
+        ), 2)
