@@ -56,8 +56,8 @@ class Assumptions():
         self.TIME_HALF_CIRCLE = 60.0 # [s]
         self.OMEGA_GO_AROUND = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
 
-        self.MC=0.75 #cruise Mach number
-        self.MD = 0.80 #ADSEE: in general, MD is 0.05M higher than MC
+        self.MC=0.45 #cruise Mach number
+        self.MD = 0.80
 
         self.airfoil_thickness_to_chord_max = .12
         self.airfoil_thickness_to_chord_max_location = .37
@@ -65,6 +65,8 @@ class Assumptions():
         self.positive_C_L_max_airfoil=1.25 #CHANGE
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
         self.airfoil_C_l_alpha = 0.5/np.radians(4.0) #0.5 per 4deg
+        # self.C_L_alpha_airfoil=0.25/np.radians(5.0)
+        self.C_L_alpha=3.0
 
         self.airfield_length = 1275. #m #TODO check with the actual airport
 
