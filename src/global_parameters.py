@@ -100,7 +100,11 @@ class Assumptions():
         #tail arm
         self.moment_arm = stat.HT_arm_FLEXOP # based on FLEXOP
 
-        self.statistical_OEM_fraction = 870 / 1008
+        self.fuselage_laminar_frac = .05
+        self.wing_bay_laminar_frac = .1
+        self.lg_bay_length_safety_factor = 1.25
+        self.lg_bay_wheel_diameter_ratio = 2.
+
 
     @property
     def airspeed_approach(self) -> float:

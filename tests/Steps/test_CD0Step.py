@@ -108,7 +108,8 @@ class TestCD0Step:
         lgs_straight_retract = cd0_step.build_landing_gear_components(initial_state)
         assert len(lgs_straight_retract)==3
 
-        lstrut = initial_state.iterable.landing_gear.length_z - initial_state.fixed.assumptions.diameter_fuselage / 2
+        print(f"wing area: {initial_state.iterable.lifting_surfaces[0].wing_area}, sf: {lgs_straight_retract[0].surface_frontal}")
+
 
         #drag_area_main = 0.05328 * np.exp(5.615*surface_frontal_main/surface_reference_main) * surface_reference_main
 
