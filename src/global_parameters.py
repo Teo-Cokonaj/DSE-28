@@ -85,10 +85,10 @@ class Assumptions():
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
         # Main gear (based on FLEXOP)
-        self.main_gear_diameter_wheel = 0.17 # [m]
-        self.main_gear_width_wheel    = 0.05 # [m]
+        self.main_gear_diameter_wheel = 0.17 / 2 # [m]
+        self.main_gear_width_wheel    = 0.05 / 2 # [m]
         self.main_gear_height_strut   = 0.156 # [m] 
-        self.main_gear_width_strut    = 0.05  # [m]
+        self.main_gear_width_strut    = 0.05 / 2  # [m]
         self.main_gear_enclosed       = True
 
         # Nose gear (based on FLEXOP)

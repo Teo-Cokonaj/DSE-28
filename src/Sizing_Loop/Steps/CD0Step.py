@@ -150,7 +150,7 @@ class CD0Step(DesignOptionStep):
             "width_wheel": float(state.fixed.assumptions.main_gear_width_wheel),
             "height_strut": gear_exposed_length,
             "width_strut": float(state.fixed.assumptions.main_gear_width_strut),
-            "height_total": float(state.fixed.assumptions.main_gear_diameter_wheel / 2 + gear_exposed_height),
+            "height_total": float(state.fixed.assumptions.main_gear_diameter_wheel / 2 + gear_exposed_length),
             "width_total": float(state.fixed.assumptions.main_gear_width_strut + state.fixed.assumptions.main_gear_width_wheel),
         }
 

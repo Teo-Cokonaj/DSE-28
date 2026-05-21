@@ -83,8 +83,8 @@ class TestDesignOption:
         matching_diagram_step = MatchingDiagramStep(plot=plot)
         CD0_step = CD0Step()
         class_I_step = WeightEstimationStep(print_)
-        inviscid_step = InviscidAnalysisStep(plot, False)
-        tail_sizing_step = TailSizingStep(print_)
+        inviscid_step = InviscidAnalysisStep(plot, False, wing_resolution=40)
+        tail_sizing_step = TailSizingStep(print_, number_of_sections_wing=40)
         engine_step = EngineSelectionStep(print_)
         lg_step = LandingGearStep(print_)
         oem_step = OEMStep()
@@ -123,15 +123,15 @@ class TestDesignOption:
         matching_diagram_step = MatchingDiagramStep(plot=plot)
         CD0_step = CD0Step(print_)
         class_I_step = WeightEstimationStep(print_)
-        inviscid_step = InviscidAnalysisStep(plot, False)
-        tail_sizing_step = TailSizingStep(print_)
+        inviscid_step = InviscidAnalysisStep(plot, False, wing_resolution=40)
+        tail_sizing_step = TailSizingStep(print_, number_of_sections_wing=40)
         engine_step = EngineSelectionStep(print_)
         lg_step = LandingGearStep(print_)
         oem_step = OEMStep()
 
         initial_state.fixed.choices.canard_capability = True
         initial_state.fixed.choices.main_wing_x_movable = True
-        initial_state.fixed.choices.landing_gear_sideways_extendable = False
+        initial_state.fixed.choices.landing_gear_sideways_extendable = True
         initial_state.fixed.choices.wing_interference_factor = 1.2
 
         design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step,  oem_step, class_I_step, matching_diagram_step, engine_step, lg_step, CD0_step])
@@ -166,4 +166,4 @@ class TestDesignOption:
 if __name__ == "__main__":
     test_design_option = TestDesignOption()
     #test_design_option.test_forward(initial_state_interior(), True, True)
-    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True, plot=False, print_=True)
+    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=3, plot_final=True, plot=False, print_=True)
