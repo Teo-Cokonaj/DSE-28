@@ -58,8 +58,8 @@ class Assumptions():
         self.TIME_HALF_CIRCLE = 60.0 # [s]
         self.OMEGA_GO_AROUND = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
 
-        self.MC=0.75 #cruise Mach number
-        self.MD = 0.80 #ADSEE: in general, MD is 0.05M higher than MC
+        self.MC=0.45 #cruise Mach number
+        self.MD = 0.80
 
         self.airfoil_thickness_to_chord_max = .12
         self.airfoil_thickness_to_chord_max_location = .37
@@ -67,6 +67,8 @@ class Assumptions():
         self.positive_C_L_max_airfoil=1.25 #CHANGE
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
         self.airfoil_C_l_alpha = 0.5/np.radians(4.0) #0.5 per 4deg
+        # self.C_L_alpha_airfoil=0.25/np.radians(5.0)
+        self.C_L_alpha=3.0
 
         self.airfield_length = 1275. #m #TODO check with the actual airport
 
@@ -99,7 +101,11 @@ class Assumptions():
         #tail arm
         self.moment_arm = stat.HT_arm_FLEXOP # based on FLEXOP
 
-        self.statistical_OEM_fraction = 870 / 1008
+        self.fuselage_laminar_frac = .05
+        self.wing_bay_laminar_frac = .1
+        self.lg_bay_length_safety_factor = 1.25
+        self.lg_bay_wheel_diameter_ratio = 2.
+
 
     @property
     def airspeed_approach(self) -> float:

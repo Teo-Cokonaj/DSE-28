@@ -2,6 +2,7 @@ import aerosandbox.numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
+import aerosandbox
 
 current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(current_file))
@@ -57,8 +58,7 @@ class FlightEnvelope:
                                           aircraft_parameters:AircraftParameters,
                                           assumptions: Assumptions):
         
-        #TODO use actual wing geometry not airfoil
-        return 0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*speed**2*wing_planform.wing_area*assumptions.positive_C_L_max_airfoil/(aircraft_parameters.total_mass*CONSTANTS.G0)
+        return 0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*speed**2*wing_planform.wing_area*positive_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0)
 
 
     def load_factor_lower_manoeuvre_curve(self,
@@ -67,7 +67,7 @@ class FlightEnvelope:
                                           aircraft_parameters:AircraftParameters,
                                           assumptions: Assumptions):
         
-        return 0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*speed**2*wing_planform.wing_area*assumptions.negative_C_L_max_airfoil/(aircraft_parameters.total_mass*CONSTANTS.G0)
+        return 0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*speed**2*wing_planform.wing_area*negative_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0)
 
 
     def delta_load_factor_gust_curve(self,
@@ -102,10 +102,10 @@ class FlightEnvelope:
                          wing_planform: LiftingSurfacePlanform,
                          assumptions: Assumptions):
 
-        positive_stall_speed=np.sqrt(aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.positive_C_L_max_airfoil))
-        negative_stall_speed=np.sqrt(aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*abs(assumptions.negative_C_L_max_airfoil)))
-        stall_speed_at_max_positive_manoeuvre_load=np.sqrt(self.positive_manoeuvring_limit_load_factor*aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.positive_C_L_max_airfoil))
-        stall_speed_at_min_negative_manoeuvre_load=np.sqrt(abs(self.negative_manoeuvring_limit_load_factor)*aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*abs(assumptions.negative_C_L_max_airfoil)))
+        positive_stall_speed=np.sqrt(aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*positive_C_L_max))
+        negative_stall_speed=np.sqrt(aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*abs(negative_C_L_max)))
+        stall_speed_at_max_positive_manoeuvre_load=np.sqrt(self.positive_manoeuvring_limit_load_factor*aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*positive_C_L_max))
+        stall_speed_at_min_negative_manoeuvre_load=np.sqrt(abs(self.negative_manoeuvring_limit_load_factor)*aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*abs(negative_C_L_max)))
 
         # load_factor_manoeuvre_envelope = []
         # speed_manoeuvre_envelope=[]
@@ -322,28 +322,45 @@ class FlightEnvelope:
 if __name__=='__main__':
     aircraft_parameters=AircraftParameters(
     total_mass=50.0,  
+    horizontal_stabilizer_distance_from_wing=1.0,
+    vertical_stabilizer_distance_from_wing=1.0,
+    canard_distance_in_front_of_wing=1.0
 )
 
     wing_planform=LiftingSurfacePlanform(
         aspect_ratio=25.0,
         span=2.0,
-        sweep_quarter_deg=45.0,
+        sweep_quarter_deg=15.0,
         taper=1.0,
+        tip_twist_rad=0.0
 )
 
     constants=CONSTANTS()
 
     assumptions = Assumptions()
-    assumptions.ALTITUDE_CRUISE = 5500.0 # [m] (up for review)
-    assumptions.AIR_DENSITY_CRUISE_ALTITUDE = 0.695 # [kg/m^3]
-    assumptions.positive_C_L_max_airfoil=1.6 #CHANGE
-    assumptions.negative_C_L_max_airfoil=-1.0 #CHANGE
-    assumptions.C_L_alpha = 3.0 #CHANGE
+    assumptions.ALTITUDE_CRUISE = 8230. # [m] (up for review)
+    atmosphere=aerosandbox.Atmosphere(8230.)
+    AR=wing_planform.aspect_ratio
+    mach=0.70
     assumptions.MC=0.75 #cruise Mach number
     assumptions.MD = 0.80 #ADSEE: in general, MD is 0.05M higher than MC
+    beta=np.sqrt(1-mach**2)
+    kappa=assumptions.airfoil_C_l_alpha/(2*np.pi)
+    sweep_half_rad = np.arctan(np.tan(wing_planform.sweep_LE_rad-0.5*2*wing_planform.c_root/wing_planform.span*(1-wing_planform.taper)))
+    analytic_lift_curve_slope_per_rad= 2*np.pi*AR/(2+np.sqrt(4+(AR*beta/kappa)**2*(1+(np.tan(sweep_half_rad))**2/beta**2)))
+    print('Airfoil lift curve slope: ',assumptions.airfoil_C_l_alpha)
+    print('Lift curve slope: ',analytic_lift_curve_slope_per_rad)
+    assumptions.C_L_alpha=analytic_lift_curve_slope_per_rad
+    assumptions.AIR_DENSITY_CRUISE_ALTITUDE = atmosphere.density() # [kg/m^3]
+    positive_C_L_max=0.9*assumptions.positive_C_L_max_airfoil*np.cos(wing_planform.sweep_quarter_rad)
+    negative_C_L_max=0.9*assumptions.negative_C_L_max_airfoil*np.cos(wing_planform.sweep_quarter_rad)
+    # assumptions.negative_C_L_max_airfoil=-1.0 #CHANGE
+    print('Positive CLmax: ',positive_C_L_max)
+    print('Negative CLmax: ',negative_C_L_max)
+    #assumptions.C_L_alpha = 3.0 #CHANGE
 
-    flight_envelope=FlightEnvelope(constants,
-                                   assumptions)
+
+    flight_envelope=FlightEnvelope()
     flight_envelope.positive_manoeuvring_limit_load_factor=6.0
     flight_envelope.negative_manoeuvring_limit_load_factor=-0.5*flight_envelope.positive_manoeuvring_limit_load_factor
     flight_envelope.compute_design_speeds(aircraft_parameters,

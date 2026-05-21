@@ -121,7 +121,7 @@ class TestDesignOption:
     
     def test_multiple_iterations(self, initial_state:DesignOptionState, print_:bool=False, plot:bool=False, n_iter=5, plot_final=False):      
         matching_diagram_step = MatchingDiagramStep(plot=plot)
-        CD0_step = CD0Step()
+        CD0_step = CD0Step(print_)
         class_I_step = WeightEstimationStep(print_)
         inviscid_step = InviscidAnalysisStep(plot, False)
         tail_sizing_step = TailSizingStep(print_)
@@ -129,8 +129,9 @@ class TestDesignOption:
         lg_step = LandingGearStep(print_)
         oem_step = OEMStep()
 
-        # initial_state.fixed.choices.canard_capability = True
-        # initial_state.fixed.choices.main_wing_x_movable = True
+        initial_state.fixed.choices.canard_capability = True
+        initial_state.fixed.choices.main_wing_x_movable = True
+        initial_state.fixed.choices.landing_gear_sideways_extendable = False
 
         design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step,  oem_step, class_I_step, matching_diagram_step, engine_step, lg_step, CD0_step])
 

@@ -17,8 +17,8 @@ from objects.lifting_surface_planform import LiftingSurfacePlanform
 from Sizing_Loop.DesignOptionStep import DesignOptionStep
 
 class CD0Step(DesignOptionStep):
-    def __init__(self):
-        pass
+    def __init__(self, print_:bool=True):
+        self.print_ = print_
 
     def update(self, state:DesignOptionState):
         assumptions = state.fixed.assumptions
@@ -94,7 +94,7 @@ class CD0Step(DesignOptionStep):
                 )
             )
 
-            return components
+        return components
 
     def _fuselage_geometry(self, state:DesignOptionState) -> dict[str, float]:
         """
@@ -133,7 +133,7 @@ class CD0Step(DesignOptionStep):
         gear_effective_height = state.iterable.landing_gear.length_z
         gear_exposed_height = gear_effective_height - state.fixed.assumptions.diameter_fuselage / 2
 
-        gear_effective_length = gear_exposed_height if state.fixed.choices.landing_gear_sideways_extendable else state.iterable.landing_gear.length_pythagorean()
+        gear_effective_length = state.iterable.landing_gear.length_pythagorean() if state.fixed.choices.landing_gear_sideways_extendable else gear_effective_height
         gear_exposed_length = gear_effective_length - state.fixed.assumptions.diameter_fuselage / 2
 
         nose_geometry = {
@@ -154,6 +154,12 @@ class CD0Step(DesignOptionStep):
             "width_total": float(state.fixed.assumptions.main_gear_width_strut + state.fixed.assumptions.main_gear_width_wheel),
         }
 
+        if self.print_:
+            print()
+            print(f"Nose lg geometry: {nose_geometry}")
+            print(f"Main geometry: {main_geometry}")
+            print(f"exposed len: {gear_exposed_length}, effective len: {gear_effective_length}")
+
         return nose_geometry, main_geometry
 
     def build_landing_gear_components(self, state:DesignOptionState) -> list[dcm.LandingGear]:
@@ -163,6 +169,11 @@ class CD0Step(DesignOptionStep):
         nose_geom, main_geom = self._landing_gear_geometry(state)
         nose_component = dcm.LandingGear(nose_geom, bool(state.fixed.assumptions.nose_gear_enclosed))
         main_component = dcm.LandingGear(main_geom, bool(state.fixed.assumptions.main_gear_enclosed))
+
+        if self.print_:
+            for c in [nose_component, main_component, main_component]:
+                print(f"surface frontal = {c.surface_frontal}, surface_reference = {c.surface_reference}")
+
         return [nose_component, main_component, main_component] #NOTE: there is a pair of main landing gears!
 
 
