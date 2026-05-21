@@ -17,6 +17,7 @@ from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
 
 from src.Sizing_Loop.Steps.MatchingDiagramStep import MatchingDiagramStep
 from src.Sizing_Loop.Steps.CD0Step import CD0Step
+from src.Sizing_Loop.Steps.OEMStep import OEMStep
 from src.Sizing_Loop.Steps.WeightEstimationStep import WeightEstimationStep
 from src.Sizing_Loop.Steps.InviscidAnalysisStep import InviscidAnalysisStep
 from src.Sizing_Loop.Steps.tail_sizing_step import TailSizingStep
@@ -126,15 +127,16 @@ class SizingForTradeoff():
         self.steps:list[DesignOptionStep] = list()
 
     
-    def accumulate_steps(self, debug:bool=False, plot:bool=False, resolution_matching_diagram:int=100, legend_location_matching_diagram:str="upper left", inviscid_analysis_sample_aoa_deg:float=5., wing_resolution:int=100, secondary_planforms_resolution:int=5):
+    def accumulate_steps(self, debug:bool=False, plot:bool=False, resolution_matching_diagram:int=40, legend_location_matching_diagram:str="upper left", inviscid_analysis_sample_aoa_deg:float=5., wing_resolution:int=40, secondary_planforms_resolution:int=5, oem_resolution:int=1000, minimum_thickness=.0003):
         self.steps = [
             TailSizingStep(debug, wing_resolution, secondary_planforms_resolution),
             InviscidAnalysisStep(plot, debug, inviscid_analysis_sample_aoa_deg, wing_resolution, secondary_planforms_resolution),
+            OEMStep(oem_resolution, minimum_thickness, debug, plot),
             WeightEstimationStep(debug),
             MatchingDiagramStep(resolution_matching_diagram, plot, legend_location_matching_diagram),
             EngineSelectionStep(debug),
             LandingGearStep(debug),
-            CD0Step()
+            CD0Step(debug)
         ]
 
     

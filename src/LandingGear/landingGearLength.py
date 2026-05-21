@@ -54,7 +54,8 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         d = x_main_lg - x_nlg
         alpha = np.arctan2(Y_lg, d)                       
         c = (x_cg_from_nose - x_nlg) * np.sin(alpha)
-        return np.arctan2(c, l_landing_gear)
+        psi = np.arctan2(l_landing_gear, c)
+        return psi
     
     def wing_tip_to_lg_angle(Y_lg, l_landing_gear, wing_height_from_centre_line, wing_span):
         vertical   = l_landing_gear + wing_height_from_centre_line
@@ -127,8 +128,8 @@ def lg_pos_and_length(L1, L2, L3, x_cg_from_nose, up_sweep_angle_rad, diameter_f
         {'type': 'ineq', 'fun': constraint_main_lg_ahead_tail_cone},
         {'type': 'ineq', 'fun': constraint_Y_lg_min},
         {'type': 'ineq', 'fun': constraint_wing_tip_clearance},
-        {'type': 'ineq', 'fun': constraint_nose_load_min},
-        {'type': 'ineq', 'fun': constraint_nose_load_max},
+        # {'type': 'ineq', 'fun': constraint_nose_load_min},
+        # {'type': 'ineq', 'fun': constraint_nose_load_max},
         {'type': 'ineq', 'fun': constraint_nose_gear_behind_cg},
     ]
 

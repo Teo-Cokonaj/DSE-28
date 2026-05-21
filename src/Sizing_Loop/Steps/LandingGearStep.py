@@ -26,9 +26,9 @@ class LandingGearStep(DesignOptionStep):
 
         if self.print_:
             l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt, constraints, result = lg_pos_and_length(
-                L1=state.fixed.assumptions.fuselage_length1_per_area * state.iterable.lifting_surfaces[0].wing_area,
-                L2=state.fixed.assumptions.fuselage_length2_per_area * state.iterable.lifting_surfaces[0].wing_area,
-                L3=state.fixed.assumptions.fuselage_length3_per_area * state.iterable.lifting_surfaces[0].wing_area,
+                L1=state.fixed.assumptions.fuselage_length1,
+                L2=state.fixed.assumptions.fuselage_length2,
+                L3=state.fixed.assumptions.fuselage_length3,
                 x_cg_from_nose=state.x_cg_from_nose(),
                 up_sweep_angle_rad=state.fixed.assumptions.fuselage_upsweep,
                 diameter_fuselage=state.fixed.assumptions.diameter_fuselage,
@@ -46,14 +46,14 @@ class LandingGearStep(DesignOptionStep):
             print(f"x_nlg: {x_nlg_opt}")
 
             print(f"x_cg_per_MAC: {state.iterable.aircraft_parameters.x_cg_per_mac}")
-            print(f"tail arm: {state.fixed.assumptions.moment_arm_per_area * state.iterable.lifting_surfaces[0].wing_area}")
+            print(f"tail arm: {state.fixed.assumptions.moment_arm}")
             print(f"x_cg: {state.x_cg_from_nose()}")
 
         else:
             l_opt, x_mlg_opt, Y_lg_opt, x_nlg_opt = lg_pos_and_length(
-                L1=state.fixed.assumptions.fuselage_length1_per_area * state.iterable.lifting_surfaces[0].wing_area,
-                L2=state.fixed.assumptions.fuselage_length2_per_area * state.iterable.lifting_surfaces[0].wing_area,
-                L3=state.fixed.assumptions.fuselage_length3_per_area * state.iterable.lifting_surfaces[0].wing_area,
+                L1=state.fixed.assumptions.fuselage_length1,
+                L2=state.fixed.assumptions.fuselage_length2,
+                L3=state.fixed.assumptions.fuselage_length3,
                 x_cg_from_nose=state.x_cg_from_nose(),
                 up_sweep_angle_rad=state.fixed.assumptions.fuselage_upsweep,
                 diameter_fuselage=state.fixed.assumptions.diameter_fuselage,

@@ -42,6 +42,20 @@ class PossibleEngines:
             sfc=2.900/3600, # [-] NOTE: thrmal_efficiency*propulsive_efficiency
             mass = 11.57 # [kg]
         ), 2)
+        self.engineP190_PRO_S = PropulsionParameters(EngineParameters(
+            thrust_max=190, # [N] 
+            diameter=.108, # [m]
+            length=.301, # [m]
+            sfc=0.158/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            mass=1.90 # [kg]
+        ), 2)
+        self.engineP220_PRO = PropulsionParameters(EngineParameters(
+            thrust_max=220, # [N] 
+            diameter=.117, # [m]
+            length=.474, # [m] (Note: Length ranges from 0.215m to 0.474m depending on standard vs extended nozzle)
+            sfc=0.158/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            mass=2.16 # [kg] (Note: Mass ranges from 1.85kg to 2.16kg depending on nozzle configuration)
+        ), 2)
         self.engineP250_PRO_S = PropulsionParameters(EngineParameters(
             thrust_max=250, # [N]
             diameter=.121, # [m]
@@ -91,9 +105,33 @@ class PossibleEngines:
         ), 2)
 
         self.engine_for_overflows = PropulsionParameters(EngineParameters(
-            thrust_max=2500, # [N]
+            thrust_max=25000, # [N]
             diameter=.175, # [m]
             length=.416, # [m]
             sfc=0.151/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
             mass=10. # [kg]
+        ), 2)
+
+        self.engineP100_RX = PropulsionParameters(EngineParameters(
+            thrust_max=100, # [N]
+            diameter=.097, # [m]
+            length=.241, # [m]
+            sfc=0.187/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            mass=1.08 # [kg]
+        ), 2)
+
+        self.engineP130_RX = PropulsionParameters(EngineParameters(
+            thrust_max=130, # [N] 
+            diameter=.099, # [m]
+            length=.284, # [m]
+            sfc=0.185/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            mass=1.326 # [kg]
+        ), 2)
+
+        self.engineP150_RX = PropulsionParameters(EngineParameters(
+            thrust_max=150, # [N] 
+            diameter=.099, # [m]
+            length=.284, # [m]
+            sfc=0.185/3600, # [-] NOTE: thermal_efficiency*propulsive_efficiency
+            mass=1.326 # [kg]
         ), 2)

@@ -37,7 +37,9 @@ class CONSTANTS:
     #material properties
     DENSITY_CFRP = 1600.0 # [kg/m^3]
     YIELD_STRENGTH_CFRP = 600e6 # [Pa]  
-    E_MODULUS_CFRP = 80e9 # [Pa]      
+    E_MODULUS_CFRP = 80e9 # [Pa]     
+
+    ULTIMATE_LOAD_FACTOR = 9. 
     
 
 class Assumptions():
@@ -56,8 +58,8 @@ class Assumptions():
         self.TIME_HALF_CIRCLE = 60.0 # [s]
         self.OMEGA_GO_AROUND = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
 
-        self.MC=0.75 #cruise Mach number
-        self.MD = 0.80 #ADSEE: in general, MD is 0.05M higher than MC
+        self.MC=0.45 #cruise Mach number
+        self.MD = 0.80
 
         self.airfoil_thickness_to_chord_max = .12
         self.airfoil_thickness_to_chord_max_location = .37
@@ -65,6 +67,8 @@ class Assumptions():
         self.positive_C_L_max_airfoil=1.25 #CHANGE
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
         self.airfoil_C_l_alpha = 0.5/np.radians(4.0) #0.5 per 4deg
+        # self.C_L_alpha_airfoil=0.25/np.radians(5.0)
+        self.C_L_alpha=3.0
 
         self.airfield_length = 1275. #m #TODO check with the actual airport
 
@@ -74,34 +78,34 @@ class Assumptions():
 
         # Fuselage
         self.diameter_fuselage = .315 # m (based on FLEXOP)
-        self.fuselage_length1_per_area = .55 / 2.499245 # nose cone length / span (based on FLEXOP)
-        self.fuselage_length2_per_area = 1.75 / 2.499245  # middle fuselage section length /span (based on FLEXOP)
-        self.fuselage_length3_per_area = 1.12 / 2.499245  # tail cone length / span (based on FLEXOP)
+        self.fuselage_length1 = .55 # nose cone length / span (based on FLEXOP)
+        self.fuselage_length2 = 1.75   # middle fuselage section length /span (based on FLEXOP)
+        self.fuselage_length3 = 1.12  # tail cone length / span (based on FLEXOP)
         self.fuselage_upsweep = np.radians(11) # [rad] (based on FLEXOP)
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
-        # Main gear (all are placeholders currently)
-        self.main_gear_diameter_wheel = 0.05   # [m] standard for 50-80kg UAV class
-        self.main_gear_width_wheel    = 0.025  # [m]
-        self.main_gear_width_strut    = 0.01  # [m]
-        self.main_gear_enclosed       = False
+        # Main gear (based on FLEXOP)
+        self.main_gear_diameter_wheel = 0.17 / 2 # [m]
+        self.main_gear_width_wheel    = 0.05 / 2 # [m]
+        self.main_gear_height_strut   = 0.156 # [m] 
+        self.main_gear_width_strut    = 0.05 / 2  # [m]
+        self.main_gear_enclosed       = True
 
-        # Nose gear (all are placeholders currently)
-        self.nose_gear_diameter_wheel = 0.04   # [m] smaller since lightly loaded
-        self.nose_gear_width_wheel    = 0.02  # [m]
-        self.nose_gear_width_strut    = 0.008  # [m]
-        self.nose_gear_enclosed       = False
-
-        self.lg_bay_wheel_diameter_ratio = 2.5
-        self.lg_bay_length_safety_factor = 1.25
-
-        self.wing_bay_laminar_frac = 0.1
-        self.fuselage_laminar_frac = .05
+        # Nose gear (based on FLEXOP)
+        self.nose_gear_diameter_wheel = self.main_gear_diameter_wheel  # [m] 
+        self.nose_gear_width_wheel    = self.main_gear_width_wheel  # [m]
+        self.nose_gear_height_strut   = 0.156 # [m] 
+        self.nose_gear_width_strut    = self.main_gear_width_strut       # [m]
+        self.nose_gear_enclosed       = True
 
         #tail arm
-        self.moment_arm_per_area = stat.HT_arm_over_area # based on FLEXOP
+        self.moment_arm = stat.HT_arm_FLEXOP # based on FLEXOP
 
-        self.statistical_OEM_fraction = 870 / 1008
+        self.fuselage_laminar_frac = .05
+        self.wing_bay_laminar_frac = .1
+        self.lg_bay_length_safety_factor = 1.25
+        self.lg_bay_wheel_diameter_ratio = 2.
+
 
     @property
     def airspeed_approach(self) -> float:
