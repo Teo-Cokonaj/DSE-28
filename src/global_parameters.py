@@ -37,7 +37,9 @@ class CONSTANTS:
     #material properties
     DENSITY_CFRP = 1600.0 # [kg/m^3]
     YIELD_STRENGTH_CFRP = 600e6 # [Pa]  
-    E_MODULUS_CFRP = 80e9 # [Pa]      
+    E_MODULUS_CFRP = 80e9 # [Pa]     
+
+    ULTIMATE_LOAD_FACTOR = 9. 
     
 
 class Assumptions():
