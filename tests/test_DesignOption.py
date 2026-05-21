@@ -132,6 +132,7 @@ class TestDesignOption:
         initial_state.fixed.choices.canard_capability = True
         initial_state.fixed.choices.main_wing_x_movable = True
         initial_state.fixed.choices.landing_gear_sideways_extendable = False
+        initial_state.fixed.choices.wing_interference_factor = 1.2
 
         design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step,  oem_step, class_I_step, matching_diagram_step, engine_step, lg_step, CD0_step])
 
