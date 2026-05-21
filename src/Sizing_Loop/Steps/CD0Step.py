@@ -94,7 +94,7 @@ class CD0Step(DesignOptionStep):
                 )
             )
 
-            return components
+        return components
 
     def _fuselage_geometry(self, state:DesignOptionState) -> dict[str, float]:
         """

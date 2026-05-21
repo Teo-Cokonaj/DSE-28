@@ -9,7 +9,7 @@ airfoil_folder = os.path.dirname(current_file)
 project_root = os.path.dirname(airfoil_folder)
 sys.path.append(project_root)
 
-coords = np.loadtxt(f"{airfoil_folder}\\NASA SC(2)-0012 AIRFOIL.dat", skiprows=1)
+coords = np.loadtxt(os.path.join(airfoil_folder, "NASA SC(2)-0012 AIRFOIL.dat"), skiprows=1)
 
 upper = coords[:coords.shape[0]//2] # Points 0 to 103
 lower = coords[coords.shape[0]//2:] # Points 103 to end
