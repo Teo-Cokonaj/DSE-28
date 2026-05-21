@@ -15,7 +15,7 @@ from src.aerodynamic_model.lifting_line_theory import LiftingLineTheory
 from src.global_parameters import CONSTANTS
 
 class InviscidAnalysisStep(DesignOptionStep):
-    def __init__(self, plot=False, debug=False, sample_aoa_deg=5., wing_resolution:int=100, other_resolution:int=5):
+    def __init__(self, plot=False, debug=False, sample_aoa_deg=5., wing_resolution:int=30, other_resolution:int=5):
         self.plot = plot
         self.debug = debug
         self.sample_aoa_deg = sample_aoa_deg

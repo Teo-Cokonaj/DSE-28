@@ -15,7 +15,7 @@ from src.global_parameters import CONSTANTS
 
 class TailSizingStep(DesignOptionStep):
     def __init__(self, debug=False,
-                 number_of_sections_wing:int=100,
+                 number_of_sections_wing:int=30,
                  number_of_sections_others:int=5):
         
         self.debug = debug

@@ -86,7 +86,7 @@ class SizingForTradeoff():
                 horizontal_stabilizer_distance_from_wing=1.5,
                 vertical_stabilizer_distance_from_wing=1.5,
                 canard_distance_in_front_of_wing=0.,
-                empty_mass_fraction=870 / 1008
+                empty_mass_fraction=.5
             ),
             lifting_surfaces=[
                 LiftingSurfacePlanform(
@@ -105,7 +105,7 @@ class SizingForTradeoff():
                 ),
                 LiftingSurfacePlanform(
                     aspect_ratio=stat.VT_AR_HUGO,
-                    span=stat.b_HUGO, # [m]
+                    span=stat.VT_span_HUGO, # [m]
                     sweep_quarter_deg=stat.VT_sweep_quarter_deg_HUGO, # [m]
                     taper=stat.VT_taper_HUGO,
                     tip_twist_rad=0.,
