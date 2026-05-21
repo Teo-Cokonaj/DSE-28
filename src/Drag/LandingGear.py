@@ -13,8 +13,13 @@ class LandingGear(Component):
         super().__init__(0., 0., 0., 0., 0.)
 
         gp = geometry_params
+        for value in gp.values():
+            assert value > 0
+
         self.surface_reference = gp["width_total"]*gp["height_total"]
         self.surface_frontal = gp["width_strut"]*gp["height_strut"]+gp["width_wheel"]*gp["diameter_wheel"]
+
+        self.gp = gp
 
         if enclosed:
             self._drag_area = 0.04955 * np.exp(5.615*self.surface_frontal/self.surface_reference) * self.surface_reference
