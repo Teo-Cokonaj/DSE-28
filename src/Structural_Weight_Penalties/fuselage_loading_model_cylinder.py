@@ -183,7 +183,7 @@ def variable_port_iteration(x, wing_location, chord, canard_lift_fraction, empen
     max_moment = np.zeros_like(x)
     
     # 1. Initialize a single figure with 2 stacked subplots sharing the X-axis
-    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(10, 8))
+    #fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(10, 8))
     
     for i in wing_loc_range:         
         loads = calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=i, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc)["loads"]

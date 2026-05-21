@@ -129,8 +129,8 @@ class TestDesignOption:
         lg_step = LandingGearStep(print_)
         oem_step = OEMStep()
 
-        # initial_state.fixed.choices.canard_capability = True
-        # initial_state.fixed.choices.main_wing_x_movable = True
+        initial_state.fixed.choices.canard_capability = True
+        initial_state.fixed.choices.main_wing_x_movable = True
 
         design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step,  oem_step, class_I_step, matching_diagram_step, engine_step, lg_step, CD0_step])
 
