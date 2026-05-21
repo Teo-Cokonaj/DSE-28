@@ -69,18 +69,19 @@ class Assumptions():
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
         # Main gear (all are placeholders currently)
-        self.main_gear_diameter_wheel = 0.05   # [m] standard for 50-80kg UAV class
-        self.main_gear_width_wheel    = 0.025  # [m]
-        self.main_gear_height_strut   = 0.1   # [m] sized for belly clearance + rotation angle
-        self.main_gear_width_strut    = 0.01  # [m]
-        self.main_gear_enclosed       = False
+        W_main_lbf = (0.85 * 50 * 2.205) / 2   # ~46.9 lbf per wheel
+        self.main_gear_diameter_wheel = 1.51 * W_main_lbf**0.349 * 0.0254  # ~0.147 m
+        self.main_gear_width_wheel    = 0.751 * W_main_lbf**0.312 * 0.0254 # ~0.061 m
+        self.main_gear_height_strut   = 0.156   # [m] 
+        self.main_gear_width_strut    = 0.005  # [m]
+        self.main_gear_enclosed       = True
 
         # Nose gear (all are placeholders currently)
-        self.nose_gear_diameter_wheel = 0.04   # [m] smaller since lightly loaded
-        self.nose_gear_width_wheel    = 0.02  # [m]
-        self.nose_gear_height_strut   = 0.1   # [m] slightly shorter than main to give nose-up ground attitude
-        self.nose_gear_width_strut    = 0.008  # [m]
-        self.nose_gear_enclosed       = False
+        self.nose_gear_diameter_wheel = 0.8*self.main_gear_diameter_wheel  # [m] 80% ot MLG
+        self.nose_gear_width_wheel    = 0.8*self.main_gear_width_wheel  # [m]
+        self.nose_gear_height_strut   = 0.156   # [m] 
+        self.nose_gear_width_strut    = 0.005  # [m]
+        self.nose_gear_enclosed       = True
 
         #tail arm
         self.moment_arm_per_area = 0.80 # based on FLEXOP
