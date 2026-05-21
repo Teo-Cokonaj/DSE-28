@@ -64,7 +64,7 @@ def initial_state_interior():
                 )
             ],
             propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5, .15), 2),
-            landing_gear=LandingGear(2., .5, .15, .1),
+            landing_gear=LandingGear(2., .5, .3, .1),
             performance_parameters=PerformanceParameters(
                 cruise_parameters=PerformanceAtAltitude(np.pi*.8*20., .01),
                 mach_max_parameters=PerformanceAtAltitude(np.pi*.75*20., .02),
@@ -108,7 +108,10 @@ class TestCD0Step:
         lgs_straight_retract = cd0_step.build_landing_gear_components(initial_state)
         assert len(lgs_straight_retract)==3
 
-        lstrut = initial_state.iterable.landing_gear.length_z - initial_state.fixed.assumptions.diameter_fuselage / 2
+        print(f"wing area: {initial_state.iterable.lifting_surfaces[0].wing_area}, sf: {lgs_straight_retract[0].surface_frontal}, sref:{lgs_straight_retract[0].surface_reference}")
+        print(f"D/q: {lgs_straight_retract[0].drag_area_contribution(0.)}")
+        print(f"gp: {lgs_straight_retract[0].gp}")
+
 
         #drag_area_main = 0.05328 * np.exp(5.615*surface_frontal_main/surface_reference_main) * surface_reference_main
 

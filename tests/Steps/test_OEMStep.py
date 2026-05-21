@@ -83,18 +83,19 @@ class TestOEMStep():
 
 
     def test_applicable(self, initial_state:DesignOptionState):
+        initial_state.fixed.choices.main_wing_x_movable = False
         state_canard_only = deepcopy(initial_state)
         state_canard_only.fixed.choices.canard_capability = True
 
         state_both_options = deepcopy(state_canard_only)
         state_both_options.fixed.choices.main_wing_x_movable = True
 
-        oem_step = OEMStep(print_=True, minimum_thickness=1e-6)
+        oem_step = OEMStep(print_=True, plot=True, minimum_thickness=1e-6)
         initial_state.iterable = oem_step.update(initial_state)
         state_canard_only.iterable = oem_step.update(state_canard_only)
         state_both_options.iterable = oem_step.update(state_both_options)
 
-        #assert state_both_options.iterable.aircraft_parameters.empty_mass_fraction > state_canard_only.iterable.aircraft_parameters.empty_mass_fraction
+        assert state_both_options.iterable.aircraft_parameters.empty_mass_fraction > state_canard_only.iterable.aircraft_parameters.empty_mass_fraction
         assert state_canard_only.iterable.aircraft_parameters.empty_mass_fraction > initial_state.iterable.aircraft_parameters.empty_mass_fraction
 
 

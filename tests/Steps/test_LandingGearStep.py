@@ -76,6 +76,7 @@ def initial_state() -> DesignOptionState:
 class TestLandingGearStep():
     def test_update(self, initial_state:DesignOptionState, print_=False):
         lg_step = LandingGearStep(print_)
+        initial_state.fixed.choices.wing_interference_factor = 1.2
         if print_:
             print(initial_state.fixed.assumptions.fuselage_length1 + initial_state.fixed.assumptions.fuselage_length2)
 
@@ -93,6 +94,13 @@ class TestLandingGearStep():
                 print(new_lg.length_z / new_lg.length_pythagorean())
             
             assert new_lg.length_z < modified_state.fixed.assumptions.diameter_fuselage, modified_state.fixed.assumptions.diameter_fuselage
+
+            alpha = np.arctan(new_lg.y_main_lg / (new_lg.x_main_lg - new_lg.x_nose_lg))
+            c = (modified_state.x_cg_from_nose() - new_lg.x_nose_lg) * np.sin(alpha)
+            psi = np.arctan(new_lg.length_z / c)
+            if print_:
+                print(np.rad2deg(psi))
+            assert  psi < 55*np.pi / 180 + 0.001
 
 
 if __name__ == "__main__":

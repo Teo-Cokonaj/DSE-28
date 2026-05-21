@@ -12,7 +12,7 @@ sys.path.append(project_root)
 class SymmetricAirfoil(asb.Airfoil):
     def __init__(self, name = "Untitled"):
 
-        coords = np.loadtxt(f"{airfoil_folder}\\NASA SC(2)-0012 AIRFOIL.dat", skiprows=1)
+        coords = np.loadtxt(os.path.join(airfoil_folder, "NASA SC(2)-0012 AIRFOIL.dat"), skiprows=1)
 
         # Flipping the dat file upper surface and removing the duplicate (0, 0) to match the xfoil conventions.
         upper = coords[:coords.shape[0]//2] 
