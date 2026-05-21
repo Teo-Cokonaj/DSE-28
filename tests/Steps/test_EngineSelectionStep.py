@@ -16,6 +16,7 @@ from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
 from src.global_parameters import CONSTANTS, Assumptions
 
 from src.objects.aircraft_parameters import AircraftParameters
+from src.objects.lading_gear import LandingGear
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
 from src.objects.propulsion_parameters import PropulsionParameters, EngineParameters
@@ -58,6 +59,7 @@ def initial_state_interior():
                 )
             ],
             propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5, .15), 2),
+            landing_gear=LandingGear(2., .5, .15, .1),
             performance_parameters=PerformanceParameters(
                 cruise_parameters=PerformanceAtAltitude(np.pi*.8*20., .01),
                 mach_max_parameters=PerformanceAtAltitude(np.pi*.75*20., .02),
@@ -83,7 +85,7 @@ class TestEngineSelectionStep:
         propulsion_result = initial_state.iterable.propulsion_parameters
 
         assert propulsion_result.n_engines == propulsion_reference.n_engines
-        assert np.isclose(propulsion_result.engine_parameters.efficiency_total, propulsion_reference.engine_parameters.efficiency_total)
+        assert np.isclose(propulsion_result.engine_parameters.sfc, propulsion_reference.engine_parameters.sfc)
         assert np.isclose(propulsion_result.engine_parameters.thrust_max, propulsion_reference.engine_parameters.thrust_max)
         assert np.isclose(propulsion_result.engine_parameters.mass, propulsion_reference.engine_parameters.mass)
         assert np.isclose(propulsion_result.engine_parameters.length, propulsion_reference.engine_parameters.length)

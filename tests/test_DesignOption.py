@@ -19,8 +19,11 @@ from src.Sizing_Loop.Steps.WeightEstimationStep import WeightEstimationStep
 from src.Sizing_Loop.Steps.InviscidAnalysisStep import InviscidAnalysisStep
 from src.Sizing_Loop.Steps.tail_sizing_step import TailSizingStep
 from src.Sizing_Loop.Steps.EngineSelectionStep import EngineSelectionStep
+from src.Sizing_Loop.Steps.LandingGearStep import LandingGearStep
+from src.Sizing_Loop.Steps.OEMStep import OEMStep
 
 from src.objects.aircraft_parameters import AircraftParameters
+from src.objects.lading_gear import LandingGear
 from src.objects.lifting_surface_planform import LiftingSurfacePlanform
 from src.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
 from src.objects.propulsion_parameters import PropulsionParameters, EngineParameters
@@ -33,6 +36,7 @@ def initial_state_interior():
                 horizontal_stabilizer_distance_from_wing=1.5,
                 vertical_stabilizer_distance_from_wing=1.5,
                 canard_distance_in_front_of_wing=0.,
+                empty_mass_fraction=.5
             ),
             lifting_surfaces=[
                 LiftingSurfacePlanform(
@@ -58,6 +62,7 @@ def initial_state_interior():
                 )
             ],
             propulsion_parameters=PropulsionParameters(EngineParameters(250., .1, .5), 2),
+            landing_gear=LandingGear(2., .5, .15, .1),
             performance_parameters=PerformanceParameters(
                 cruise_parameters=PerformanceAtAltitude(np.pi*.8*20., .01),
                 mach_max_parameters=PerformanceAtAltitude(np.pi*.75*20., .02),
@@ -81,8 +86,10 @@ class TestDesignOption:
         inviscid_step = InviscidAnalysisStep(plot, False)
         tail_sizing_step = TailSizingStep(print_)
         engine_step = EngineSelectionStep(print_)
+        lg_step = LandingGearStep(print_)
+        oem_step = OEMStep()
 
-        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, engine_step, CD0_step])
+        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, oem_step, matching_diagram_step, lg_step, engine_step, CD0_step])
         design_option.iteration_step()
 
         #checking that the iteration actually happened
@@ -112,15 +119,20 @@ class TestDesignOption:
             print(design_option.state.iterable.performance_parameters.mach_max_parameters.inviscid_ratio)
 
     
-    def test_multiple_iterations(self, initial_state, print_:bool=False, plot:bool=False, n_iter=5, plot_final=False):      
+    def test_multiple_iterations(self, initial_state:DesignOptionState, print_:bool=False, plot:bool=False, n_iter=5, plot_final=False):      
         matching_diagram_step = MatchingDiagramStep(plot=plot)
         CD0_step = CD0Step()
         class_I_step = WeightEstimationStep(print_)
         inviscid_step = InviscidAnalysisStep(plot, False)
         tail_sizing_step = TailSizingStep(print_)
         engine_step = EngineSelectionStep(print_)
+        lg_step = LandingGearStep(print_)
+        oem_step = OEMStep()
 
-        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step, class_I_step, matching_diagram_step, engine_step, CD0_step])
+        # initial_state.fixed.choices.canard_capability = True
+        # initial_state.fixed.choices.main_wing_x_movable = True
+
+        design_option = DesignOption(initial_state, [tail_sizing_step, inviscid_step,  oem_step, class_I_step, matching_diagram_step, engine_step, lg_step, CD0_step])
 
         def convergence_criterion(state:DesignOptionState):
             return np.array([
@@ -151,5 +163,5 @@ class TestDesignOption:
     
 if __name__ == "__main__":
     test_design_option = TestDesignOption()
-    #test_design_option.test_forward(initial_state_interior(), False, False)
-    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True)
+    #test_design_option.test_forward(initial_state_interior(), True, True)
+    test_design_option.test_multiple_iterations(initial_state_interior(), n_iter=6, plot_final=True, plot=False, print_=True)

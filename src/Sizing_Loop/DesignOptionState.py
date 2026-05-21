@@ -43,7 +43,7 @@ class DesignOptionState:
     def mach_go_around(self) -> float:
         assumptions = self.fixed.assumptions
         wing_loading = self.wing_loading()
-        CL_max_glide_ratio = self.iterable.performance_parameters.go_around_parameters.CL_glide_ratio_max()
+        CL_max_glide_ratio = self.iterable.performance_parameters.go_around_parameters.CL_range_jet_max()
         # determining go around parameters
         omega_turn = np.pi/assumptions.TIME_HALF_CIRCLE
         atmosphere_go_around = asb.Atmosphere(assumptions.ALTITUDE_GO_AROUND)
@@ -84,3 +84,41 @@ class DesignOptionState:
 
         CD_CL = CD0 / CL + CL / inviscid_ratio
         return 1 / CD_CL
+    
+
+    def x_cg_from_nose(self) -> float:
+        MAC = self.iterable.lifting_surfaces[0].MAC
+        tail_arm = self.fixed.assumptions.moment_arm
+        
+        x_LEMAC = self.total_fuselage_length() - tail_arm - MAC / 4
+        x_cg_per_mac = self.iterable.aircraft_parameters.x_cg_per_mac
+        
+        return x_LEMAC + x_cg_per_mac * MAC
+    
+
+    def total_fuselage_length(self):
+        L1 = self.fixed.assumptions.fuselage_length1
+        L2 = self.fixed.assumptions.fuselage_length2
+        L3 = self.fixed.assumptions.fuselage_length3
+        return L1 + L2 + L3
+    
+
+    def x_le_root_wing_from_nose(self):
+        MAC = self.iterable.lifting_surfaces[0].MAC
+        tail_arm = self.fixed.assumptions.moment_arm
+        
+        x_LEMAC = self.total_fuselage_length() - tail_arm - MAC / 4
+        x_LE_root = x_LEMAC - self.iterable.lifting_surfaces[0].x_MAC
+        return x_LE_root
+    
+
+    def x_c4_root_wing_from_nose(self):
+        return self.x_le_root_wing_from_nose() - self.iterable.lifting_surfaces[0].c_root / 4
+    
+
+    def x_c4_tail_from_nose(self):
+        return self.total_fuselage_length() #TODO: to improve later on
+    
+    
+
+    

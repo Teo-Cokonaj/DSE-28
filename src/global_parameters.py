@@ -1,6 +1,13 @@
 # Imports
 import aerosandbox.numpy as np
 
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import src.ac_stats as stat
+
 # Global parameters for configurations:
 class CONSTANTS:
 
@@ -30,7 +37,9 @@ class CONSTANTS:
     #material properties
     DENSITY_CFRP = 1600.0 # [kg/m^3]
     YIELD_STRENGTH_CFRP = 600e6 # [Pa]  
-    E_MODULUS_CFRP = 80e9 # [Pa]      
+    E_MODULUS_CFRP = 80e9 # [Pa]     
+
+    ULTIMATE_LOAD_FACTOR = 9. 
     
 
 class Assumptions():
@@ -38,21 +47,26 @@ class Assumptions():
     def __init__(self):
     
         # Cruise Assumptions:
-        self.ALTITUDE_CRUISE = 5500.0 # [m] (up for review)
-        self.AIR_DENSITY_CRUISE_ALTITUDE = 0.695 # [kg/m^3]
-        self.TEMPERATURE_CRUISE_ALTITUDE = 252.2 #[K]
+        self.ALTITUDE_CRUISE = CONSTANTS.ALTITUDE_MACH_MAX # [m]
+        self.AIR_DENSITY_CRUISE_ALTITUDE = 0.38 # [kg/m^3]
+        self.TEMPERATURE_CRUISE_ALTITUDE = 273-35 #[K]
 
         self.energy_density_saf = 42.8e6 # [J/kg]
 
         # TURN ASSUMPTIONS:
-        self.ALTITUDE_GO_AROUND = 2000. # [m]
+        self.ALTITUDE_GO_AROUND = 1500 / .3048 # [m]
         self.TIME_HALF_CIRCLE = 60.0 # [s]
         self.OMEGA_GO_AROUND = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
+
         self.MC=0.75 #cruise Mach number
         self.MD = 0.80 #ADSEE: in general, MD is 0.05M higher than MC
+
+        self.airfoil_thickness_to_chord_max = .12
+        self.airfoil_thickness_to_chord_max_location = .37
+        self.max_camber_position = np.inf #to cancel the camber term
         self.positive_C_L_max_airfoil=1.25 #CHANGE
         self.negative_C_L_max_airfoil=-1.25 #CHANGE
-        self.C_L_alpha = 0.5*2*np.pi #CHANGE
+        self.airfoil_C_l_alpha = 0.5/np.radians(4.0) #0.5 per 4deg
 
         self.airfield_length = 1275. #m #TODO check with the actual airport
 
@@ -61,10 +75,10 @@ class Assumptions():
         self.CG_EXCURSION_MAC = 0.5
 
         # Fuselage
-        self.diameter_fuselage = .15 # m (based on FLEXOP)
-        self.fuselage_length1_per_area = .55 / 2.499245 # nose cone length / span (based on FLEXOP)
-        self.fuselage_length2_per_area = 1.75 / 2.499245  # middle fuselage section length /span (based on FLEXOP)
-        self.fuselage_length3_per_area = 1.12 / 2.499245  # tail cone length / span (based on FLEXOP)
+        self.diameter_fuselage = .315 # m (based on FLEXOP)
+        self.fuselage_length1 = .55 # nose cone length / span (based on FLEXOP)
+        self.fuselage_length2 = 1.75   # middle fuselage section length /span (based on FLEXOP)
+        self.fuselage_length3 = 1.12  # tail cone length / span (based on FLEXOP)
         self.fuselage_upsweep = np.radians(11) # [rad] (based on FLEXOP)
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
         
@@ -84,10 +98,9 @@ class Assumptions():
         self.nose_gear_enclosed       = True
 
         #tail arm
-        self.moment_arm_per_area = 0.80 # based on FLEXOP
+        self.moment_arm = stat.HT_arm_FLEXOP # based on FLEXOP
 
-        self.statistical_OEM_fraction = 0.4
-
+        self.statistical_OEM_fraction = 870 / 1008
 
     @property
     def airspeed_approach(self) -> float:
@@ -96,10 +109,4 @@ class Assumptions():
     @property
     def airspeed_stall(self) -> float:
         return np.sqrt(self.airfield_length / .6)
-
-
-class Engine():
-    def __init__(self):
-        # ENGINE CONSTANTS --- ENGINE TBD ---
-        pass
     

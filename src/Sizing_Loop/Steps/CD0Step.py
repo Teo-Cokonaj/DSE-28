@@ -38,28 +38,7 @@ class CD0Step(DesignOptionStep):
         return state.iterable
 
 
-<<<<<<< HEAD
-    @staticmethod
-    def go_around_mach(state:DesignOptionState)->float:
-        assumptions = state.fixed.assumptions
-        wing_loading = state.iterable.aircraft_parameters.total_mass / state.iterable.lifting_surfaces[0].wing_area
-        CL_max_glide_ratio = np.sqrt(state.iterable.performance_parameters.go_around_parameters.CD0 * state.iterable.performance_parameters.go_around_parameters.inviscid_ratio)
-        #determining go around parameters
-        omega_turn = np.pi/assumptions.time_half_turn
-        atmosphere_go_around = asb.Atmosphere(assumptions.altitude_go_around)
-        rho_go_around_altitude = atmosphere_go_around.density()
-        # n**2 - quadratic_b_term*n -1
-        quadratic_b_term = omega_turn**2/CONSTANTS.G0**2 * wing_loading * 2/rho_go_around_altitude / CL_max_glide_ratio
-        load_factor_go_around = .5*(quadratic_b_term + np.sqrt(quadratic_b_term**2+4))
-        airspeed_go_around = np.sqrt(wing_loading * 2/rho_go_around_altitude * load_factor_go_around/CL_max_glide_ratio)
-
-        return airspeed_go_around / atmosphere_go_around.speed_of_sound()
-
-
-    def _planform_geometry(self, planform: LiftingSurfacePlanform) -> dict[str, float]:
-=======
-    def _planform_geometry(self, planform: LiftingSurfacePlanform, diameter_fuselage:float) -> dict[str, float]:
->>>>>>> ee6ad56bc01b36033c80dbe2c03e1347f04f5da2
+    def _planform_geometry(self, planform: LiftingSurfacePlanform, diameter_fuselage:float, assumptions:Assumptions) -> dict[str, float]:
         """
         Build the geometry dict expected by the drag 'Planform' from a
         'LiftingSurfacePlanform' instance.
@@ -76,17 +55,13 @@ class CD0Step(DesignOptionStep):
             "wing_span": wing_span,
             "taper_ratio": taper_ratio,
             "sweep_LE": sweep_le,
-            "chord_fraction_max_thickness": 0.3, # comes from airfoil (dummy var)
-            "pos_max_camber": 0.25,              # comes from airfoil (dummy var)
-            "thickness_to_chord_ratio": 0.1,     # comes from airfoil (dummy var)
+            "chord_fraction_max_thickness": assumptions.airfoil_thickness_to_chord_max_location, # comes from airfoil (dummy var)
+            "pos_max_camber": assumptions.max_camber_position,              # comes from airfoil (dummy var)
+            "thickness_to_chord_ratio": assumptions.airfoil_thickness_to_chord_max,     # comes from airfoil (dummy var)
         }
 
 
-<<<<<<< HEAD
-    def build_planform_components(self, planforms: list[LiftingSurfacePlanform], is_main_wing: bool):
-=======
-    def build_planform_components(self, state:DesignOptionState):
->>>>>>> ee6ad56bc01b36033c80dbe2c03e1347f04f5da2
+    def build_planform_components(self, state:DesignOptionState) -> list[dcm.Planform]:
         """
         Turn a list of wing planforms into the drag-model objects used by 
         the component method.
@@ -106,12 +81,7 @@ class CD0Step(DesignOptionStep):
             raise ValueError(f"Expected at most {len(surface_factors)} planforms, got {len(planforms)}.")
 
         for index, wing_or_planform in enumerate(planforms):
-            is_main_wing = index == 0 
-<<<<<<< HEAD
-            geometry = self._planform_geometry(wing_or_planform, is_main_wing)
-=======
-            geometry = self._planform_geometry(wing_or_planform, diameter_fuselage)
->>>>>>> ee6ad56bc01b36033c80dbe2c03e1347f04f5da2
+            geometry = self._planform_geometry(wing_or_planform, diameter_fuselage, state.fixed.assumptions)
             interference_factor, wetted_surface_multiplier = surface_factors[index]
 
             components.append(
@@ -132,9 +102,9 @@ class CD0Step(DesignOptionStep):
         'Assumptions'. 
         """
         return {
-            "length1": float(state.fixed.assumptions.fuselage_length1_per_area * state.iterable.lifting_surfaces[0].wing_area),
-            "length2": float(state.fixed.assumptions.fuselage_length2_per_area * state.iterable.lifting_surfaces[0].wing_area),
-            "length3": float(state.fixed.assumptions.fuselage_length3_per_area * state.iterable.lifting_surfaces[0].wing_area),
+            "length1": float(state.fixed.assumptions.fuselage_length1),
+            "length2": float(state.fixed.assumptions.fuselage_length2),
+            "length3": float(state.fixed.assumptions.fuselage_length3),
             "diameter": float(state.fixed.assumptions.diameter_fuselage),
             "upsweep": float(state.fixed.assumptions.fuselage_upsweep),
             "area_base": float(state.fixed.assumptions.fuselage_base_area),
@@ -146,7 +116,7 @@ class CD0Step(DesignOptionStep):
         """
         geometry = self._fuselage_geometry(state)
         interference_factor = 1.0  # fuselage reference IF
-        laminar_fraction = 0.05  # assume very low laminar fraction for fuselage
+        laminar_fraction = state.fixed.assumptions.fuselage_laminar_frac
         
         return dcm.Fuselage(
             interference_factor,
@@ -160,27 +130,33 @@ class CD0Step(DesignOptionStep):
         Build nose and main landing-gear geometry dicts from 'Assumptions'.
         Returns a tuple: (nose_geometry, main_geometry)
         """
+        gear_effective_height = state.iterable.landing_gear.length_z
+        gear_exposed_height = gear_effective_height - state.fixed.assumptions.diameter_fuselage / 2
+
+        gear_effective_length = gear_exposed_height if state.fixed.choices.landing_gear_sideways_extendable else state.iterable.landing_gear.length_pythagorean()
+        gear_exposed_length = gear_effective_length - state.fixed.assumptions.diameter_fuselage / 2
+
         nose_geometry = {
             "diameter_wheel": float(state.fixed.assumptions.nose_gear_diameter_wheel),
             "width_wheel": float(state.fixed.assumptions.nose_gear_width_wheel),
-            "height_strut": float(state.fixed.assumptions.nose_gear_height_strut),
+            "height_strut": gear_exposed_height,
             "width_strut": float(state.fixed.assumptions.nose_gear_width_strut),
-            "height_total": float(state.fixed.assumptions.nose_gear_diameter_wheel / 2 + state.fixed.assumptions.nose_gear_height_strut),
+            "height_total": float(state.fixed.assumptions.nose_gear_diameter_wheel / 2 + gear_exposed_height),
             "width_total": float(state.fixed.assumptions.nose_gear_width_strut + state.fixed.assumptions.nose_gear_width_wheel),
         }
 
         main_geometry = {
             "diameter_wheel": float(state.fixed.assumptions.main_gear_diameter_wheel),
             "width_wheel": float(state.fixed.assumptions.main_gear_width_wheel),
-            "height_strut": float(state.fixed.assumptions.main_gear_height_strut),
+            "height_strut": gear_exposed_length,
             "width_strut": float(state.fixed.assumptions.main_gear_width_strut),
-            "height_total": float(state.fixed.assumptions.main_gear_diameter_wheel / 2 + state.fixed.assumptions.main_gear_height_strut),
+            "height_total": float(state.fixed.assumptions.main_gear_diameter_wheel / 2 + gear_exposed_height),
             "width_total": float(state.fixed.assumptions.main_gear_width_strut + state.fixed.assumptions.main_gear_width_wheel),
         }
 
         return nose_geometry, main_geometry
 
-    def build_landing_gear_components(self, state:DesignOptionState) -> list:
+    def build_landing_gear_components(self, state:DesignOptionState) -> list[dcm.LandingGear]:
         """
         Build 'LandingGear' components using assumptions.
         """
@@ -188,6 +164,7 @@ class CD0Step(DesignOptionStep):
         nose_component = dcm.LandingGear(nose_geom, bool(state.fixed.assumptions.nose_gear_enclosed))
         main_component = dcm.LandingGear(main_geom, bool(state.fixed.assumptions.main_gear_enclosed))
         return [nose_component, main_component, main_component] #NOTE: there is a pair of main landing gears!
+
 
     def _bay_geometry(self, state:DesignOptionState) -> dict[str, float]:
         """
@@ -202,14 +179,14 @@ class CD0Step(DesignOptionStep):
         ] * state.iterable.propulsion_parameters.n_engines
 
     
-    def build_bay_components(self, state:DesignOptionState) -> dcm.Bay:
+    def build_bay_components(self, state:DesignOptionState) -> list[dcm.Bay]:
         """
         Build a 'Bay' (nacelle) component using fuselage-derived length
         and diameter.
         """
         gps = self._bay_geometry(state)
         interference_factor = 1.3
-        laminar_fraction = 0.1  # placeholder
+        laminar_fraction = state.fixed.assumptions.wing_bay_laminar_frac  # placeholder
         bays = list()
         for gp in gps:
             bays.append(dcm.Bay(
@@ -219,6 +196,20 @@ class CD0Step(DesignOptionStep):
                 laminar_fraction,
                 0.405e-5  # reynolds factor (Production sheet metal)
         ))
+            
+        if not state.fixed.choices.landing_gear_sideways_extendable:
+            retracting_landing_gear_height = state.fixed.assumptions.main_gear_diameter_wheel / 2 + state.iterable.landing_gear.length_z
+
+            bays.extend([
+                dcm.Bay(
+                    interference_factor=1.3,
+                    laminar_fraction=laminar_fraction,
+                    length=state.fixed.assumptions.lg_bay_length_safety_factor * retracting_landing_gear_height,
+                    diameter=state.fixed.assumptions.lg_bay_wheel_diameter_ratio * state.fixed.assumptions.main_gear_diameter_wheel,
+                    surface_reynolds_factor=0.405e-5  # reynolds factor (Production sheet metal)
+                )
+            ] * 2)
+
         return bays
 
     

@@ -30,6 +30,8 @@ class TailVolume:
         self.C_L_alpha_A_minus_H=C_L_alpha_A_minus_H
         self.V_H_over_V_2=V_H_over_V_2
 
+        
+
     def find_required_tail_volume(self):
         first_upper=self.required_cg_excursion_MAC-self.Cmac/self.C_L_A_minus_H
         first_lower = self.C_L_alpha_H/self.C_L_alpha_A_minus_H*(1-self.wing_downwash_gradient)-self.C_L_H/self.C_L_A_minus_H
