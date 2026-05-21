@@ -127,7 +127,7 @@ class SizingForTradeoff():
         self.steps:list[DesignOptionStep] = list()
 
     
-    def accumulate_steps(self, debug:bool=False, plot:bool=False, resolution_matching_diagram:int=100, legend_location_matching_diagram:str="upper left", inviscid_analysis_sample_aoa_deg:float=5., wing_resolution:int=100, secondary_planforms_resolution:int=5, oem_resolution:int=1000, minimum_thickness=.0003):
+    def accumulate_steps(self, debug:bool=False, plot:bool=False, resolution_matching_diagram:int=40, legend_location_matching_diagram:str="upper left", inviscid_analysis_sample_aoa_deg:float=5., wing_resolution:int=40, secondary_planforms_resolution:int=5, oem_resolution:int=1000, minimum_thickness=.0003):
         self.steps = [
             TailSizingStep(debug, wing_resolution, secondary_planforms_resolution),
             InviscidAnalysisStep(plot, debug, inviscid_analysis_sample_aoa_deg, wing_resolution, secondary_planforms_resolution),
