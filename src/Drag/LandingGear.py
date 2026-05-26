@@ -13,8 +13,8 @@ class LandingGear(Component):
         super().__init__(0., 0., 0., 0., 0.)
 
         gp = geometry_params
-        for value in gp.values():
-            assert value > 0
+        for key, value in gp.items():
+            assert value > 0, f"{key}, {value}"
 
         self.surface_reference = gp["width_total"]*gp["height_total"]
         self.surface_frontal = gp["width_strut"]*gp["height_strut"]+gp["width_wheel"]*gp["diameter_wheel"]
