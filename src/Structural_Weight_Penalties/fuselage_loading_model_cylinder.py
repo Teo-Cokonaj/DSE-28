@@ -175,8 +175,8 @@ def cylindricalBucklingStress(E, t_skin, fuselage_radius):
     return sigma_cr
 
 
-def variable_port_iteration(x, wing_location, chord, canard_lift_fraction, empennage_loc, cg_loc, canard_loc, W, dx):
-    main_lift_range = (x >= (wing_location - chord)) & (x <= (wing_location + chord))
+def variable_port_iteration(x, wing_location, chord, canard_lift_fraction, empennage_loc, cg_loc, canard_loc, W, dx, cg_excursion):
+    main_lift_range = (x >= (wing_location - cg_excursion * chord)) & (x <= (wing_location + cg_excursion * chord))
     wing_loc_range = x[main_lift_range]
 
     max_shear = np.zeros_like(x)

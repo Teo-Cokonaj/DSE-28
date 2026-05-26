@@ -49,7 +49,7 @@ class OEMStep(DesignOptionStep):
 
             t_skin_no_canard_variable = t_skin_no_canard_static
             if state.fixed.choices.main_wing_x_movable:
-                max_shear, max_moment = variable_port_iteration(x=x, wing_location=state.x_c4_root_wing_from_nose(), chord=state.iterable.lifting_surfaces[0].c_root, canard_lift_fraction=canard_lift_fraction, empennage_loc=state.total_fuselage_length(), cg_loc=state.x_cg_from_nose(), canard_loc=0., W=W, dx=dx)
+                max_shear, max_moment = variable_port_iteration(x=x, wing_location=state.x_c4_root_wing_from_nose(), chord=state.iterable.lifting_surfaces[0].MAC, canard_lift_fraction=canard_lift_fraction, empennage_loc=state.total_fuselage_length(), cg_loc=state.x_cg_from_nose(), canard_loc=0., W=W, dx=dx, cg_excursion=state.fixed.assumptions.CG_EXCURSION_MAC)
                 t_skin_no_canard_variable, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CONSTANTS.YIELD_STRENGTH_CFRP, E = CONSTANTS.E_MODULUS_CFRP, fuselage_radius=state.fixed.assumptions.diameter_fuselage / 2, t_min=self.minimum_thickness)
 
             canard_lift_fraction = .2
@@ -61,7 +61,7 @@ class OEMStep(DesignOptionStep):
 
             fuselage_mass_canard_variable = 0.
             if state.fixed.choices.main_wing_x_movable:
-                max_shear, max_moment = variable_port_iteration(x=x, wing_location=state.x_c4_root_wing_from_nose(), chord=state.iterable.lifting_surfaces[0].c_root, canard_lift_fraction=canard_lift_fraction, empennage_loc=state.total_fuselage_length(), cg_loc=state.x_cg_from_nose(), canard_loc=0., W=W, dx=dx)
+                max_shear, max_moment = variable_port_iteration(x=x, wing_location=state.x_c4_root_wing_from_nose(), chord=state.iterable.lifting_surfaces[0].MAC, canard_lift_fraction=canard_lift_fraction, empennage_loc=state.total_fuselage_length(), cg_loc=state.x_cg_from_nose(), canard_loc=0., W=W, dx=dx, cg_excursion=state.fixed.assumptions.CG_EXCURSION_MAC)
                 if self.plot:
                     print("branch hit")
                     plt.subplot(211)
