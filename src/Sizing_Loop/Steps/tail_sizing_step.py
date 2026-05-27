@@ -34,7 +34,7 @@ class TailSizingStep(DesignOptionStep):
 
         aircraft_parameters=AircraftParameters(total_mass=state.iterable.aircraft_parameters.total_mass,
                  horizontal_stabilizer_distance_from_wing=self.horizontal_stabilizer_arm,
-                 vertical_stabilizer_distance_from_wing=self.horizontal_stabilizer_arm,
+                 vertical_stabilizer_distance_from_wing=state.iterable.aircraft_parameters.vertical_stabilizer_distance_from_wing,
                  canard_distance_in_front_of_wing=state.iterable.aircraft_parameters.canard_distance_in_front_of_wing,
                  x_cg_per_mac=state.iterable.aircraft_parameters.x_cg_per_mac,
                  )
@@ -87,5 +87,8 @@ class TailSizingStep(DesignOptionStep):
         state.iterable.lifting_surfaces[1].wing_area=tail_volume.required_tail_volume/state.iterable.aircraft_parameters.horizontal_stabilizer_distance_from_wing
         tail_volume.find_required_cg_position_MAC()
         state.iterable.aircraft_parameters.x_cg_per_mac = tail_volume.required_CG_position_MAC
+
+        state.iterable.aircraft_parameters.z_horizontal_stabilizer = state.iterable.lifting_surfaces[2].span / 2
+        state.iterable.aircraft_parameters.vertical_stabilizer_distance_from_wing = state.iterable.aircraft_parameters.horizontal_stabilizer_distance_from_wing + state.iterable.lifting_surfaces[2].c_tip - state.iterable.lifting_surfaces[2].c_root
 
         return state.iterable
