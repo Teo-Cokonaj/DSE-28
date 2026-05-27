@@ -3,12 +3,8 @@ name: Run Tests
 on:
   push:
     branches:
-      -main
-      -SizingLoopMidterm
   pull_request:
     branches:
-      -main
-      -SizingLoopMidterm
 
 jobs:
   test:
