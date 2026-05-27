@@ -38,7 +38,8 @@ class LiftingLineTheory():
 
 
     def initialize_airfoils(self):
-        symmetric_airfoil = SymmetricAirfoil()
+        #symmetric_airfoil = SymmetricAirfoil()
+        symmetric_airfoil=asb.Airfoil("NACA0010")
         self.wing_airfoil = symmetric_airfoil
         self.horizontal_stabilizer_airfoil = symmetric_airfoil
         self.vertical_stabilizer_airfoil=symmetric_airfoil
@@ -324,18 +325,11 @@ if __name__ == "__main__":
                             vertical_stabilizer_distance_from_wing=3.0,
                             canard_distance_in_front_of_wing=0.5)
 
-    main=LiftingSurfacePlanform(aspect_ratio=25.0,
-                                    span=2.0,
-                                    sweep_quarter_deg=0.0,
-                                    taper=1.0,
-                                    tip_twist_rad=0.0)
-
     horizontal=LiftingSurfacePlanform(aspect_ratio=3.0,
                                                                     span=0.5,
                                                                     sweep_quarter_deg=45.0,
                                                                     taper=1.0,
                                                                     tip_twist_rad=0.0)
-
 
     vertical=LiftingSurfacePlanform(aspect_ratio=3.0,
                                                                     span=0.3,
@@ -349,63 +343,83 @@ if __name__ == "__main__":
                                                                     taper=1.0,
                                                                     tip_twist_rad=0.0)
 
-    lifting_line_theory=LiftingLineTheory(aircraft_parameters,
-                                main,
-                                horizontal,
-                                vertical,
-                                canard
-                                            )
-
     altitude_m = 0.0
     atmosphere=asb.Atmosphere(altitude_m)
     velocity_incompressible=30.0
     velocity_compressible=150.0
-
-    lifting_line_theory.initialize_airfoils()
                                 
-    angles_of_attack_deg=np.linspace(0.0,5.0,3)
+    angles_of_attack_deg=np.linspace(-5.0,5.0,15)
     lift_coefficients_incompressible=[]
     reference_lift_coefficients_incompressible=[]
     lift_coefficients_compressible=[]
     reference_lift_coefficients_compressible=[]
 
-    AR=lifting_line_theory.wing_planform.aspect_ratio
     from global_parameters import Assumptions
     assumptions=Assumptions()
-    reference_incompressible_slope = assumptions.airfoil_C_l_alpha/(1+assumptions.airfoil_C_l_alpha/np.pi/AR)
        
     for angle_of_attack_deg in angles_of_attack_deg:
-        lifting_line_theory.wing_planform.sweep_quarter_rad=np.radians(0.0) #unswept wing in incompressible flow
+        main=LiftingSurfacePlanform(aspect_ratio=25.0,
+                                span=2.0,
+                                sweep_quarter_deg=0.0, #unswept wing in incompressible flow
+                                taper=0.3,
+                                tip_twist_rad=0.0)
+
+        lifting_line_theory=LiftingLineTheory(aircraft_parameters,
+                            main,
+                            horizontal,
+                            vertical,
+                            canard)
+
+        lifting_line_theory.initialize_airfoils()
+    
         lifting_line_theory.make_full_airplane_model(main_wing=True,
-                                                    canard=False,
-                                                    horizontal_stabilizer=False,
-                                                    vertical_stabilizer=False)
+                                                canard=False,
+                                                horizontal_stabilizer=False,
+                                                vertical_stabilizer=False)
         _,results_incompressible=lifting_line_theory.run_llt_arbitrary_analysis(altitude_m,
-                                                                                velocity_incompressible,
-                                                                                angle_of_attack_deg)
+                                                                            velocity_incompressible,
+                                                                            angle_of_attack_deg)
         lift_coefficients_incompressible.append(results_incompressible["CL"])
+        reference_incompressible_slope = assumptions.airfoil_C_l_alpha/(1+assumptions.airfoil_C_l_alpha/np.pi/lifting_line_theory.wing_planform.aspect_ratio)
+
         reference_lift_coefficients_incompressible.append(np.radians(angle_of_attack_deg)*reference_incompressible_slope)
         difference_incompressible=abs(reference_lift_coefficients_incompressible[-1]-lift_coefficients_incompressible[-1])
         if difference_incompressible>0.1:
             print(r'Incompressible difference larger than 0.1 at ', angle_of_attack_deg, 'degrees.')
 
-        lifting_line_theory.wing_planform.sweep_quarter_rad=np.radians(45.0) #highly swept wing in compressible flow
+
+        main=LiftingSurfacePlanform(aspect_ratio=25.0,
+                                span=2.0,
+                                sweep_quarter_deg=0.0, #swept wing in compressible flow
+                                taper=0.3,
+                                tip_twist_rad=0.0)
+
+        lifting_line_theory=LiftingLineTheory(aircraft_parameters,
+                            main,
+                            horizontal,
+                            vertical,
+                            canard)
+
+        lifting_line_theory.initialize_airfoils()
+    
         lifting_line_theory.make_full_airplane_model(main_wing=True,
-                                                    canard=False,
-                                                    horizontal_stabilizer=False,
-                                                    vertical_stabilizer=False)
+                                                canard=False,
+                                                horizontal_stabilizer=False,
+                                                vertical_stabilizer=False)
+
         _,results_compressible=lifting_line_theory.run_llt_arbitrary_analysis(altitude_m,
-                                                                                velocity_compressible,
-                                                                                angle_of_attack_deg)
+                                                                            velocity_compressible,
+                                                                            angle_of_attack_deg)
         lift_coefficients_compressible.append(results_compressible["CL"])
         
         sweep_half_rad = np.arctan(np.tan(lifting_line_theory.wing_planform.sweep_LE_rad)-0.5*2*lifting_line_theory.wing_planform.c_root/lifting_line_theory.wing_planform.span*(1-lifting_line_theory.wing_planform.taper))
         mach=velocity_compressible/atmosphere.speed_of_sound()
         beta=np.sqrt(1-mach**2)
         kappa=assumptions.airfoil_C_l_alpha/(2*np.pi)
-        reference_compressible_slope = 2*np.pi*AR/(2+np.sqrt(4+(AR*beta/kappa)**2*(1+(np.tan(sweep_half_rad))**2/beta**2)))
+        reference_compressible_slope = 2*np.pi*lifting_line_theory.wing_planform.aspect_ratio/(2+np.sqrt(4+(lifting_line_theory.wing_planform.aspect_ratio*beta/kappa)**2*(1+(np.tan(sweep_half_rad))**2/beta**2)))
         reference_lift_coefficients_compressible.append(np.radians(angle_of_attack_deg)*reference_compressible_slope)
         difference_compressible=abs(reference_lift_coefficients_compressible[-1]-lift_coefficients_compressible[-1])
+        #relative_difference_compressible=abs()
         if difference_compressible>0.1:
             print(r'Compressible difference larger than 0.1 at ', angle_of_attack_deg, 'degrees.')
     
