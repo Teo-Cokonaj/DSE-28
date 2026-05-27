@@ -42,7 +42,7 @@ class SizingForTradeoff():
                 canard_capability=True, 
                 landing_gear_sideways_extendable=False,
                 wing_interference_factor=1.2,
-                main_wing_x_movable=True
+                main_wing_x_movable=False
             ),
 
             DesignOptionChoices(
