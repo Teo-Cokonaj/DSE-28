@@ -51,7 +51,7 @@ class TestTailVolume:
 
         assert abs(reference_required_cg_position_MAC-tail_volume.required_CG_position_MAC)/reference_required_cg_position_MAC <0.01
 
-    def test_dummy(self):
+    def test_test(self):
         assert 1
 
 
