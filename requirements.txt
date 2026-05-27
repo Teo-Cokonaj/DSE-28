@@ -116,8 +116,8 @@ python-dateutil==2.9.0.post0
 python-json-logger==3.3.0
 pytz==2024.1
 pyvista==0.45.3
-pywin32==306
-pywinpty==2.0.15
+pywin32==306; platform_system=="Windows"
+pywinpty==2.0.15; platform_system=="Windows"
 PyYAML==6.0.2
 pyzmq==26.2.1
 referencing==0.36.2
