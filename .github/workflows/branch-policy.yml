@@ -1,0 +1,22 @@
+name: Branch Protection Policy
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  enforce-main-only:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check base branch is main
+        run: |
+          echo "Base branch: ${{ github.base_ref }}"
+          
+          if [ "${{ github.base_ref }}" != "main" ]; then
+            echo "Only merges into 'main' are allowed."
+            echo "You attempted to merge into: ${{ github.base_ref }}"
+            exit 1
+          fi
+
+          echo "Valid target branch"
