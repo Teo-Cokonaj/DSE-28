@@ -99,7 +99,8 @@ class TestFlightEnvelope:
                                         aircraft_parameters,
                                         assumptions,
                                         flight_envelope,):
-        assert np.isclose(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.positive_C_L_max_airfoil/(aircraft_parameters.total_mass*CONSTANTS.G0),
+        positive_C_L_max=0.9*assumptions.positive_C_L_max_airfoil*np.cos(wing_planform.sweep_quarter_rad)
+        assert np.isclose(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*positive_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0),
                           flight_envelope.load_factor_upper_manoeuvre_curve(1.0,
                                           wing_planform,
                                           aircraft_parameters,
@@ -111,7 +112,9 @@ class TestFlightEnvelope:
                                         aircraft_parameters,
                                         assumptions,
                                         flight_envelope,):
-                assert np.isclose(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*assumptions.negative_C_L_max_airfoil/(aircraft_parameters.total_mass*CONSTANTS.G0),
+                negative_C_L_max=0.9*assumptions.negative_C_L_max_airfoil*np.cos(wing_planform.sweep_quarter_rad)
+
+                assert np.isclose(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*negative_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0),
                           flight_envelope.load_factor_lower_manoeuvre_curve(1.0,
                                           wing_planform,
                                           aircraft_parameters,

@@ -40,7 +40,7 @@ class SizingForTradeoff():
             DesignOptionChoices(
                 name="HUG-CFG-301",
                 canard_capability=True, 
-                landing_gear_sideways_extendable=True,
+                landing_gear_sideways_extendable=False,
                 wing_interference_factor=1.2,
                 main_wing_x_movable=True
             ),
@@ -56,7 +56,7 @@ class SizingForTradeoff():
             DesignOptionChoices(
                 name="HUG-CFG-303",
                 canard_capability=True,
-                landing_gear_sideways_extendable=True,
+                landing_gear_sideways_extendable=False,
                 wing_interference_factor=1.0,
                 main_wing_x_movable=False
             ),
@@ -65,14 +65,6 @@ class SizingForTradeoff():
                 name="HUG-CFG-304",
                 canard_capability=True,
                 landing_gear_sideways_extendable=False,
-                wing_interference_factor=1.0,
-                main_wing_x_movable=True
-            ),
-
-            DesignOptionChoices(
-                name="HUG-CFG-305",
-                canard_capability=True,
-                landing_gear_sideways_extendable=True,
                 wing_interference_factor=1.0,
                 main_wing_x_movable=True
             )

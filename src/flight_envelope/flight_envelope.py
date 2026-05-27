@@ -17,7 +17,6 @@ class FlightEnvelope:
         self.positive_manoeuvring_limit_load_factor=6.0 #CS-23, aerobatic
         self.negative_manoeuvring_limit_load_factor=-0.5*self.positive_manoeuvring_limit_load_factor #CS-23, aerobatic
 
-
     def kts_to_mps(self,
                    speed_kts):
         
@@ -57,8 +56,9 @@ class FlightEnvelope:
                                           wing_planform:LiftingSurfacePlanform,
                                           aircraft_parameters:AircraftParameters,
                                           assumptions: Assumptions):
+        self.positive_C_L_max=0.9*assumptions.positive_C_L_max_airfoil*np.cos(wing_planform.sweep_quarter_rad)
         
-        return 0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*speed**2*wing_planform.wing_area*positive_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0)
+        return 0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*speed**2*wing_planform.wing_area*self.positive_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0)
 
 
     def load_factor_lower_manoeuvre_curve(self,
@@ -66,8 +66,9 @@ class FlightEnvelope:
                                           wing_planform:LiftingSurfacePlanform,
                                           aircraft_parameters:AircraftParameters,
                                           assumptions: Assumptions):
+        self.negative_C_L_max=0.9*assumptions.negative_C_L_max_airfoil*np.cos(wing_planform.sweep_quarter_rad)
         
-        return 0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*speed**2*wing_planform.wing_area*negative_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0)
+        return 0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*speed**2*wing_planform.wing_area*self.negative_C_L_max/(aircraft_parameters.total_mass*CONSTANTS.G0)
 
 
     def delta_load_factor_gust_curve(self,
@@ -101,11 +102,14 @@ class FlightEnvelope:
                          aircraft_parameters: AircraftParameters,
                          wing_planform: LiftingSurfacePlanform,
                          assumptions: Assumptions):
+        
+        self.positive_C_L_max=0.9*assumptions.positive_C_L_max_airfoil*np.cos(wing_planform.sweep_quarter_rad)
+        self.negative_C_L_max=0.9*assumptions.negative_C_L_max_airfoil*np.cos(wing_planform.sweep_quarter_rad)
 
-        positive_stall_speed=np.sqrt(aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*positive_C_L_max))
-        negative_stall_speed=np.sqrt(aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*abs(negative_C_L_max)))
-        stall_speed_at_max_positive_manoeuvre_load=np.sqrt(self.positive_manoeuvring_limit_load_factor*aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*positive_C_L_max))
-        stall_speed_at_min_negative_manoeuvre_load=np.sqrt(abs(self.negative_manoeuvring_limit_load_factor)*aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*abs(negative_C_L_max)))
+        positive_stall_speed=np.sqrt(aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*self.positive_C_L_max))
+        negative_stall_speed=np.sqrt(aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*abs(self.negative_C_L_max)))
+        stall_speed_at_max_positive_manoeuvre_load=np.sqrt(self.positive_manoeuvring_limit_load_factor*aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*self.positive_C_L_max))
+        stall_speed_at_min_negative_manoeuvre_load=np.sqrt(abs(self.negative_manoeuvring_limit_load_factor)*aircraft_parameters.total_mass*CONSTANTS.G0/(0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*wing_planform.wing_area*abs(self.negative_C_L_max)))
 
         # load_factor_manoeuvre_envelope = []
         # speed_manoeuvre_envelope=[]

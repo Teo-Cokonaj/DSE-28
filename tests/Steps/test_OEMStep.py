@@ -98,7 +98,9 @@ class TestOEMStep():
         assert state_both_options.iterable.aircraft_parameters.empty_mass_fraction > state_canard_only.iterable.aircraft_parameters.empty_mass_fraction
         assert state_canard_only.iterable.aircraft_parameters.empty_mass_fraction > initial_state.iterable.aircraft_parameters.empty_mass_fraction
 
-
+        print(initial_state.iterable.aircraft_parameters.empty_mass_fraction)
+        print(state_canard_only.iterable.aircraft_parameters.empty_mass_fraction)
+        print(state_both_options.iterable.aircraft_parameters.empty_mass_fraction)
 
 
     
