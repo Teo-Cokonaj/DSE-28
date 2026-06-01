@@ -10,7 +10,7 @@ from objects.aircraft_parameters import AircraftParameters
 from objects.lifting_surface_planform import LiftingSurfacePlanform
 from airfoil.SymmetricAirfoil import SymmetricAirfoil
 
-#from aerodynamic_model.lifting_line_inviscid import asb.Lifting
+from aerodynamic_model.lifting_line_inviscid import LiftingLineInviscid
 
 class LiftingLineTheory():
     def __init__(self,
@@ -19,7 +19,7 @@ class LiftingLineTheory():
                  horizontal_stabilizer_planform: LiftingSurfacePlanform,
                  vertical_stabilizer_planform: LiftingSurfacePlanform,
                  canard_planform: LiftingSurfacePlanform = None,
-                 wing_number_of_sections:int = 5,
+                 wing_number_of_sections:int = 100,
                  horizontal_stabilizer_number_of_sections:int = 5,
                  canard_number_of_sections:int = 5,
                  vertical_stabilizer_number_of_sections:int = 5
@@ -37,14 +37,9 @@ class LiftingLineTheory():
         self.vertical_stabilizer_number_of_sections = vertical_stabilizer_number_of_sections
 
 
-    def initialize_airfoils(self,
-                            airfoil_type: str):
-        
-        if airfoil_type =='custom':
-            symmetric_airfoil = SymmetricAirfoil()
-        else:
-            symmetric_airfoil=asb.Airfoil(airfoil_type)         
-        
+    def initialize_airfoils(self):
+        #symmetric_airfoil = SymmetricAirfoil()
+        symmetric_airfoil=asb.Airfoil("NACA0010")
         self.wing_airfoil = symmetric_airfoil
         self.horizontal_stabilizer_airfoil = symmetric_airfoil
         self.vertical_stabilizer_airfoil=symmetric_airfoil
@@ -220,7 +215,7 @@ class LiftingLineTheory():
             def linear_spacing(start,end,number_of_stations):
                 return np.linspace(0,1,number_of_stations)
 
-            self.analysis = asb.LiftingLine(
+            self.analysis = LiftingLineInviscid(
                 airplane=self.airplane,
                 op_point=self.op_point,
                 spanwise_spacing_function=linear_spacing,
@@ -289,7 +284,7 @@ class LiftingLineTheory():
                 alpha=float(alpha),
             )
 
-            self.analysis = asb.LiftingLine(
+            self.analysis = LiftingLineInviscid(
                 airplane=self.airplane,
                 op_point=self.op_point,
             )
@@ -351,251 +346,103 @@ if __name__ == "__main__":
     altitude_m = 0.0
     atmosphere=asb.Atmosphere(altitude_m)
     velocity_incompressible=30.0
-    velocity_compressible=200.0
+    velocity_compressible=150.0
+                                
+    angles_of_attack_deg=np.linspace(-5.0,5.0,15)
+    lift_coefficients_incompressible=[]
+    reference_lift_coefficients_incompressible=[]
+    lift_coefficients_compressible=[]
+    reference_lift_coefficients_compressible=[]
+
     from global_parameters import Assumptions
     assumptions=Assumptions()
+       
+    for angle_of_attack_deg in angles_of_attack_deg:
+        main=LiftingSurfacePlanform(aspect_ratio=25.0,
+                                span=2.0,
+                                sweep_quarter_deg=0.0, #unswept wing in incompressible flow
+                                taper=0.3,
+                                tip_twist_rad=0.0)
 
-    import json
-    import os
+        lifting_line_theory=LiftingLineTheory(aircraft_parameters,
+                            main,
+                            horizontal,
+                            vertical,
+                            canard)
 
-    RESULTS_FILE = "llt_results.jsonl"
+        lifting_line_theory.initialize_airfoils()
+    
+        lifting_line_theory.make_full_airplane_model(main_wing=True,
+                                                canard=False,
+                                                horizontal_stabilizer=False,
+                                                vertical_stabilizer=False)
+        _,results_incompressible=lifting_line_theory.run_llt_arbitrary_analysis(altitude_m,
+                                                                            velocity_incompressible,
+                                                                            angle_of_attack_deg)
+        lift_coefficients_incompressible.append(results_incompressible["CL"])
+        reference_incompressible_slope = assumptions.airfoil_C_l_alpha/(1+assumptions.airfoil_C_l_alpha/np.pi/lifting_line_theory.wing_planform.aspect_ratio)
 
-    # ── Load existing results ────────────────────────────────────────────────────
-    results_db = {}
-    if os.path.exists(RESULTS_FILE):
-        with open(RESULTS_FILE, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    entry = json.loads(line)
-                    results_db[entry["key"]] = entry
+        reference_lift_coefficients_incompressible.append(np.radians(angle_of_attack_deg)*reference_incompressible_slope)
+        difference_incompressible=abs(reference_lift_coefficients_incompressible[-1]-lift_coefficients_incompressible[-1])
+        if difference_incompressible>0.1:
+            print(r'Incompressible difference larger than 0.1 at ', angle_of_attack_deg, 'degrees.')
 
-    def _key(airfoil: str, sweep: float, taper: float, aoa_deg: float) -> str:
-        """Canonical key for a single simulation point."""
-        return f"{airfoil}__sweep{int(sweep):02d}__taper{taper:.2f}__aoa{float(aoa_deg):+.1f}"
 
-    def _save_entry(key: str) -> None:
-        """Append a single new result to the file. Never rewrites existing data."""
-        entry = results_db[key]
-        with open(RESULTS_FILE, "a") as f:
-            f.write(json.dumps(entry) + "\n")
+        main=LiftingSurfacePlanform(aspect_ratio=25.0,
+                                span=2.0,
+                                sweep_quarter_deg=0.0, #swept wing in compressible flow
+                                taper=0.3,
+                                tip_twist_rad=0.0)
 
-    # ── Simulation loop ──────────────────────────────────────────────────────────
-    angles_of_attack_deg = np.arange(0, 8, 1)
-    airfoils             = ['NACA0008','NACA0010', 'NACA0012', 'custom']
-    sweeps               = np.arange(0, 16, 5)
-    tapers               = np.arange(0.1, 1.0, 0.1) 
-    wing_number_of_sections=30
-    angles_of_attack_rad = np.radians(angles_of_attack_deg)
-    print('Reynolds incompressible: ',atmosphere.density()*velocity_incompressible*(2.0/27.0)/atmosphere.dynamic_viscosity())
-    print('Reynolds compressible: ',atmosphere.density()*velocity_compressible*(2.0/27.0)/atmosphere.dynamic_viscosity())
+        lifting_line_theory=LiftingLineTheory(aircraft_parameters,
+                            main,
+                            horizontal,
+                            vertical,
+                            canard)
 
-    # AoA range used exclusively for the 2D RMS plots
-    AOA_RMS_MIN, AOA_RMS_MAX = 0, 5   # degrees, inclusive
+        lifting_line_theory.initialize_airfoils()
+    
+        lifting_line_theory.make_full_airplane_model(main_wing=True,
+                                                canard=False,
+                                                horizontal_stabilizer=False,
+                                                vertical_stabilizer=False)
 
-    for airfoil in airfoils:
-        for sweep in sweeps:
-            for taper in tapers:
-                for angle_of_attack_deg in angles_of_attack_deg:
+        _,results_compressible=lifting_line_theory.run_llt_arbitrary_analysis(altitude_m,
+                                                                            velocity_compressible,
+                                                                            angle_of_attack_deg)
+        lift_coefficients_compressible.append(results_compressible["CL"])
+        
+        sweep_half_rad = np.arctan(np.tan(lifting_line_theory.wing_planform.sweep_LE_rad)-0.5*2*lifting_line_theory.wing_planform.c_root/lifting_line_theory.wing_planform.span*(1-lifting_line_theory.wing_planform.taper))
+        mach=velocity_compressible/atmosphere.speed_of_sound()
+        beta=np.sqrt(1-mach**2)
+        kappa=assumptions.airfoil_C_l_alpha/(2*np.pi)
+        reference_compressible_slope = 2*np.pi*lifting_line_theory.wing_planform.aspect_ratio/(2+np.sqrt(4+(lifting_line_theory.wing_planform.aspect_ratio*beta/kappa)**2*(1+(np.tan(sweep_half_rad))**2/beta**2)))
+        reference_lift_coefficients_compressible.append(np.radians(angle_of_attack_deg)*reference_compressible_slope)
+        difference_compressible=abs(reference_lift_coefficients_compressible[-1]-lift_coefficients_compressible[-1])
+        #relative_difference_compressible=abs()
+        if difference_compressible>0.1:
+            print(r'Compressible difference larger than 0.1 at ', angle_of_attack_deg, 'degrees.')
+    
+    angles_of_attack_rad=angles_of_attack_deg*np.pi/180
 
-                    k = _key(airfoil, sweep, taper, angle_of_attack_deg)
+    relative_difference_incompressible_slope=abs(reference_incompressible_slope-(lift_coefficients_incompressible[-1]-lift_coefficients_incompressible[-2])/(angles_of_attack_rad[-1]-angles_of_attack_rad[-2]))/reference_incompressible_slope
+    relative_difference_compressible_slope=abs(reference_compressible_slope-(lift_coefficients_compressible[-1]-lift_coefficients_compressible[-2])/(angles_of_attack_rad[-1]-angles_of_attack_rad[-2]))/reference_compressible_slope
+    
+    print('Percentage difference in incompressible slope: ',relative_difference_incompressible_slope)
+    print('Percentage difference in compressible slope: ',relative_difference_compressible_slope)
 
-                    # ── Incompressible ───────────────────────────────────────────
-                    k_inc = k + "__inc"
-                    if k_inc not in results_db:
-                        main = LiftingSurfacePlanform(aspect_ratio=27.0,
-                                                    span=2.0,
-                                                    sweep_quarter_deg=float(sweep),
-                                                    taper=float(taper),
-                                                    tip_twist_rad=0.0)
-                        lifting_line_theory = LiftingLineTheory(aircraft_parameters,
-                                                                main, horizontal,
-                                                                vertical, canard)
-                        lifting_line_theory.wing_number_of_sections = wing_number_of_sections
-                        lifting_line_theory.initialize_airfoils(airfoil)
-                        lifting_line_theory.make_full_airplane_model(
-                            main_wing=True, canard=False,
-                            horizontal_stabilizer=False, vertical_stabilizer=False)
-
-                        _, res_inc = lifting_line_theory.run_llt_arbitrary_analysis(
-                            altitude_m, velocity_incompressible, float(angle_of_attack_deg))
-
-                        reference_incompressible_slope = (
-                            assumptions.airfoil_C_l_alpha
-                            / (1 + assumptions.airfoil_C_l_alpha
-                            / np.pi / lifting_line_theory.wing_planform.aspect_ratio)
-                        )
-
-                        results_db[k_inc] = {
-                            "key":              k_inc,
-                            "airfoil":          airfoil,
-                            "sweep_deg":        float(sweep),
-                            "taper":            float(taper),
-                            "aoa_deg":          float(angle_of_attack_deg),
-                            "flow":             "incompressible",
-                            "CL":               float(res_inc["CL"]),
-                            "CL_ref":           float(np.radians(angle_of_attack_deg)
-                                                    * reference_incompressible_slope),
-                            "reference_slope":  float(reference_incompressible_slope),
-                        }
-                        _save_entry(k_inc)
-                        print(f"[new]   {k_inc}")
-                    else:
-                        print(f"[cache] {k_inc}")
-
-                    # ── Compressible ─────────────────────────────────────────────
-                    k_comp = k + "__comp"
-                    if k_comp not in results_db:
-                        main = LiftingSurfacePlanform(aspect_ratio=27.0,
-                                                    span=2.0,
-                                                    sweep_quarter_deg=float(sweep),
-                                                    taper=float(taper),
-                                                    tip_twist_rad=0.0)
-                        lifting_line_theory = LiftingLineTheory(aircraft_parameters,
-                                                                main, horizontal,
-                                                                vertical, canard)
-                        lifting_line_theory.wing_number_of_sections = wing_number_of_sections
-                        lifting_line_theory.initialize_airfoils(airfoil)
-                        lifting_line_theory.make_full_airplane_model(
-                            main_wing=True, canard=False,
-                            horizontal_stabilizer=False, vertical_stabilizer=False)
-
-                        _, res_comp = lifting_line_theory.run_llt_arbitrary_analysis(
-                            altitude_m, velocity_compressible, float(angle_of_attack_deg))
-
-                        sweep_half_rad = np.arctan(
-                            np.tan(lifting_line_theory.wing_planform.sweep_LE_rad)
-                            - 0.5 * 2 * lifting_line_theory.wing_planform.c_root
-                            / lifting_line_theory.wing_planform.span
-                            * (1 - lifting_line_theory.wing_planform.taper)
-                        )
-                        mach  = velocity_compressible / atmosphere.speed_of_sound()
-                        beta  = np.sqrt(1 - mach**2)
-                        if airfoil == 'custom':
-                            kappa = (1.0 / np.radians(9.0)) / (2 * np.pi)
-                        elif airfoil == 'NACA0012':
-                            kappa = (1.0 / np.radians(9.0)) / (2 * np.pi)
-                        elif airfoil == 'NACA0010':
-                            kappa = (1.0 / np.radians(9.5)) / (2 * np.pi)
-                        elif airfoil == 'NACA0008':
-                            kappa = (1.0/np.radians(9.5))/(2*np.pi)
-                        else:
-                            raise ValueError()
-                        reference_compressible_slope = (
-                            2 * np.pi * lifting_line_theory.wing_planform.aspect_ratio
-                            / (2 + np.sqrt(
-                                4 + (lifting_line_theory.wing_planform.aspect_ratio * beta / kappa)**2
-                                * (1 + np.tan(sweep_half_rad)**2 / beta**2)
-                            ))
-                        )
-
-                        results_db[k_comp] = {
-                            "key":              k_comp,
-                            "airfoil":          airfoil,
-                            "sweep_deg":        float(sweep),
-                            "taper":            float(taper),
-                            "aoa_deg":          float(angle_of_attack_deg),
-                            "flow":             "compressible",
-                            "CL":               float(res_comp["CL"]),
-                            "CL_ref":           float(np.radians(angle_of_attack_deg)
-                                                    * reference_compressible_slope),
-                            "reference_slope":  float(reference_compressible_slope),
-                            "mach":             float(mach),
-                            "beta":             float(beta),
-                            "sweep_half_rad":   float(sweep_half_rad),
-                        }
-                        _save_entry(k_comp)
-                        print(f"[new]   {k_comp}")
-                    else:
-                        print(f"[cache] {k_comp}")
-
-    # ── CL-alpha plots (full AoA range, one figure per airfoil/sweep/taper) ─────
-    for airfoil in airfoils:
-        for sweep in sweeps:
-            for taper in tapers:
-
-                case_CL_incompressible     = []
-                case_CL_ref_incompressible = []
-                case_CL_compressible       = []
-                case_CL_ref_compressible   = []
-
-                for angle_of_attack_deg in angles_of_attack_deg:
-                    k     = _key(airfoil, sweep, taper, angle_of_attack_deg)
-                    e_inc  = results_db[k + "__inc"]
-                    e_comp = results_db[k + "__comp"]
-                    case_CL_incompressible.append(e_inc["CL"])
-                    case_CL_ref_incompressible.append(e_inc["CL_ref"])
-                    case_CL_compressible.append(e_comp["CL"])
-                    case_CL_ref_compressible.append(e_comp["CL_ref"])
-
-                case_CL_incompressible     = np.array(case_CL_incompressible)
-                case_CL_ref_incompressible = np.array(case_CL_ref_incompressible)
-                case_CL_compressible       = np.array(case_CL_compressible)
-                case_CL_ref_compressible   = np.array(case_CL_ref_compressible)
-
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.plot(angles_of_attack_deg, case_CL_incompressible,
-                        'o-',  color='tab:blue', linewidth=0.5, markersize=3,
-                        label='Incompressible — simulation')
-                ax.plot(angles_of_attack_deg, case_CL_ref_incompressible,
-                        'o--', color='tab:blue', linewidth=0.5, markersize=3,
-                        label='Incompressible — Prandtl')
-                ax.plot(angles_of_attack_deg, case_CL_compressible,
-                        'o-',  color='tab:red', linewidth=0.5, markersize=3,
-                        label='Compressible — simulation')
-                ax.plot(angles_of_attack_deg, case_CL_ref_compressible,
-                        'o--', color='tab:red', linewidth=0.5, markersize=3,
-                        label='Compressible — DATCOM')
-                ax.set_ylabel(r'$C_L$')
-                ax.set_xlabel(r'$\alpha$ [deg]')
-                ax.set_title(f'Airfoil: {airfoil} | Sweep: {sweep}° | Taper: {taper:.2f}')
-                ax.grid(True, which='both', linestyle='--', linewidth=0.4, alpha=0.7)
-                ax.minorticks_on()
-                ax.legend(fontsize=7)
-                fig.tight_layout()
-                filename = f'CL_alpha_{airfoil}_sweep{int(sweep):02d}deg_taper{taper:.2f}.png'
-                fig.savefig(filename, dpi=150)
-                plt.close(fig)
-                print(f'  Figure saved: {filename}')
-
-    # ── 2D RMS plots (sweep × taper, filtered AoA range) ────────────────────────
-    # axes: rows = sweeps, cols = tapers
-    aoa_mask = (angles_of_attack_deg >= AOA_RMS_MIN) & (angles_of_attack_deg <= AOA_RMS_MAX)
-
-    for airfoil in airfoils:
-        for flow, suffix, ref_label in [
-            ("incompressible", "__inc",  "incompressible"),
-            ("compressible",   "__comp", "compressible"),
-        ]:
-            # rms_grid[i, j] = RMS error for sweeps[i], tapers[j]
-            rms_grid = np.zeros((len(sweeps), len(tapers)))
-
-            for i, sweep in enumerate(sweeps):
-                for j, taper in enumerate(tapers):
-                    errors = []
-                    for angle_of_attack_deg in angles_of_attack_deg[aoa_mask]:
-                        k = _key(airfoil, sweep, taper, angle_of_attack_deg) + suffix
-                        e = results_db[k]
-                        errors.append(e["CL"] - e["CL_ref"])
-                    rms_grid[i, j] = np.sqrt(np.mean(np.array(errors)**2))
-
-            fig, ax = plt.subplots(figsize=(6, 4))
-            # pcolormesh expects edges; build them from cell centres
-            sweep_edges = np.append(sweeps  - (sweeps[1]  - sweeps[0])  / 2,
-                                    sweeps[-1]  + (sweeps[1]  - sweeps[0])  / 2)
-            taper_edges = np.append(tapers  - (tapers[1]  - tapers[0])  / 2,
-                                    tapers[-1]  + (tapers[1]  - tapers[0])  / 2)
-            pcm = ax.pcolormesh(taper_edges, sweep_edges, rms_grid,
-                                cmap='viridis', shading='flat')
-            fig.colorbar(pcm, ax=ax, label=r'RMS $\Delta C_L$')
-            ax.set_xlabel('Taper ratio')
-            ax.set_ylabel('Sweep (quarter-chord) [deg]')
-            ax.set_yticks(sweeps)
-            ax.set_xticks(tapers)
-            ax.set_title(f'RMS $C_L$ error | {airfoil} | {flow}\n'
-                        f'AoA range: {AOA_RMS_MIN}° to {AOA_RMS_MAX}°')
-            fig.tight_layout()
-            filename = f'RMS_error_{airfoil}_{flow}.png'
-            fig.savefig(filename, dpi=150)
-            plt.close(fig)
-            print(f'  Figure saved: {filename}')
+    plt.plot(angles_of_attack_deg, lift_coefficients_incompressible,
+             'o-', color='tab:blue', linewidth=0.5, markersize=3, label='Incompressible Aerosandbox')
+    plt.plot(angles_of_attack_deg, reference_lift_coefficients_incompressible,
+             'o-', color='tab:orange', linewidth=0.5, markersize=3, label='Incompressible Prandtl')
+    plt.plot(angles_of_attack_deg, lift_coefficients_compressible,
+             'o-', color='tab:green', linewidth=0.5, markersize=3, label='Compressible Aerosandbox')
+    plt.plot(angles_of_attack_deg, reference_lift_coefficients_compressible,
+             'o-', color='tab:red', linewidth=0.5, markersize=3, label='Compressible DATCOM')
+    plt.ylabel(r'$C_L$')
+    plt.xlabel(r'$\alpha$ [deg]')
+    plt.grid(True, which='both', linestyle='--', linewidth=0.4, alpha=0.7)
+    plt.minorticks_on()
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
