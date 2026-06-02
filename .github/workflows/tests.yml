@@ -30,4 +30,4 @@ jobs:
 
       # Run tests
       - name: Run pytest
-        run: pytest tests
+        run: pytest tests_final
