@@ -1,6 +1,6 @@
 import sys
 import os
-import aerosandbox.numpy as np
+import numpy as np
 import aerosandbox as asb
 import typing as ty
 
