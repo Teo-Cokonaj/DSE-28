@@ -9,6 +9,9 @@ class Component:
         self.characteristic_length = characteristic_length
         self.laminar_fraction = laminar_fraction
         self.surface_reynolds_factor = surface_reynolds_factor
+
+        self.CD0_cache = dict()
+        self.drag_area_cache = dict()
     
 
     def Cf(self, altitude:float, mach:float)->float:
@@ -38,3 +41,8 @@ class Component:
 
     def drag_area_contribution(self, mach:float)->float:
         return 0.
+    
+
+    def add_cache_entry(self, name:str, mach:float, altitude:float):
+        self.CD0_cache[name] = self.CD0_contribution(altitude, mach)
+        self.drag_area_cache[name] = self.drag_area_contribution(mach)
