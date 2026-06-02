@@ -9,10 +9,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from global_parameters import CONSTANTS, Assumptions
 from Class_I.Mission_Segment import Mission_Segment
 
-def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, time_half_turn:float, CL_max_glide_ratio_go_around:float, 
+def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude_mach_max:float, time_half_turn:float, CL_max_glide_ratio_go_around:float, 
                        glide_ratio_mach_max:float, glide_ratio_cruise:float, glide_ratio_go_around:float, airspeed_approach:float,
                        wing_loading:float, efficiency_cruise:float, energy_density_saf:float, 
-                       assumptions: Assumptions,
+                       mach_cruise:float, mach_max:float, time_cruise:float, time_mach_max:float,
                        debug=False,
                        efficiency_go_around:float=None, efficiency_mach_max:float=None, ) -> float: 
     if efficiency_go_around is None:
@@ -22,11 +22,11 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, time_hal
 
     #determining the cruise parameters
     atmosphere_cruise = asb.Atmosphere(altitude_cruise)
-    airspeed_cruise = atmosphere_cruise.speed_of_sound()*assumptions.mach_cruise
+    airspeed_cruise = atmosphere_cruise.speed_of_sound()*mach_cruise
     
     #determining the max Mach parameters
-    atmosphere_mach_max = asb.Atmosphere(assumptions.altitude_mach_max)
-    airspeed_mach_max = atmosphere_mach_max.speed_of_sound()*assumptions.mach_max
+    atmosphere_mach_max = asb.Atmosphere(altitude_mach_max)
+    airspeed_mach_max = atmosphere_mach_max.speed_of_sound()*mach_max
     
     #determining go around parameters
     omega_turn = np.pi/time_half_turn
@@ -37,8 +37,8 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, time_hal
     load_factor_go_around = .5*(quadratic_b_term + np.sqrt(quadratic_b_term**2+4))
     airspeed_go_around = np.sqrt(wing_loading * 2/rho_go_around_altitude * load_factor_go_around/CL_max_glide_ratio_go_around)
 
-    segment_cruise = Mission_Segment(glide_ratio_cruise, airspeed_cruise, assumptions.time_cruise, altitude_cruise)
-    segment_mach_max = Mission_Segment(glide_ratio_mach_max, airspeed_mach_max, assumptions.time_mach_max, assumptions.altitude_mach_max-altitude_cruise, airspeed_cruise)
+    segment_cruise = Mission_Segment(glide_ratio_cruise, airspeed_cruise, time_cruise, altitude_cruise)
+    segment_mach_max = Mission_Segment(glide_ratio_mach_max, airspeed_mach_max, time_mach_max, altitude_mach_max-altitude_cruise, airspeed_cruise)
     segment_go_around = Mission_Segment(glide_ratio_go_around, airspeed_go_around, time_half_turn * 2, altitude_go_around, airspeed_approach) #we make a full 360 turn in a go around
     segment_go_around.equivalent_range *= CONSTANTS.N_LANDING_ATTEMPTS 
 
