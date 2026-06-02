@@ -158,7 +158,9 @@ class Planform(Component):
     
 
     def estimate_weight(self, mach:float, altitude:float)->float:
-        pass #Use lift parameters and EASA lift distribution. Make relevant assumptions about the structure
+        #TODO implement planform weight estimation
+        #maybe split into inherited classes
+        pass #Use 2d lift parameters from self and EASA lift distributions. Make relevant assumptions about the structure
         #Put the relevant material properties in constants
 
     
