@@ -1,6 +1,6 @@
 import os
 import sys
-import aerosandbox.numpy as np
+import numpy as np
 import typing as ty
 import matplotlib.pyplot as plt
 import matplotlib

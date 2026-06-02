@@ -1,12 +1,11 @@
 import aerosandbox as asb
 import os
 import sys
-import functools as fct
 
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.global_parameters import CONSTANTS
+from global_parameters import CONSTANTS
 
 class ThrustLapse():
     def __init__(self, atmosphere:asb.Atmosphere, theta_t_break:float=1.07):
