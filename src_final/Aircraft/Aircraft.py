@@ -1,13 +1,14 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from Planform import Planform
-from Fuselage import Fuselage
-from Replaceable import Replaceable
+
+from Aircraft.Planform import Planform
+from Aircraft.Fixed import Fixed
 
 class Aircraft:
     def __init__(self,
-                 fuselage: Fuselage,
-                 replaceable: Replaceable
+                 fixed: Fixed,
+                 planforms:list[Planform]
                  ):
-        self.one=1
+        self.fixed = fixed
+        self.planforms = planforms

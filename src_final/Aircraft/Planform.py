@@ -3,7 +3,7 @@ import os
 import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Aircraft import Aircraft
-from Drag import Component
+from Drag.Component import Component
 
 class Planform(Component):
     def __init__(self,
@@ -11,23 +11,35 @@ class Planform(Component):
                  span: float, 
                  sweep_quarter_deg: float,
                  taper: float,
-                 tip_twist_rad: float,
-                 surface_wetted:float,
-                 length_total:float,
+                 thickness_to_chord:float,
+                 cm_quarter_chord:float,
+                 wetted_surface_ratio:float,
+                 interference_factor:float,
+                 airfoil_lift_slope:float=np.pi*2,
+                 cl0:float=0.,
                  laminar_fraction:float=.05,
+                 chord_fraction_maximum_thickness:float = .3,
+                 pos_max_camber:float = np.inf
                  ):
-        super().__init__(
-            interference_factor = 1., #fuselage serves as the base of the buildup
-            surface_wetted = surface_wetted,
-            characteristic_length = length_total,
-            laminar_fraction = laminar_fraction 
-        )
 
+        self.thickness_to_chord = thickness_to_chord
+        self.cm_quarter_chord = cm_quarter_chord
+        self.airfoil_lift_slope = airfoil_lift_slope
+        self.cl_0 = cl0
         self.aspect_ratio = aspect_ratio
-        self.tip_twist = tip_twist_rad
         self.sweep_quarter_rad = np.radians(sweep_quarter_deg)
         self.taper = taper
         self.wing_area = span**2/aspect_ratio
+
+        self.chord_fraction_maximum_thickness = chord_fraction_maximum_thickness
+        self.pos_max_camber = pos_max_camber
+
+        super().__init__(
+            interference_factor = self.interfereance_factor, #high wing
+            surface_wetted = 2 * wetted_surface_ratio * self.wing_area,
+            characteristic_length = self.MAC,
+            laminar_fraction = laminar_fraction 
+        )
 
 
     @property
@@ -129,4 +141,10 @@ class Planform(Component):
         return sum(sectional_AC_area_products) / sum(sectional_areas)
 
     
+    def form_factor(self, mach)->float:
 
+        sweep_thickness_to_chord_max = np.arctan(np.tan(self.sweep_LE_rad) + self.chord_fraction_maximum_thickness*2*self.c_root/self.span*(1-self.taper))
+        
+        FF = ( 1 + 0.6 / self.pos_max_camber * self.thickness_to_chord + 100 * self.thickness_to_chord ** 4 ) * (1.34 * mach ** 0.18 * np.cos(sweep_thickness_to_chord_max) ** 0.28)
+
+        return FF
