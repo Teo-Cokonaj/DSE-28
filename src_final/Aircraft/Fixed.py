@@ -32,5 +32,8 @@ class Fixed:
         self.engine_bay = engine_bay
 
 
-    def drag_components(self):
-        return [self.fuselage, self.nose_gear, self.main_gear, self.main_gear, self.gear_bay, self.gear_bay, self.engine_bay, self.engine_bay]
+    def drag_components(self, gear_down:bool):
+        if gear_down:
+            return [self.fuselage, self.nose_gear, self.main_gear, self.main_gear, self.gear_bay, self.gear_bay, self.engine_bay, self.engine_bay]
+        else:
+            return [self.fuselage, self.gear_bay, self.gear_bay, self.engine_bay, self.engine_bay]
