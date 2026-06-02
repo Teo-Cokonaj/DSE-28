@@ -9,4 +9,7 @@ class Replaceable:
                  horizontal_tail_planform: Planform,
                  canard_planform: Planform,
                  ):
-        self.one=1
+        self.main_wing_planform=main_wing_planform
+        self.horizontal_tail_planform=horizontal_tail_planform
+        self.canard_planform=canard_planform
+        
