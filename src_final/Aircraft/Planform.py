@@ -15,6 +15,8 @@ class Planform(Component):
                  cm_quarter_chord:float,
                  wetted_surface_ratio:float,
                  interference_factor:float,
+                 clmax:float,
+                 flap:bool,
                  airfoil_lift_slope:float=np.pi*2,
                  cl0:float=0.,
                  laminar_fraction:float=.05,
@@ -26,6 +28,8 @@ class Planform(Component):
         self.cm_quarter_chord = cm_quarter_chord
         self.airfoil_lift_slope = airfoil_lift_slope
         self.cl_0 = cl0
+        self.clmax = clmax
+        self.flap = flap
         self.aspect_ratio = aspect_ratio
         self.sweep_quarter_rad = np.radians(sweep_quarter_deg)
         self.taper = taper
@@ -33,9 +37,12 @@ class Planform(Component):
 
         self.chord_fraction_maximum_thickness = chord_fraction_maximum_thickness
         self.pos_max_camber = pos_max_camber
+        self.weight_cache = dict()
+
+        self.oswald = 4.61*(1 - 0.45 * self.aspect_ratio**.68)*np.cos(self.sweep_LE_rad)**0.15 - 3.1
 
         super().__init__(
-            interference_factor = self.interfereance_factor, #high wing
+            interference_factor = interference_factor, #high wing
             surface_wetted = 2 * wetted_surface_ratio * self.wing_area,
             characteristic_length = self.MAC,
             laminar_fraction = laminar_fraction 
@@ -148,3 +155,13 @@ class Planform(Component):
         FF = ( 1 + 0.6 / self.pos_max_camber * self.thickness_to_chord + 100 * self.thickness_to_chord ** 4 ) * (1.34 * mach ** 0.18 * np.cos(sweep_thickness_to_chord_max) ** 0.28)
 
         return FF
+    
+
+    def estimate_weight(self, mach:float, altitude:float)->float:
+        pass #Use lift parameters and EASA lift distribution. Make relevant assumptions about the structure
+        #Put the relevant material properties in constants
+
+    
+    def cache_weight(self, name:str, mach:float, altitude:float)->float:
+        self.weight_cache[name] = self.estimate_weight(mach, altitude)
+
