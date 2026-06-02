@@ -51,13 +51,15 @@ class MatchingDiagramJet(MatchingDiagram):
         self.constraints_thrust_weight[constraint_label] = lambda wing_loading: numerator / thrust_lapse.thrust_lapse(mach_from_wing_loading(wing_loading), self.bypass)
 
 
-    def add_takeoff_field_length(self, constraint_label:str, field_length:float, inviscid_ratio:float, CL_takeoff:float, atmosphere:asb.Atmosphere=asb.Atmosphere()):
+    def add_takeoff_field_length(self, constraint_label:str, field_length:float, inviscid_ratio:float, CL_takeoff:float,
+                                 atmosphere:asb.Atmosphere=asb.Atmosphere()):
+        
         denisty = atmosphere.density()
         speed_of_sound = atmosphere.speed_of_sound()
         thrust_lapse = ThrustLapse(atmosphere)
 
         proportionality = 1.15 * np.sqrt(self.engine_inoperative_coefficient / field_length / .85 / CONSTANTS.G0 / denisty / inviscid_ratio)
-        intercept = 4 * CONSTANTS.OBSTACLE_HEIGHT * self.engine_inoperative_coefficient / field_length
+        intercept = 4 * CONSTANTS.HEIGHT_OBSTACLE * self.engine_inoperative_coefficient / field_length
 
         mach_from_wing_loading = lambda wing_loading: np.sqrt(wing_loading * 2/denisty / CL_takeoff) / speed_of_sound
 
