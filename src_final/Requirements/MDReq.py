@@ -19,13 +19,13 @@ class MDReq(Requirement):
                matching_diagram:MatchingDiagramJet, 
                assumptions:Assumptions) -> bool:
         
-        landing_constraint = matching_diagram.add_landing_field_length(
+        matching_diagram.add_landing_field_length(
             constraint_label = "Landing Length", 
             field_length = assumptions.airfield_length, 
             CL_max = aircraft.cl_max() # placeholder function
             )
 
-        cruise_constraint_halfFuelled = matching_diagram.add_cruise_speed(
+        matching_diagram.add_cruise_speed(
             constraint_label = "Mach max", 
             mach = assumptions.mach_max, 
             CD0 = 0,
@@ -34,7 +34,7 @@ class MDReq(Requirement):
             beta = (1 - (fixed.fuel_mass / aircraft.total_mass()) / 2) #NOTE: we must be able to perform mach max half-fuelled
         )
         
-        cruise_constraint = matching_diagram.add_cruise_speed(
+        matching_diagram.add_cruise_speed(
             constraint_label = "Cruise speed",
             mach = CONSTANTS.MACH_CRUISE,
             CD0 = 0,
@@ -42,7 +42,7 @@ class MDReq(Requirement):
             atmosphere = asb.Atmosphere(assumptions.altitude_mach_max)
         )
 
-        climb_constraint_AEO = matching_diagram.add_climb_gradient(
+        matching_diagram.add_climb_gradient(
             constraint_label = "Climb gradient AEO",
             tan_gradient = CONSTANTS.CLIMB_GRADIENT_AEO,
             CD0 = 0,
@@ -51,7 +51,7 @@ class MDReq(Requirement):
             atmosphere = asb.Atmosphere(0.)
         )
         
-        climb_constraint_OEI = matching_diagram.add_climb_gradient(
+        matching_diagram.add_climb_gradient(
             constraint_label = "Climb gradient OEI",
             tan_gradient = CONSTANTS.CLIMB_GRADIENT_OEI,
             CD0 = 0,
@@ -61,27 +61,25 @@ class MDReq(Requirement):
         )
         #NOTE: there is also a 3% climb gradient on balked landing in the landing configuration, but since our Toff and landing configs are same (no HLDs), we skip that one
 
-        TO_constraint = matching_diagram.add_takeoff_field_length(
+        matching_diagram.add_takeoff_field_length(
             constraint_label = "Takeoff length", 
             field_length = assumptions.airfield_length,
             inviscid_ratio = planform.inviscid_ratio,
-            CL_max = aircraft.cl_max() # placeholder function
+            CL_takeoff = aircraft.cl_max() # placeholder function
         )
         
         wing_loading = aircraft.wing_loading()
         thrust_to_weight = aircraft.thrust_to_weight()
         
-        results = {
-        "landing":            wing_loading <= landing_constraint,
-        "cruise_half_fuel":   thrust_to_weight >= cruise_constraint_halfFuelled,
-        "cruise":             thrust_to_weight >= cruise_constraint,
-        "climb_AEO":          thrust_to_weight >= climb_constraint_AEO,
-        "climb_OEI":          thrust_to_weight >= climb_constraint_OEI,
-        "takeoff":            wing_loading >= TO_constraint
-        }
+        results = {}
 
-        all_satisfied = all(results.values())
-        return all_satisfied, results
+        for label, ws_constraint in matching_diagram.constraints_wing_loading.items():
+            results[label] = bool(wing_loading <= ws_constraint)
+
+        for label, tw_constraint in matching_diagram.constraints_thrust_weight.items():
+            results[label] = bool(thrust_to_weight >= tw_constraint(wing_loading))
+
+        return all(results.values())
         
         
     
