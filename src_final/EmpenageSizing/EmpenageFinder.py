@@ -7,29 +7,37 @@ from Aircraft.Planform import Planform
 from Aircraft.Fixed import Fixed
 from abc import ABC, abstractmethod
 
-# --- Statistical empenage assumptions ---
-A_H     = 4.5       # horizontal tail aspect ratio
-TAPER_H = 0.40      # horizontal tail taper
-SWEEP_H = 25.0      # horizontal tail quarter-chord sweep [deg]
-T_C_H   = 0.12      # horizontal tail thickness-to-chord
+# ---------------------------------------------------------------------------
+# Statistical assumptions
+# ---------------------------------------------------------------------------
+A_H     = 4.5    # horizontal tail aspect ratio
+TAPER_H = 0.40
+SWEEP_H = 25.0   # quarter-chord sweep [deg]
+T_C_H   = 0.12
 
-A_C     = 3.0       # canard aspect ratio
-TAPER_C = 0.35      # canard taper
-SWEEP_C = 15.0      # canard quarter-chord sweep [deg]
-T_C_C   = 0.10      # canard thickness-to-chord
+A_C     = 3.0    # canard aspect ratio
+TAPER_C = 0.35
+SWEEP_C = 15.0   # quarter-chord sweep [deg]
+T_C_C   = 0.10
 
-SM   = 0.05         # required static margin [fraction of MAC]
-V_H  = 0.35         # horizontal tail volume coefficient (unstable sizing)
-V_C  = 0.10         # canard volume coefficient (3-surface / unstable sizing)
+SM_STABLE   = 0.05   # static margin for stable design   (NP = CG + 5% MAC)
+SM_UNSTABLE = 0.00   # boundary for just-unstable design (NP = CG)
 
-N = 50              # spanwise sections for AC integration
+V_C = 0.10   # canard volume coefficient — used in 3-surface to pin canard size
 
-# Return type: (tail_planform | None, canard_planform | None)
+# Statistical empenage weight model
+RHO_SURF_H = 14.0   # kg/m²  — horizontal tail surface density (aluminium structure)
+RHO_SURF_C = 12.0   # kg/m²  — canard surface density (lighter: thinner, smaller)
+X_CG_FRAC  = 0.40   # structural CG at 40 % MAC from LE (statistical)
+
+N = 50       # spanwise sections for aerodynamic centre integration
+
+# Return type alias: (tail: Planform | None, canard: Planform | None)
 EmpenageResult = tuple
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Module-level helpers
 # ---------------------------------------------------------------------------
 
 def _sweep_half(sweep_quarter_rad: float, c_root: float, span: float, taper: float) -> float:
@@ -38,11 +46,11 @@ def _sweep_half(sweep_quarter_rad: float, c_root: float, span: float, taper: flo
 
 
 def _CL_alpha(planform: Planform) -> float:
-    """3D lift-curve slope via Helmbold–DATCOM formula [1/rad]."""
-    a0   = planform.airfoil_lift_slope
-    AR   = planform.aspect_ratio
-    kap  = a0 / (2 * np.pi)
-    Lam  = _sweep_half(planform.sweep_quarter_rad, planform.c_root, planform.span, planform.taper)
+    """3-D lift-curve slope via Helmbold–DATCOM [1/rad]."""
+    a0  = planform.airfoil_lift_slope
+    AR  = planform.aspect_ratio
+    kap = a0 / (2 * np.pi)
+    Lam = _sweep_half(planform.sweep_quarter_rad, planform.c_root, planform.span, planform.taper)
     return a0 * AR / (2 + np.sqrt(4 + (AR / kap) ** 2 * (1 + np.tan(Lam) ** 2)))
 
 
@@ -52,26 +60,25 @@ def _downwash(CL_alpha_w: float, AR_w: float) -> float:
 
 
 def _is_set(x) -> bool:
-    """True if x is a real (non-None, non-NaN) position."""
-    return x is not None and not np.isnan(x)
+    """True when x is a real (non-None, non-NaN) position."""
+    return x is not None and not np.isnan(float(x))
 
 
 def _make_planform(S: float, AR: float, taper: float, sweep_deg: float, t_c: float) -> Planform:
-    """Construct a symmetric Planform from area and statistical geometry."""
-    b = np.sqrt(S * AR)
+    """Build a symmetric Planform from area + statistical geometry."""
     return Planform(
-        aspect_ratio             = AR,
-        span                     = b,
-        sweep_quarter_deg        = sweep_deg,
-        taper                    = taper,
-        thickness_to_chord       = t_c,
-        cm_quarter_chord         = 0.0,
-        wetted_surface_ratio     = 2.0,
-        interference_factor      = 1.05,
-        clmax                    = 1.2,
-        flap                     = False,
-        airfoil_lift_slope       = 2 * np.pi,
-        cl0                      = 0.0,
+        aspect_ratio         = AR,
+        span                 = np.sqrt(S * AR),
+        sweep_quarter_deg    = sweep_deg,
+        taper                = taper,
+        thickness_to_chord   = t_c,
+        cm_quarter_chord     = 0.0,
+        wetted_surface_ratio = 2.0,
+        interference_factor  = 1.05,
+        clmax                = 1.2,
+        flap                 = False,
+        airfoil_lift_slope   = 2 * np.pi,
+        cl0                  = 0.0,
     )
 
 
@@ -80,28 +87,32 @@ def _make_planform(S: float, AR: float, taper: float, sweep_deg: float, t_c: flo
 # ---------------------------------------------------------------------------
 
 class EmpenageFinder(ABC):
-    """Base class for empenage sizing."""
+    """
+    Abstract base for empenage sizing.
+
+    The scissor-plot criterion is used throughout:
+        x_np = x_AC_w + (CL_surf_eff / CL_w) * (S_surf/S_w) * l_surf
+
+    stable=True  → SM = SM_STABLE  (5%): S_surf/S_w sized for x_np = x_cg + 0.05*MAC
+    stable=False → SM = SM_UNSTABLE (0%): S_surf/S_w sized for x_np = x_cg  (just-unstable boundary)
+
+    Aerodynamic centres of tail and canard are estimated statistically as
+        x_AC_surf = x_LE_surf + surf.aerodynamic_center(N)   (≈ x_LE + 0.25*MAC_surf)
+
+    Routing (via find_empenage):
+        x_LE_tail set, x_LE_canard NaN → TailFinder
+        x_LE_canard set, x_LE_tail NaN → CanardFinder
+        both set                        → ThreeSurfaceFinder
+
+    Returns: (tail: Planform | None, canard: Planform | None)
+    """
+
+    # ------------------------------------------------------------------
+    # Public entry point
+    # ------------------------------------------------------------------
 
     @staticmethod
     def find_empenage(planform: Planform, fixed: Fixed, stable: bool) -> EmpenageResult:
-        """
-        Size the empenage and return (tail, canard) Planforms.
-
-        Routes to the appropriate finder based on which LE positions are set
-        (non-NaN) in Fixed:
-            x_LE_tail only          → TailFinder
-            x_LE_canard only        → CanardFinder
-            both set                → ThreeSurfaceFinder
-
-        Args:
-            planform: Wing planform (geometry + aerodynamic properties).
-            fixed:    Fixed CAD geometry (CG, LE positions, etc.).
-            stable:   True  → scissor-plot sizing for required SM.
-                      False → volume-coefficient sizing (FBW / unstable).
-
-        Returns:
-            (tail: Planform | None, canard: Planform | None)
-        """
         has_tail   = _is_set(getattr(fixed, 'x_LE_tail',   None))
         has_canard = _is_set(getattr(fixed, 'x_LE_canard', None))
 
@@ -118,209 +129,268 @@ class EmpenageFinder(ABC):
     def size_empenage(self, planform: Planform, fixed: Fixed, stable: bool) -> EmpenageResult:
         pass
 
-    def _wing_aero(self, planform: Planform, fixed: Fixed) -> tuple:
-        """Return (x_AC_wing [abs], CL_alpha_wing)."""
-        x_AC_w     = fixed.x_LE_wing + planform.aerodynamic_center(N)
-        CL_alpha_w = _CL_alpha(planform)
-        return x_AC_w, CL_alpha_w
+    # ------------------------------------------------------------------
+    # Shared aerodynamic utilities
+    # ------------------------------------------------------------------
 
+    def _wing_aero(self, planform: Planform, fixed: Fixed):
+        """Return (x_AC_wing [absolute], CL_alpha_wing)."""
+        return fixed.x_LE_wing + planform.aerodynamic_center(N), _CL_alpha(planform)
 
-# ---------------------------------------------------------------------------
-# Tail-only sizing
-# ---------------------------------------------------------------------------
-
-class TailFinder(EmpenageFinder):
-    """Conventional aft horizontal tail sizing."""
-
-    def size_empenage(self, planform: Planform, fixed: Fixed, stable: bool) -> EmpenageResult:
-        tail = self._find_stable(planform, fixed) if stable else self._find_unstable(planform, fixed)
-        return (tail, None)
-
-    def _find_stable(self, planform: Planform, fixed: Fixed) -> Planform:
+    def _cg_updated(self, fixed: Fixed,
+                    m_tail: float = 0.0, x_cg_tail: float = 0.0,
+                    m_canard: float = 0.0, x_cg_canard: float = 0.0) -> float:
         """
-        Scissor-plot sizing: find minimum S_h so that x_np >= x_cg + SM * MAC_w.
+        Aircraft CG updated to include empenage surface masses.
 
-        Neutral-point equation (with downwash):
-            x_np = x_AC_w + (CL_alpha_h_eff / CL_alpha_w) * (S_h/S_w) * l_h
-
-        Solved iteratively because the tail AC offset depends on S_h (through MAC_h).
+        fixed.mass / fixed.x_cg represent the aircraft WITHOUT the empenage
+        surfaces being sized here (fuselage, wing, engines, payload, etc.).
+        Surface masses are estimated as RHO_SURF * S, structural CG at X_CG_FRAC * MAC.
         """
-        x_AC_w, CL_alpha_w = self._wing_aero(planform, fixed)
-        deps_dalpha          = _downwash(CL_alpha_w, planform.aspect_ratio)
-        x_np_req             = fixed.x_cg + SM * planform.MAC
+        m_total = fixed.mass + m_tail + m_canard
+        return (fixed.mass * fixed.x_cg
+                + m_tail   * x_cg_tail
+                + m_canard * x_cg_canard) / m_total
 
-        S_h = 0.15 * planform.wing_area
-        for _ in range(15):
-            tail       = _make_planform(S_h, A_H, TAPER_H, SWEEP_H, T_C_H)
+    # ------------------------------------------------------------------
+    # Scissor-plot solvers — shared by all subclasses
+    # ------------------------------------------------------------------
+
+    def _solve_tail_ratio(self, SM: float,
+                          planform: Planform, fixed: Fixed) -> tuple:
+        """
+        Solve for S_h/S_w from the scissor-plot stability criterion.
+
+        Stability equation (downwash corrected):
+            x_np = x_AC_w + (CL_h_eff / CL_w) * (S_h/S_w) * l_h
+
+        Rearranged:
+            S_h/S_w = (x_np_req - x_AC_w) / ((CL_h_eff / CL_w) * l_h)
+
+        l_h = x_AC_h - x_AC_w, where x_AC_h = x_LE_tail + tail.aerodynamic_center(N)
+        is a statistical estimate (≈ x_LE_tail + 0.25*MAC_h).
+        Iterated because MAC_h depends on S_h.
+
+        Returns:
+            (S_h/S_w, tail_Planform)
+        """
+        x_AC_w, CL_w = self._wing_aero(planform, fixed)
+        deps          = _downwash(CL_w, planform.aspect_ratio)
+
+        ratio = 0.10    # initial S_h/S_w guess
+        for _ in range(20):
+            tail       = _make_planform(ratio * planform.wing_area, A_H, TAPER_H, SWEEP_H, T_C_H)
             x_AC_h     = fixed.x_LE_tail + tail.aerodynamic_center(N)
-            CL_alpha_h = _CL_alpha(tail) * (1 - deps_dalpha)
+            CL_h       = _CL_alpha(tail) * (1 - deps)
+
+            # Update CG with current tail mass estimate, then set required NP
+            m_tail     = RHO_SURF_H * tail.wing_area
+            x_cg_tail  = fixed.x_LE_tail + X_CG_FRAC * tail.MAC
+            x_np_req   = self._cg_updated(fixed, m_tail=m_tail, x_cg_tail=x_cg_tail) + SM * planform.MAC
 
             l_h = x_AC_h - x_AC_w
             if l_h <= 0:
                 raise ValueError(
-                    f"Tail AC ({x_AC_h:.2f} m) is not aft of wing AC ({x_AC_w:.2f} m)."
+                    f"Tail AC ({x_AC_h:.2f} m) not aft of wing AC ({x_AC_w:.2f} m)."
                 )
 
-            S_h_new = (x_np_req - x_AC_w) / ((CL_alpha_h / CL_alpha_w) * l_h) * planform.wing_area
+            ratio_new = (x_np_req - x_AC_w) / ((CL_h / CL_w) * l_h)
 
-            if abs(S_h_new - S_h) < 1e-5:
-                S_h = S_h_new
+            if abs(ratio_new - ratio) < 1e-6:
+                ratio = ratio_new
                 break
-            S_h = S_h_new
+            ratio = ratio_new
 
-        return _make_planform(S_h, A_H, TAPER_H, SWEEP_H, T_C_H)
+        return ratio, _make_planform(ratio * planform.wing_area, A_H, TAPER_H, SWEEP_H, T_C_H)
 
-    def _find_unstable(self, planform: Planform, fixed: Fixed) -> Planform:
-        """Volume-coefficient sizing:  S_h = V_H * S_w * MAC_w / l_h"""
-        x_AC_w, _ = self._wing_aero(planform, fixed)
-        l_h        = fixed.x_LE_tail - x_AC_w
-        S_h        = V_H * planform.wing_area * planform.MAC / l_h
-        return _make_planform(S_h, A_H, TAPER_H, SWEEP_H, T_C_H)
-
-
-# ---------------------------------------------------------------------------
-# Canard-only sizing
-# ---------------------------------------------------------------------------
-
-class CanardFinder(EmpenageFinder):
-    """Forward canard sizing (no aft tail)."""
-
-    def size_empenage(self, planform: Planform, fixed: Fixed, stable: bool) -> EmpenageResult:
-        canard = self._find_stable(planform, fixed) if stable else self._find_unstable(planform, fixed)
-        return (None, canard)
-
-    def _find_stable(self, planform: Planform, fixed: Fixed) -> Planform:
+    def _solve_canard_ratio(self, SM: float,
+                            planform: Planform, fixed: Fixed) -> tuple:
         """
-        Scissor-plot sizing: find maximum S_c so that x_np >= x_cg + SM * MAC_w.
+        Solve for S_c/S_w from the scissor-plot stability criterion.
 
-        For a canard-wing, the canard shifts the NP forward; a larger canard
-        makes the aircraft LESS stable. This gives the stability-limited maximum.
+        Stability equation:
+            x_np = x_AC_w + (CL_c / CL_w) * (S_c/S_w) * (x_AC_c - x_AC_w)
 
-        Neutral-point equation:
-            x_np = x_AC_w + (CL_alpha_c / CL_alpha_w) * (S_c/S_w) * (x_AC_c - x_AC_w)
+        (x_AC_c - x_AC_w) < 0  → larger canard shifts NP forward → less stable.
+        Rearranged (both factors in numerator/denominator are positive):
+            S_c/S_w = CL_w*(x_AC_w - x_np_req) / (CL_c*(x_np_req - x_AC_c))
 
-        Solved for S_c given x_np = x_cg + SM * MAC_w.
+        x_AC_c = x_LE_canard + canard.aerodynamic_center(N)  (≈ x_LE + 0.25*MAC_c).
+        Iterated because MAC_c depends on S_c. Damped to prevent divergence.
+
+        Returns:
+            (S_c/S_w, canard_Planform)
         """
-        x_AC_w, CL_alpha_w = self._wing_aero(planform, fixed)
-        x_np_req             = fixed.x_cg + SM * planform.MAC
+        x_AC_w, CL_w = self._wing_aero(planform, fixed)
 
-        if x_np_req >= x_AC_w:
-            raise ValueError(
-                f"Required NP ({x_np_req:.2f} m) must be forward of wing AC ({x_AC_w:.2f} m) "
-                "for a canard configuration. Move x_cg forward or adjust wing position."
-            )
-
-        S_c = 0.05 * planform.wing_area
+        ratio = 0.05    # initial S_c/S_w guess
         for _ in range(30):
-            canard     = _make_planform(S_c, A_C, TAPER_C, SWEEP_C, T_C_C)
+            canard     = _make_planform(ratio * planform.wing_area, A_C, TAPER_C, SWEEP_C, T_C_C)
             x_AC_c     = fixed.x_LE_canard + canard.aerodynamic_center(N)
-            CL_alpha_c = _CL_alpha(canard)
+            CL_c       = _CL_alpha(canard)
+
+            # Update CG with current canard mass estimate, then set required NP
+            m_canard    = RHO_SURF_C * canard.wing_area
+            x_cg_canard = fixed.x_LE_canard + X_CG_FRAC * canard.MAC
+            x_np_req    = self._cg_updated(fixed, m_canard=m_canard, x_cg_canard=x_cg_canard) + SM * planform.MAC
+
+            if x_np_req >= x_AC_w:
+                raise ValueError(
+                    f"Required NP ({x_np_req:.2f} m) must be forward of wing AC ({x_AC_w:.2f} m). "
+                    "For a canard config the CG must be forward of the wing AC."
+                )
 
             if x_AC_c >= x_np_req:
                 raise ValueError(
-                    f"Canard AC ({x_AC_c:.2f} m) has grown past the required NP "
-                    f"({x_np_req:.2f} m). Check CG position and canard LE location."
+                    f"Canard AC ({x_AC_c:.2f} m) reached required NP ({x_np_req:.2f} m). "
+                    "Check CG and canard LE position."
                 )
 
-            denom   = CL_alpha_c * (x_np_req - x_AC_c)
-            S_c_new = CL_alpha_w * (x_AC_w - x_np_req) / denom * planform.wing_area
+            ratio_new = CL_w * (x_AC_w - x_np_req) / (CL_c * (x_np_req - x_AC_c))
 
-            if abs(S_c_new - S_c) < 1e-5:
-                S_c = S_c_new
+            if abs(ratio_new - ratio) < 1e-6:
+                ratio = ratio_new
                 break
-            S_c = 0.5 * S_c + 0.5 * S_c_new    # damp to avoid divergence
+            ratio = 0.5 * ratio + 0.5 * ratio_new   # damp
 
-        return _make_planform(S_c, A_C, TAPER_C, SWEEP_C, T_C_C)
+        return ratio, _make_planform(ratio * planform.wing_area, A_C, TAPER_C, SWEEP_C, T_C_C)
 
-    def _find_unstable(self, planform: Planform, fixed: Fixed) -> Planform:
-        """Volume-coefficient sizing:  S_c = V_C * S_w * MAC_w / l_c"""
-        x_AC_w, _ = self._wing_aero(planform, fixed)
-        l_c        = x_AC_w - fixed.x_LE_canard
-        S_c        = V_C * planform.wing_area * planform.MAC / l_c
-        return _make_planform(S_c, A_C, TAPER_C, SWEEP_C, T_C_C)
+    def _solve_tail_ratio_3surface(self, SM: float,
+                                   ratio_c: float,
+                                   x_AC_c: float, CL_alpha_c: float,
+                                   m_canard: float, x_cg_canard: float,
+                                   planform: Planform, fixed: Fixed) -> tuple:
+        """
+        Solve for S_h/S_w in a 3-surface aircraft, with a fixed canard ratio.
+
+        3-surface NP equation:
+            x_np = x_AC_w + (1/CL_w) * [
+                CL_c * (S_c/S_w) * (x_AC_c - x_AC_w)
+              + CL_h_eff * (S_h/S_w) * (x_AC_h - x_AC_w)
+            ]
+
+        Solved for S_h/S_w:
+            S_h/S_w = [CL_w*(x_np_req - x_AC_w) - CL_c*ratio_c*(x_AC_c - x_AC_w)]
+                      / [CL_h_eff * (x_AC_h - x_AC_w)]
+
+        The canard term (x_AC_c - x_AC_w) < 0 → subtracting it adds to the numerator,
+        so the canard requires a LARGER tail than in a tail-only design.
+
+        Returns:
+            (S_h/S_w, tail_Planform)
+        """
+        x_AC_w, CL_w = self._wing_aero(planform, fixed)
+        deps          = _downwash(CL_w, planform.aspect_ratio)
+
+        ratio_h = 0.10
+        for _ in range(20):
+            tail      = _make_planform(ratio_h * planform.wing_area, A_H, TAPER_H, SWEEP_H, T_C_H)
+            x_AC_h    = fixed.x_LE_tail + tail.aerodynamic_center(N)
+            CL_h      = _CL_alpha(tail) * (1 - deps)
+
+            # Update CG with both canard and current tail mass, then set required NP
+            m_tail    = RHO_SURF_H * tail.wing_area
+            x_cg_tail = fixed.x_LE_tail + X_CG_FRAC * tail.MAC
+            x_np_req  = self._cg_updated(fixed,
+                                         m_tail=m_tail,     x_cg_tail=x_cg_tail,
+                                         m_canard=m_canard, x_cg_canard=x_cg_canard
+                                         ) + SM * planform.MAC
+
+            l_h = x_AC_h - x_AC_w
+            if l_h <= 0:
+                raise ValueError(
+                    f"Tail AC ({x_AC_h:.2f} m) not aft of wing AC ({x_AC_w:.2f} m)."
+                )
+
+            numerator   = (CL_w * (x_np_req - x_AC_w)
+                           - CL_alpha_c * ratio_c * (x_AC_c - x_AC_w))
+            ratio_h_new = numerator / (CL_h * l_h)
+
+            if abs(ratio_h_new - ratio_h) < 1e-6:
+                ratio_h = ratio_h_new
+                break
+            ratio_h = ratio_h_new
+
+        return ratio_h, _make_planform(ratio_h * planform.wing_area, A_H, TAPER_H, SWEEP_H, T_C_H)
 
 
 # ---------------------------------------------------------------------------
-# Three-surface sizing (tail + canard simultaneously)
+# Tail-only
+# ---------------------------------------------------------------------------
+
+class TailFinder(EmpenageFinder):
+    """
+    Aft horizontal tail only (no canard).
+
+    stable=True  → tail sized for SM = 5%  (minimum stable tail area)
+    stable=False → tail sized for SM = 0%  (minimum area for neutral stability;
+                                             any smaller = just unstable)
+    """
+
+    def size_empenage(self, planform: Planform, fixed: Fixed, stable: bool) -> EmpenageResult:
+        SM = SM_STABLE if stable else SM_UNSTABLE
+        ratio, tail = self._solve_tail_ratio(SM, planform, fixed)
+        return (tail, None)
+
+
+# ---------------------------------------------------------------------------
+# Canard-only
+# ---------------------------------------------------------------------------
+
+class CanardFinder(EmpenageFinder):
+    """
+    Forward canard only (no aft tail).
+
+    stable=True  → canard sized for SM = 5%  (maximum stable canard area)
+    stable=False → canard sized for SM = 0%  (maximum area at neutral stability;
+                                               any larger = just unstable)
+    """
+
+    def size_empenage(self, planform: Planform, fixed: Fixed, stable: bool) -> EmpenageResult:
+        SM = SM_STABLE if stable else SM_UNSTABLE
+        ratio, canard = self._solve_canard_ratio(SM, planform, fixed)
+        return (None, canard)
+
+
+# ---------------------------------------------------------------------------
+# Three-surface (tail + canard simultaneously)
 # ---------------------------------------------------------------------------
 
 class ThreeSurfaceFinder(EmpenageFinder):
     """
-    Three-surface aircraft: canard + wing + aft tail.
+    Canard + wing + aft tail (three-surface aircraft).
 
-    Stable:   Canard sized by volume coefficient (V_C); tail solved from
-              the 3-surface NP stability equation:
+    Canard area is fixed first using the volume coefficient V_C:
+        S_c/S_w = V_C * MAC_w / l_c          (l_c = x_AC_w - x_LE_canard)
 
-                x_np = x_AC_w + (1/CL_alpha_w) * [
-                    CL_alpha_c*(S_c/S_w)*(x_AC_c - x_AC_w)
-                  + CL_alpha_h_eff*(S_h/S_w)*(x_AC_h - x_AC_w)
-                ]
+    Then the tail ratio S_h/S_w is solved from the 3-surface NP equation
+    for the requested static margin:
+        stable=True  → SM = 5%
+        stable=False → SM = 0%  (just-unstable boundary)
 
-              The canard contribution pulls the NP forward, so more tail
-              is required than in a tail-only design.
-
-    Unstable: Both surfaces sized independently by volume coefficients.
+    The canard shifts the NP forward, so the required tail is LARGER than in
+    a tail-only design for the same CG and stability target.
     """
 
     def size_empenage(self, planform: Planform, fixed: Fixed, stable: bool) -> EmpenageResult:
-        return self._find_stable(planform, fixed) if stable else self._find_unstable(planform, fixed)
+        SM = SM_STABLE if stable else SM_UNSTABLE
+        return self._size(SM, planform, fixed)
 
-    def _find_stable(self, planform: Planform, fixed: Fixed) -> EmpenageResult:
-        x_AC_w, CL_alpha_w = self._wing_aero(planform, fixed)
-        deps_dalpha          = _downwash(CL_alpha_w, planform.aspect_ratio)
-        x_np_req             = fixed.x_cg + SM * planform.MAC
+    def _size(self, SM: float, planform: Planform, fixed: Fixed) -> EmpenageResult:
+        x_AC_w, CL_w = self._wing_aero(planform, fixed)
 
-        # 1. Size canard by volume coefficient (fixed contribution)
+        # 1. Pin canard by volume coefficient
         l_c        = x_AC_w - fixed.x_LE_canard
-        S_c        = V_C * planform.wing_area * planform.MAC / l_c
-        canard     = _make_planform(S_c, A_C, TAPER_C, SWEEP_C, T_C_C)
+        ratio_c    = V_C * planform.MAC / l_c                   # S_c/S_w
+        canard     = _make_planform(ratio_c * planform.wing_area, A_C, TAPER_C, SWEEP_C, T_C_C)
         x_AC_c     = fixed.x_LE_canard + canard.aerodynamic_center(N)
-        CL_alpha_c = _CL_alpha(canard)
+        CL_c       = _CL_alpha(canard)
+        m_canard    = RHO_SURF_C * canard.wing_area
+        x_cg_canard = fixed.x_LE_canard + X_CG_FRAC * canard.MAC
 
-        # 2. Solve for tail area (iterative — tail AC depends on S_h)
-        #
-        # 3-surface NP rearranged for S_h:
-        #   S_h = [CL_w*S_w*(x_np - x_AC_w) - CL_c*S_c*(x_AC_c - x_AC_w)]
-        #         / [CL_h_eff*(x_AC_h - x_AC_w)]
-        #
-        # (x_AC_c - x_AC_w) < 0, so the canard term adds to the numerator,
-        # requiring more tail than in a tail-only design.
-        S_h = 0.15 * planform.wing_area
-        for _ in range(15):
-            tail       = _make_planform(S_h, A_H, TAPER_H, SWEEP_H, T_C_H)
-            x_AC_h     = fixed.x_LE_tail + tail.aerodynamic_center(N)
-            CL_alpha_h = _CL_alpha(tail) * (1 - deps_dalpha)
-
-            l_h = x_AC_h - x_AC_w
-            if l_h <= 0:
-                raise ValueError(
-                    f"Tail AC ({x_AC_h:.2f} m) is not aft of wing AC ({x_AC_w:.2f} m)."
-                )
-
-            numerator = (
-                CL_alpha_w * planform.wing_area * (x_np_req - x_AC_w)
-                - CL_alpha_c * S_c * (x_AC_c - x_AC_w)
-            )
-            S_h_new = numerator / (CL_alpha_h * l_h)
-
-            if abs(S_h_new - S_h) < 1e-5:
-                S_h = S_h_new
-                break
-            S_h = S_h_new
-
-        return (_make_planform(S_h, A_H, TAPER_H, SWEEP_H, T_C_H), canard)
-
-    def _find_unstable(self, planform: Planform, fixed: Fixed) -> EmpenageResult:
-        """Both surfaces sized by volume coefficients independently."""
-        x_AC_w, _ = self._wing_aero(planform, fixed)
-
-        l_h = fixed.x_LE_tail   - x_AC_w
-        l_c = x_AC_w - fixed.x_LE_canard
-
-        S_h = V_H * planform.wing_area * planform.MAC / l_h
-        S_c = V_C * planform.wing_area * planform.MAC / l_c
-
-        return (
-            _make_planform(S_h, A_H, TAPER_H, SWEEP_H, T_C_H),
-            _make_planform(S_c, A_C, TAPER_C, SWEEP_C, T_C_C),
+        # 2. Solve tail ratio from 3-surface NP equation (canard mass/CG passed in)
+        _, tail = self._solve_tail_ratio_3surface(
+            SM, ratio_c, x_AC_c, CL_c, m_canard, x_cg_canard, planform, fixed
         )
+
+        return (tail, canard)
