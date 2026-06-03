@@ -22,7 +22,7 @@ class MDReq(Requirement):
         matching_diagram.add_landing_field_length(
             constraint_label = "Landing Length", 
             field_length = assumptions.airfield_length, 
-            CL_max = aircraft.cl_max() # placeholder function
+            CL_max = planform.positive_C_L_max 
             )
 
         matching_diagram.add_cruise_speed(
@@ -65,7 +65,7 @@ class MDReq(Requirement):
             constraint_label = "Takeoff length", 
             field_length = assumptions.airfield_length,
             inviscid_ratio = planform.inviscid_ratio,
-            CL_takeoff = aircraft.cl_max() # placeholder function
+            CL_takeoff = planform.positive_C_L_max 
         )
         
         wing_loading = aircraft.wing_loading()
