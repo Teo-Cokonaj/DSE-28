@@ -4,9 +4,9 @@ import os
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src_final.Drag.Fuselage import Fuselage
-from src_final.Drag.LandingGear import LandingGear
-from src_final.Drag.Bay import Bay
+from Drag.Fuselage import Fuselage
+from Drag.LandingGear import LandingGear
+from Drag.Bay import Bay
 
 class Fixed:
     def __init__(self, mass:float, x_cg:float, z_cg:float, x_LE_canard:float, x_LE_wing:float, x_LE_tail:float, x_nose_gear:float, 
