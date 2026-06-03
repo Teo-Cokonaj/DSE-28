@@ -28,7 +28,7 @@ class MDReq(Requirement):
         matching_diagram.add_cruise_speed(
             constraint_label = "Mach max", 
             mach = assumptions.mach_max, 
-            CD0 = 0,
+            CD0 = aircraft.CD0_mach_max,
             inviscid_ratio = planform.inviscid_ratio,
             atmosphere = asb.Atmosphere(assumptions.altitude_mach_max),
             beta = (1 - (fixed.fuel_mass / aircraft.total_mass()) / 2) #NOTE: we must be able to perform mach max half-fuelled
@@ -36,8 +36,8 @@ class MDReq(Requirement):
         
         matching_diagram.add_cruise_speed(
             constraint_label = "Cruise speed",
-            mach = CONSTANTS.MACH_CRUISE,
-            CD0 = 0,
+            mach = assumptions.mach_cruise,
+            CD0 = aircraft.CD0_cruise,
             inviscid_ratio = planform.inviscid_ratio,
             atmosphere = asb.Atmosphere(assumptions.altitude_mach_max)
         )
@@ -45,7 +45,7 @@ class MDReq(Requirement):
         matching_diagram.add_climb_gradient(
             constraint_label = "Climb gradient AEO",
             tan_gradient = CONSTANTS.CLIMB_GRADIENT_AEO,
-            CD0 = 0,
+            CD0 = aircraft.CD0_takeoff,
             inviscid_ratio = planform.inviscid_ratio,
             all_engines_operative = True,
             atmosphere = asb.Atmosphere(0.)
@@ -54,7 +54,7 @@ class MDReq(Requirement):
         matching_diagram.add_climb_gradient(
             constraint_label = "Climb gradient OEI",
             tan_gradient = CONSTANTS.CLIMB_GRADIENT_OEI,
-            CD0 = 0,
+            CD0 = aircraft.CD0_go_around,
             inviscid_ratio = planform.inviscid_ratio,
             all_engines_operative = False,
             atmosphere = asb.Atmosphere(CONSTANTS.ALTITUDE_OEI_CLIMB)
