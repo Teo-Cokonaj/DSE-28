@@ -1,12 +1,12 @@
+
+
 import sys
 import os
-import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src_final.Requirements.Requirement import Requirement
+
 from Aircraft.Aircraft import Aircraft
 
+class Requirement:
 
-class LGReq(Requirement):
     def assess(self, aicraft:Aircraft) -> bool:
-        pass #TODO: Check turnover and tipover constraints
-        
+        raise NotImplementedError

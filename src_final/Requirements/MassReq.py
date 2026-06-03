@@ -2,14 +2,13 @@ import sys
 import os
 import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from Requirements import Requirements
+from src_final.Requirements.Requirement import Requirement
+from Aircraft.Aircraft import Aircraft
 
 
-class MassReq(Requirements):
-    def __init__(self,
-                
-                 ):
-        super().__init__()
+class MassReq(Requirement):
+    def assess(self, aicraft:Aircraft) -> bool:
+        pass #TODO: check that the total mass of the aircraft (wing empenage fixed) is below the MTOM requirement
 
-        self.two=2
+        
         
