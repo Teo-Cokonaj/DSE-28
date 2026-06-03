@@ -10,18 +10,18 @@ from abc import ABC, abstractmethod
 # ---------------------------------------------------------------------------
 # Statistical assumptions
 # ---------------------------------------------------------------------------
-A_H     = 4.5    # horizontal tail aspect ratio
+A_H     = 5.0    # horizontal tail aspect ratio
 TAPER_H = 0.40
-SWEEP_H = 25.0   # quarter-chord sweep [deg]
+SWEEP_H = 20.0   # quarter-chord sweep [deg]
 T_C_H   = 0.12
 
 A_C     = 3.0    # canard aspect ratio
-TAPER_C = 0.35
+TAPER_C = 0.4
 SWEEP_C = 15.0   # quarter-chord sweep [deg]
-T_C_C   = 0.10
+T_C_C   = 0.12
 
 SM_STABLE   = 0.05   # static margin for stable design   (NP = CG + 5% MAC)
-SM_UNSTABLE = 0.00   # boundary for just-unstable design (NP = CG)
+SM_UNSTABLE = 0.01   # boundary for just-unstable design (NP = CG)
 
 V_C = 0.10   # canard volume coefficient — used in 3-surface to pin canard size
 
