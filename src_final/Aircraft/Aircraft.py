@@ -12,3 +12,7 @@ class Aircraft:
                  ):
         self.fixed = fixed
         self.planforms = planforms
+
+
+    def total_mass(self)->float:
+        return self.fixed.mass + sum(planform.mass_cache for planform in self.planforms)
