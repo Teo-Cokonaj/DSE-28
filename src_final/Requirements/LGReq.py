@@ -39,7 +39,7 @@ class LGReq(Requirement):
         psi = np.arctan( z_cg / ((x_cg - x_nose_lg) * np.sin( np.arctan ( y_main_lg / (x_main_lg - x_nose_lg)))))
         psi_degrees = psi * 180 / np.pi
 
-        # wing strike (psi > 8 )
+        # wing strike (phi > 8 )
 
         phi = np.arctan( z_wing / ( (y_wing_span - y_main_lg) * 0.5) )
         phi_degrees = phi * 180 / np.pi
@@ -65,7 +65,7 @@ class LGReq(Requirement):
                 else:
                     print('psi fails')
             else:
-                print('beta_fails')
+                print('beta fails')
         else:
             print('theta fails')
 
