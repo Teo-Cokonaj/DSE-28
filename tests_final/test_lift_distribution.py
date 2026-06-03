@@ -55,5 +55,5 @@ class TestPlanformLift:
                                                 initial_total_aircraft_mass=assumptions.initial_total_aircraft_mass,
                                                 number_of_stations=number_of_stations,
                                                 )
-        np.testing.assert_allclose(numerical_results[0],reduced_sectional_spanwise_positions)
-        np.testing.assert_allclose(numerical_results[1], modified_sectional_lifts_schrenk)
+        nte.assert_allclose(numerical_results[0],reduced_sectional_spanwise_positions)
+        nte.assert_allclose(numerical_results[1], modified_sectional_lifts_schrenk)
