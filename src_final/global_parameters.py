@@ -78,6 +78,10 @@ class Assumptions():
         self.wing_bay_laminar_frac = .1
         self.lg_bay_length_safety_factor = 1.25
         self.lg_bay_wheel_diameter_ratio = 2.
+        
+        # Engine properties (JetCat P100)
+        self.thrust_available = 2*100 # [N]
+        
 
 
     @property

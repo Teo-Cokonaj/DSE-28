@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from Aircraft.Planform import Planform
 from Aircraft.Fixed import Fixed
-from global_parameters import CONSTANTS
+from global_parameters import CONSTANTS, Assumptions
 
 class Aircraft:
     def __init__(self,
@@ -26,3 +26,6 @@ class Aircraft:
 
     def wing_loading(self)->float:
         return self.total_mass() * CONSTANTS.G0 / self.reference_wing_area()
+    
+    def thrust_to_weight(self)->float:
+        return Assumptions().thrust_available / self.total_mass()
