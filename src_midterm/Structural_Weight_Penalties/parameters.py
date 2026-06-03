@@ -10,10 +10,10 @@ CFRP = [1600.0, 600e6, 80e9, 542e6, 0.305]           # CFRP Quasi-isotropic prop
 
 
 #Load parameters
-mtow=193.04                      # Maximum Takeoff Weight of the drone [kg]
-max_g_load=6.0                  # Maximum g-load based on Aerobatic CS-23 classification
+mtow=35.25                      # Maximum Takeoff Weight of the drone [kg]
+max_g_load=6                  # Maximum g-load based on Aerobatic CS-23 classification
 safety_factor=1.5               # Safety factor for structural design
-cruise_speed=15.0               # Cruise speed of the drone [m/s]
+#cruise_speed=15.0               # Cruise speed of the drone [m/s]
 
 
 W = mtow * g * max_g_load * safety_factor           # Total weight force under max G-load [N]
@@ -21,9 +21,9 @@ W = mtow * g * max_g_load * safety_factor           # Total weight force under m
 
 
 #Fuselage parameters
-fuselage_length=1.90                               # Total length of the fuselage [m]
-fuselage_diameter=0.31                          # Fuselage diameter [m]
-minimum_thickness=0.001                           # Minimum manufacturing thickness [m] - 1mm default
+fuselage_length=3.42                               # Total length of the fuselage [m]
+fuselage_diameter=0.315                          # Fuselage diameter [m]
+minimum_thickness=0.0003                           # Minimum manufacturing thickness [m] - 1mm default
 skin_material_choice = CFRP                       # Material choice for the fuselage skin ("CFRP" or "Aluminum")
 skin_density=skin_material_choice[0]              # Skin density [kg/m^3] - CFRP: 1600, Aluminum 7075-T6: 2810.0
 skin_yield_strength=skin_material_choice[1]       # Skin yield strength [Pa] CFRP Quasi-isotropic: 600e6, Aluminum 7075-T6: 500e6
@@ -32,7 +32,7 @@ skin_yield_strength=skin_material_choice[1]       # Skin yield strength [Pa] CFR
 fuselage_radius = fuselage_diameter / 2             # Fuselage radius [m]
 
 #Main wing parameters
-wingspan=6.13                                       # Wingspan [m]
+wingspan=2.59                                       # Wingspan [m]
 Aspect_ratio=27.0                                  # Wing aspect ratio
 fraction_root_thickness= 0.12                      # Fraction of the chord that defines the root thickness of the wing
 z_location_mainwing=fuselage_radius                # Z-location of top part of the main wing [m]
@@ -46,20 +46,17 @@ wing_skin_thickness=0.002                          # Thickness of the wing skin 
 chord_length = (wingspan / Aspect_ratio)           # Chord length at the root of the wing [m]
 t_wing = fraction_root_thickness * chord_length    # Root thickness of the wing [m]
 wing_I_xx = ((chord_length * t_wing**3)/12)-((chord_length-wing_skin_thickness*2)*(t_wing-wing_skin_thickness*2)**3)/12                 # Moment of inertia of the wing cross-section [m^4]
-
 if z_location_mainwing > fuselage_radius or z_location_mainwing < -fuselage_radius:
     raise ValueError("Warning: Main wing placed outside of fuselage. Change z_location_mainwing to be within fuselage radius.")
 if z_location_mainwing - t_wing < -fuselage_radius:
     raise ValueError("Warning: Main wing extends below the bottom of the fuselage. Increase z_location_mainwing.")
 
 
-
-
 #Locations (m from nose)
-cg_loc=0.9             # Distance from nose to CG [m]
+cg_loc=1.44             # Distance from nose to CG [m]
 canard_loc=0.3                  # Distance from tip of the fuselage to canard port [m]
-main_wing_loc=1.1               # Distance from nose to main wing [m]
-empennage_loc=1.8              # Distance from nose to empennage [m]
+main_wing_loc=2.1               # Distance from nose to main wing [m]
+empennage_loc=3.1              # Distance from nose to empennage [m]
 nose_gear_loc=0.3             # Distance from nose to nose gear [m]
 main_gear_loc=1.2               # Distance from nose to main gear [m]
 
@@ -80,5 +77,5 @@ if z_location_canard > fuselage_radius or z_location_canard < -fuselage_radius:
 
 
 #Analysis parameters
-resolution = 501                                    # Higher resolution for integration accuracy
+resolution = int(fuselage_length * 1000 + 1)                                  # Higher resolution for integration accuracy
 
