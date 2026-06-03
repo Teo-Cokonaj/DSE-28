@@ -9,7 +9,6 @@ from Aircraft.Aircraft import Aircraft
 class LGReq(Requirement):
     def assess(self, aircraft:Aircraft) -> bool:
     
-
         x_main_lg = aircraft.fixed.x_main_gear
         x_cg = aircraft.fixed.x_cg_max
         x_tail_cone = aircraft.fixed.x_tail_cone # add to fixed class
@@ -40,7 +39,7 @@ class LGReq(Requirement):
         psi = np.arctan( z_cg / ((x_cg - x_nose_lg) * np.sin( np.arctan ( y_main_lg / (x_main_lg - x_nose_lg)))))
         psi_degrees = psi * 180 / np.pi
 
-        # wing strike ( )
+        # wing strike (psi > 8 )
 
         phi = np.arctan( z_wing / ( (y_wing_span - y_main_lg) * 0.5) )
         phi_degrees = phi * 180 / np.pi
