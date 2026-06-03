@@ -88,6 +88,10 @@ class Planform(Component):
     def x_MAC(self)->float:
         return self.y_MAC*np.tan(self.sweep_LE_rad)
     
+    @property 
+    def inviscid_ratio(self)->float:
+        return np.pi*self.aspect_ratio*self.oswald 
+    
     def sectional_areas(self,
                         number_of_sections)->np.ndarray:
         
