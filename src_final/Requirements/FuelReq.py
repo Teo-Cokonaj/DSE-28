@@ -19,9 +19,9 @@ class FuelReq(Requirement):
         fuel_mass_available = aircraft.fixed.fuel_mass
         wing_loading = (aircraft.total_mass()*constants.G0)/aircraft.planforms[0].wing_area
 
-        glide_ratio_cruise, _ = aircraft.glide_ratio(assumptions.mach_cruise, assumptions.altitude_cruise)
-        glide_ratio_max_mach, _ = aircraft.glide_ratio(assumptions.mach_max, assumptions.altitude_mach_max)
-        glide_ratio_go_around, CL_max_glide_ratio_go_around = aircraft.glide_ratio(aircraft.mach_go_around, assumptions.altitude_go_round)
+        glide_ratio_cruise, _ = aircraft.glide_ratio(assumptions.mach_cruise, assumptions.altitude_cruise, aircraft.CD0_cruise)
+        glide_ratio_max_mach, _ = aircraft.glide_ratio(assumptions.mach_max, assumptions.altitude_mach_max, aircraft.CD0_mach_max)
+        glide_ratio_go_around, CL_max_glide_ratio_go_around = aircraft.glide_ratio(aircraft.mach_go_around, assumptions.altitude_go_round, aircraft.CD0_go_around)
 
         efficiency_cruise = CONSTANTS.MACH_CRUISE * asb.Atmosphere(assumptions.atmosphere_cruise).speed_of_sound() / assumptions.sfc / assumptions.energy_density_saf
         efficiency_go_around = aircraft.mach_go_around() * asb.Atmosphere(assumptions.altitude_go_round).speed_of_sound() / assumptions.sfc / assumptions.energy_density_saf

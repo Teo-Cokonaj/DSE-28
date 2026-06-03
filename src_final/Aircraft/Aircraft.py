@@ -51,7 +51,7 @@ class Aircraft:
 
         return mach_go_around
     
-    def glide_ratio(self, mach:float, altitude:float) -> float:
+    def glide_ratio(self, mach:float, altitude:float, CD0:float) -> float:
 
         #TODO: Fix CD0 and Component imports (Marek)
         
@@ -63,7 +63,6 @@ class Aircraft:
         total_weight = self.total_mass * CONSTANTS.G0
 
         CL_at_altitude = 2*(total_weight/self.planforms[0].wing_area)*1/(airspeed_at_altitude**2)*1/density_at_altitude
-        CD0 = CD0_from_cache(self.planforms[0], list[Component], self.planforms[0].wing_area)
 
         CD_at_altitude = CD0 + CL_at_altitude**2/(np.pi*self.planforms[0].aspect_ratio*self.planforms[0].oswald)
         glide_ratio = CL_at_altitude/CD_at_altitude
