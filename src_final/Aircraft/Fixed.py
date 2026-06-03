@@ -9,12 +9,15 @@ from src_final.Drag.LandingGear import LandingGear
 from src_final.Drag.Bay import Bay
 
 class Fixed:
-    def __init__(self, mass:float, x_cg:float, z_cg:float, x_LE_canard:float, x_LE_wing:float, x_LE_tail:float, x_nose_gear:float, 
+    def __init__(self, mass:float, fuel_mass:float, x_cg_min:float, x_cg_max:float, z_cg:float, x_LE_canard:float, x_LE_wing:float, x_LE_tail:float, x_nose_gear:float, 
                  x_main_gear:float, y_main_gear:float, fuselage:Fuselage, nose_gear:LandingGear, main_gear:LandingGear, 
                  gear_bay:Bay, engine_bay:Bay):
     
         self.mass = mass
-        self.x_cg = x_cg
+        self.fuel_mass = fuel_mass
+
+        self.x_cg_min = x_cg_min
+        self.x_cg_max = x_cg_max
         self.z_cg = z_cg
 
         self.x_LE_canard = x_LE_canard
