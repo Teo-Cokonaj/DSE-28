@@ -41,7 +41,7 @@ print(f"Wing: S = {wing.wing_area:.2f} m²  MAC = {wing.MAC:.3f} m  (wing AC ~{4
 # Shared fixed geometry
 # ---------------------------------------------------------------------------
 fuselage   = Fuselage(surface_wetted=1.11, length_total=2.5, diameter_max=0.2,
-                      upsweep=0.00, base_area=0.005)
+                      upsweep=0.0, base_area=0.005)
 nose_gear  = LandingGear(wheel_width=0.025, exposed_height=0.1,
                          wheel_diameter=0.05, strut_width=0.015)
 main_gear  = LandingGear(wheel_width=0.025, exposed_height=0.1,
@@ -54,7 +54,7 @@ engine_bay = Bay(surface_wetted=0.15, length=0.3)
 #    CG at 5.5 m, wing LE at 4.5 m, tail LE at 10.5 m
 # ---------------------------------------------------------------------------
 fixed_tail = Fixed(
-    mass=0.8, x_cg=2.8, z_cg=0.3,
+    mass=35, x_cg=1.48, z_cg=0,
     x_LE_canard=np.nan, x_LE_wing=1.25, x_LE_tail=2.6,
     x_nose_gear=0.2, x_main_gear=1.4, y_main_gear=0.15,
     fuselage=fuselage, nose_gear=nose_gear, main_gear=main_gear,
@@ -71,7 +71,7 @@ report("[Tail-only – unstable SM = 0%]",
 #    CG must be just forward of wing AC (~5.3 m)
 # ---------------------------------------------------------------------------
 fixed_canard = Fixed(
-    mass=0.45, x_cg=0.2, z_cg=-0.2,
+    mass=35, x_cg=1.48, z_cg=0,
     x_LE_canard=0.25, x_LE_wing=1.25, x_LE_tail=np.nan,
     x_nose_gear=0.1, x_main_gear=1.5, y_main_gear=0,
     fuselage=fuselage, nose_gear=nose_gear, main_gear=main_gear,
@@ -88,7 +88,7 @@ fixed_canard = Fixed(
 #    Canard pinned by volume coefficient; tail sized by scissor plot
 # ---------------------------------------------------------------------------
 fixed_three = Fixed(
-    mass=1.25, x_cg=1.25, z_cg=0,
+    mass=35, x_cg=1.48, z_cg=0,
     x_LE_canard=0.25, x_LE_wing=1.25, x_LE_tail=2.6,
     x_nose_gear=0.1, x_main_gear=1.5, y_main_gear=0,
     fuselage=fuselage, nose_gear=nose_gear, main_gear=main_gear,
