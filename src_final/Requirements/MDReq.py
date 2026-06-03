@@ -69,6 +69,19 @@ class MDReq(Requirement):
         )
         
         wing_loading = aircraft.wing_loading()
+        thrust_to_weight = aircraft.thrust_to_weight()
+        
+        results = {
+        "landing":            wing_loading <= landing_constraint,
+        "cruise_half_fuel":   thrust_to_weight >= cruise_constraint_halfFuelled,
+        "cruise":             thrust_to_weight >= cruise_constraint,
+        "climb_AEO":          thrust_to_weight >= climb_constraint_AEO,
+        "climb_OEI":          thrust_to_weight >= climb_constraint_OEI,
+        "takeoff":            wing_loading >= TO_constraint
+        }
+
+        all_satisfied = all(results.values())
+        return all_satisfied, results
         
         
     
