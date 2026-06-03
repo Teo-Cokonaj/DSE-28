@@ -15,11 +15,10 @@ class FuelReq(Requirement):
                                 # engine efficiency at cruise
                                 # engine efficiency at climb
                                 # engine efficiency at go-around
-                                # SAF energy density
 
     def assess(self, aircraft:Aircraft, constants:CONSTANTS, assumptions:Assumptions) -> bool:
         fuel_mass_available = aircraft.fixed.fuel_mass
-        wing_loading = aircraft.total_mass()/aircraft.planforms[0].wing_area
+        wing_loading = (aircraft.total_mass()*constants.G0)/aircraft.planforms[0].wing_area
 
         glide_ratio_cruise, _ = aircraft.glide_ratio(assumptions.mach_cruise, assumptions.altitude_cruise)
         glide_ratio_max_mach, _ = aircraft.glide_ratio(assumptions.mach_max, assumptions.altitude_mach_max)
@@ -30,7 +29,7 @@ class FuelReq(Requirement):
                                                                         assumptions.altitude_mach_max, assumptions.time_half_circle, 
                                                                         CL_max_glide_ratio_go_around, glide_ratio_max_mach, glide_ratio_cruise,
                                                                         glide_ratio_go_around, assumptions.airspeed_approach(), wing_loading,
-                                                                        efficiency_cruise, energy_density_saf, assumptions.mach_cruise,
+                                                                        efficiency_cruise, assumptions.energy_density_saf, assumptions.mach_cruise,
                                                                         assumptions.mach_max, assumptions.time_cruise, assumptions.time_mach_max,
                                                                         debug=False, efficiency_go_around=None efficiency_max_mach=None)
 
