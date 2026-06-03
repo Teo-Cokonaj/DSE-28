@@ -11,16 +11,19 @@ from global_parameters import CONSTANTS, Assumptions
 
 class FuelReq(Requirement):
     #TODO: connect the fuel estimation. Check if the fuselage fuel tanks have enough fuel
+    #TODO: Find the following:    mach go-around
+                                # engine efficiency at cruise
+                                # engine efficiency at climb
+                                # engine efficiency at go-around
+                                # SAF energy density
 
     def assess(self, aircraft:Aircraft, constants:CONSTANTS, assumptions:Assumptions) -> bool:
         fuel_mass_available = aircraft.fixed.fuel_mass
         wing_loading = aircraft.total_mass()/aircraft.planforms[0].wing_area
 
-        
-
         glide_ratio_cruise, _ = aircraft.glide_ratio(assumptions.mach_cruise, assumptions.altitude_cruise)
         glide_ratio_max_mach, _ = aircraft.glide_ratio(assumptions.mach_max, assumptions.altitude_mach_max)
-        glide_ratio_go_around, CL_max_glide_ratio_go_around = aircraft.glide_ratio(assumptions.mach_go_around, assumptions.altitude_go_round)
+        glide_ratio_go_around, CL_max_glide_ratio_go_around = aircraft.glide_ratio(aircraft.mach_go_around, assumptions.altitude_go_round)
 
 
         fuel_mass_required = aircraft.total_mass() * fuel_mass_fraction(assumptions.altitude_go_round, assumptions.altitude_cruise,                                    
@@ -30,14 +33,6 @@ class FuelReq(Requirement):
                                                                         efficiency_cruise, energy_density_saf, assumptions.mach_cruise,
                                                                         assumptions.mach_max, assumptions.time_cruise, assumptions.time_mach_max,
                                                                         debug=False, efficiency_go_around=None efficiency_max_mach=None)
-        # CL at max glide ratio during go-around
-        # glide ratio at max Mach
-        # glide ratio at cruise
-        # glide ratio at go-around
-        # engine efficiency at cruise
-        # engine efficiency at climb
-        # engine efficiency at go-around
-        # SAF energy density
 
         if fuel_mass_available >= fuel_mass_required:
             pass

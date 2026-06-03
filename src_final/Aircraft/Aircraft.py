@@ -20,13 +20,28 @@ class Aircraft:
     def total_mass(self)->float:
         return self.fixed.mass + sum(planform.mass_cache for planform in self.planforms)
     
+    def mach_go_around(self, assumptions:Assumptions):
+
+        #TODO: find the go-around airspeed
+
+        Temperature_go_around = CONSTANTS.TEMPERATURE_SEA_LEVEL + CONSTANTS.TEMPERATURE_LAPSE*assumptions.altitude_go_round                                                                                                
+        speed_of_sound_go_around = np.sqrt(CONSTANTS.GAMMA_AIR * CONSTANTS.GAS_CONSTANT_AIR * Temperature_go_around)
+
+
+        airspeed_go_around = 1.0
+
+
+        mach_go_around = airspeed_go_around / speed_of_sound_go_around
+
+        return mach_go_around
+    
     def glide_ratio(self, mach:float, altitude:float) -> float:
 
         #TODO: Fix CD0 and Component imports (Marek)
         
         Temperature_at_altitude = CONSTANTS.TEMPERATURE_SEA_LEVEL + CONSTANTS.TEMPERATURE_LAPSE*altitude
         density_at_altitude = CONSTANTS.AIR_DENSITY_SEA_LEVEL*(Temperature_at_altitude/CONSTANTS.TEMPERATURE_SEA_LEVEL)**(CONSTANTS.G0/(CONSTANTS.TEMPERATURE_LAPSE*CONSTANTS.GAS_CONSTANT_AIR)-1)
-        speed_of_sound_at_altitude = CONSTANTS.GAMMA_AIR*CONSTANTS.GAS_CONSTANT_AIR*Temperature_at_altitude                                                                                                                
+        speed_of_sound_at_altitude = np.sqrt(CONSTANTS.GAMMA_AIR*CONSTANTS.GAS_CONSTANT_AIR*Temperature_at_altitude)                                                                                                        
         airspeed_at_altitude = speed_of_sound_at_altitude*mach
         total_weight = self.total_mass * CONSTANTS.G0
 
