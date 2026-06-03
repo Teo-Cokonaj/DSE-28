@@ -4,9 +4,9 @@ import os
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src_final.Drag.Fuselage import Fuselage
-from src_final.Drag.LandingGear import LandingGear
-from src_final.Drag.Bay import Bay
+from Drag.Fuselage import Fuselage
+from Drag.LandingGear import LandingGear
+from Drag.Bay import Bay
 
 # to do: add tail cone x location. (default tail upsweep is 15 degrees)
 class Fixed:
