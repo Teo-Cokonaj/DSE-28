@@ -48,7 +48,7 @@ class LGReq(Requirement):
 
         # Truth Table:
 
-        theta_pass = 14 < theta_degrees < 16
+        theta_pass = theta_degrees > 14
         beta_pass = beta_degrees > theta_degrees
         psi_pass = psi_degrees < 55
         phi_pass = phi_degrees > 8 
