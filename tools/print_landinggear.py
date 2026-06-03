@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.Drag.LandingGear import LandingGear
-from src.global_parameters import Assumptions, CONSTANTS
+from src_final.Drag.LandingGear import LandingGear
+from src_final.global_parameters import Assumptions, CONSTANTS
 import aerosandbox.numpy as np
 
 # Load assumptions from global_parameters
