@@ -7,7 +7,7 @@ import aerosandbox as asb
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from global_parameters import CONSTANTS, Assumptions
-from Class_I.Mission_Segment import Mission_Segment
+from Class_I.MissionSegment import Mission_Segment
 
 def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude_mach_max:float, time_half_turn:float, CL_max_glide_ratio_go_around:float, 
                        glide_ratio_mach_max:float, glide_ratio_cruise:float, glide_ratio_go_around:float, airspeed_approach:float,
@@ -58,5 +58,5 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude
         print(f"Fuel_fractions local {fuel_frac_mach_max_local} for mach max, {fuel_frac_go_around_local} for go around")
         print(f"Equivalent ranges: {segment_cruise.equivalent_range} for cruise, {segment_mach_max.equivalent_range} for mach max, {segment_go_around.equivalent_range} for go_around")
 
-    return fuel_frac_cruise + fuel_frac_mach_max + fuel_frac_go_around
+    return fuel_frac_cruise, fuel_frac_mach_max, fuel_frac_go_around
 

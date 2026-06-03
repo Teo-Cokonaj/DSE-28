@@ -13,8 +13,8 @@ class MassReq(Requirement):
         self.mtow_max = mtow_max
 
     def assess(self, aircraft:Aircraft) -> bool:
-        aircraft_mass = aircraft.fixed.mass
+        aircraft_mass = aircraft.total_mass()
 
-        if aircraft_mass < self.mtow_max:
+        if aircraft_mass <= self.mtow_max:
             pass
         
