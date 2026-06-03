@@ -28,7 +28,7 @@ V_C = 0.10   # canard volume coefficient — used in 3-surface to pin canard siz
 # Statistical empenage weight model
 RHO_SURF_H = 14.0   # kg/m²  — horizontal tail surface density (aluminium structure)
 RHO_SURF_C = 12.0   # kg/m²  — canard surface density (lighter: thinner, smaller)
-X_CG_FRAC  = 0.40   # structural CG at 40 % MAC from LE (statistical)
+X_CG_FRAC  = 0.5   # structural CG at 40 % MAC from LE (statistical)
 
 N = 50       # spanwise sections for aerodynamic centre integration
 
@@ -137,6 +137,34 @@ class EmpenageFinder(ABC):
         """Return (x_AC_wing [absolute], CL_alpha_wing)."""
         return fixed.x_LE_wing + planform.aerodynamic_center(N), _CL_alpha(planform)
 
+    @staticmethod
+    def diagnose(planform: Planform, fixed: Fixed) -> None:
+        """Print key geometry and stability values to help debug sizing issues."""
+        x_AC_w = fixed.x_LE_wing + planform.aerodynamic_center(N)
+        CL_w   = _CL_alpha(planform)
+        deps   = _downwash(CL_w, planform.aspect_ratio)
+        print(f"--- Empennage sizing diagnostics ---")
+        print(f"  Wing:   S={planform.wing_area:.4f} m²  MAC={planform.MAC:.4f} m  "
+              f"AR={planform.aspect_ratio:.1f}  CL_alpha={CL_w:.3f} /rad")
+        print(f"  Wing AC: x_AC_w = {x_AC_w:.4f} m  (x_LE_wing={fixed.x_LE_wing:.3f} + {x_AC_w-fixed.x_LE_wing:.4f})")
+        print(f"  CG (excl. empenage): x_cg = {fixed.x_cg:.4f} m  mass = {fixed.mass:.2f} kg")
+        print(f"  Downwash: deps/dalpha = {deps:.4f}")
+        if _is_set(getattr(fixed, 'x_LE_tail', None)):
+            l_h = fixed.x_LE_tail - x_AC_w
+            print(f"  Tail LE: {fixed.x_LE_tail:.3f} m  →  approx arm l_h ≈ {l_h:.3f} m")
+            for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
+                x_np_req = fixed.x_cg + SM * planform.MAC
+                print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
+                      f"({'OK' if x_AC_w < x_np_req < fixed.x_LE_tail else 'PROBLEM'})")
+        if _is_set(getattr(fixed, 'x_LE_canard', None)):
+            l_c = x_AC_w - fixed.x_LE_canard
+            print(f"  Canard LE: {fixed.x_LE_canard:.3f} m  →  approx arm l_c ≈ {l_c:.3f} m")
+            for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
+                x_np_req = fixed.x_cg + SM * planform.MAC
+                print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
+                      f"({'OK' if fixed.x_LE_canard < x_np_req < x_AC_w else 'PROBLEM — NP must be between canard and wing AC'})")
+        print(f"------------------------------------")
+
     def _cg_updated(self, fixed: Fixed,
                     m_tail: float = 0.0, x_cg_tail: float = 0.0,
                     m_canard: float = 0.0, x_cg_canard: float = 0.0) -> float:
@@ -192,6 +220,20 @@ class EmpenageFinder(ABC):
             if l_h <= 0:
                 raise ValueError(
                     f"Tail AC ({x_AC_h:.2f} m) not aft of wing AC ({x_AC_w:.2f} m)."
+                )
+            if x_np_req > x_AC_h:
+                raise ValueError(
+                    f"Required NP ({x_np_req:.3f} m) is aft of tail AC ({x_AC_h:.3f} m). "
+                    f"No finite tail area can achieve this — move the tail further aft "
+                    f"or move the CG forward (currently x_cg_updated={x_np_req - SM * planform.MAC:.3f} m)."
+                )
+
+            if x_np_req <= x_AC_w:
+                raise ValueError(
+                    f"Required NP ({x_np_req:.3f} m) is forward of or at the wing AC "
+                    f"({x_AC_w:.3f} m). The wing alone already exceeds the required static "
+                    f"margin — no aft tail is needed for stability. "
+                    f"CG position: {x_np_req - SM * planform.MAC:.3f} m."
                 )
 
             ratio_new = (x_np_req - x_AC_w) / ((CL_h / CL_w) * l_h)
@@ -301,9 +343,21 @@ class EmpenageFinder(ABC):
                 raise ValueError(
                     f"Tail AC ({x_AC_h:.2f} m) not aft of wing AC ({x_AC_w:.2f} m)."
                 )
+            if x_np_req > x_AC_h:
+                raise ValueError(
+                    f"Required NP ({x_np_req:.3f} m) is aft of tail AC ({x_AC_h:.3f} m). "
+                    f"No finite tail area can achieve this — move the tail further aft "
+                    f"or move the CG forward (currently x_cg_updated={x_np_req - SM * planform.MAC:.3f} m)."
+                )
 
             numerator   = (CL_w * (x_np_req - x_AC_w)
                            - CL_alpha_c * ratio_c * (x_AC_c - x_AC_w))
+            if numerator < 0:
+                raise ValueError(
+                    f"3-surface: canard + wing already exceeds required SM — "
+                    f"no aft tail needed. NP from canard+wing is already aft of "
+                    f"x_np_req ({x_np_req:.3f} m). Reduce canard area or move CG aft."
+                )
             ratio_h_new = numerator / (CL_h * l_h)
 
             if abs(ratio_h_new - ratio_h) < 1e-6:
