@@ -58,5 +58,5 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude
         print(f"Fuel_fractions local {fuel_frac_mach_max_local} for mach max, {fuel_frac_go_around_local} for go around")
         print(f"Equivalent ranges: {segment_cruise.equivalent_range} for cruise, {segment_mach_max.equivalent_range} for mach max, {segment_go_around.equivalent_range} for go_around")
 
-    return fuel_frac_cruise, fuel_frac_mach_max, fuel_frac_go_around
+    return fuel_frac_cruise + fuel_frac_mach_max + fuel_frac_go_around
 
