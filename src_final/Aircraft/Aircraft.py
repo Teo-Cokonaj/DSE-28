@@ -4,6 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from Aircraft.Planform import Planform
 from Aircraft.Fixed import Fixed
+from global_parameters import CONSTANTS
 
 class Aircraft:
     def __init__(self,
@@ -12,3 +13,16 @@ class Aircraft:
                  ):
         self.fixed = fixed
         self.planforms = planforms
+
+    def total_mass(self)->float:
+        return self.fixed.mass + sum(planform.mass_cache for planform in self.planforms)
+
+    def reference_wing_area(self)->float:
+        if len(self.planforms) == 0:
+            raise ValueError("Cannot compute wing loading without at least one planform.")
+
+        # Use the largest lifting surface as reference wing by default.
+        return max(planform.wing_area for planform in self.planforms)
+
+    def wing_loading(self)->float:
+        return self.total_mass() * CONSTANTS.G0 / self.reference_wing_area()
