@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Aircraft.Planform import Planform
 from Aircraft.Fixed import Fixed
 from global_parameters import CONSTANTS, Assumptions
+from Drag.estimate_CD0 import CD0_from_cache
 
 class Aircraft:
     def __init__(self,
@@ -29,3 +30,13 @@ class Aircraft:
     
     def thrust_to_weight(self)->float:
         return Assumptions().thrust_available / self.total_mass()
+        self.CD0_go_around = CD0_from_cache("go_around", fixed.drag_components(False) + planforms, planforms[0].wing_area)
+        self.CD0_takeoff = CD0_from_cache("takeoff", fixed.drag_components(True) + planforms, planforms[0].wing_area)
+        self.CD0_mach_max = CD0_from_cache("mach_max", fixed.drag_components(False) + planforms, planforms[0].wing_area)
+        self.CD0_cruise = CD0_from_cache("cruise", fixed.drag_components(False) + planforms, planforms[0].wing_area)
+
+
+
+    
+
+    
