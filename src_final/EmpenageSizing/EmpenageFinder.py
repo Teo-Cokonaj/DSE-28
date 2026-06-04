@@ -123,7 +123,7 @@ class EmpenageFinder(ABC):
         elif planform_type=="tail":
             finder = TailFinder()
         else:
-            raise NotImplementedError("This planform type not implemented yet")
+            raise NotImplementedError("This planform type not implemented.")
 
         return finder.size_empenage(planform, fixed, stable)
 
@@ -151,20 +151,20 @@ class EmpenageFinder(ABC):
         print(f"  Wing AC: x_AC_w = {x_AC_w:.4f} m  (x_LE_wing={fixed.x_LE_wing:.3f} + {x_AC_w-fixed.x_LE_wing:.4f})")
         print(f"  CG (excl. empenage): x_cg = {fixed.x_cg_max:.4f} m  mass = {fixed.mass:.2f} kg")
         print(f"  Downwash: deps/dalpha = {deps:.4f}")
-        if _is_set(getattr(fixed, 'x_LE_tail', None)):
-            l_h = fixed.x_LE_tail - x_AC_w
-            print(f"  Tail LE: {fixed.x_LE_tail:.3f} m  →  approx arm l_h ≈ {l_h:.3f} m")
-            for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
-                x_np_req = fixed.x_cg_max + SM * planform.MAC
-                print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
-                      f"({'OK' if x_AC_w < x_np_req < fixed.x_LE_tail else 'PROBLEM'})")
-        if _is_set(getattr(fixed, 'x_LE_canard', None)):
-            l_c = x_AC_w - fixed.x_LE_canard
-            print(f"  Canard LE: {fixed.x_LE_canard:.3f} m  →  approx arm l_c ≈ {l_c:.3f} m")
-            for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
-                x_np_req = fixed.x_cg_max + SM * planform.MAC
-                print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
-                      f"({'OK' if fixed.x_LE_canard < x_np_req < x_AC_w else 'PROBLEM — NP must be between canard and wing AC'})")
+        # if _is_set(getattr(fixed, 'x_LE_tail', None)):
+        #     l_h = fixed.x_LE_tail - x_AC_w
+        #     print(f"  Tail LE: {fixed.x_LE_tail:.3f} m  →  approx arm l_h ≈ {l_h:.3f} m")
+        #     for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
+        #         x_np_req = fixed.x_cg_max + SM * planform.MAC
+        #         print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
+        #               f"({'OK' if x_AC_w < x_np_req < fixed.x_LE_tail else 'PROBLEM'})")
+        # if _is_set(getattr(fixed, 'x_LE_canard', None)):
+        #     l_c = x_AC_w - fixed.x_LE_canard
+        #     print(f"  Canard LE: {fixed.x_LE_canard:.3f} m  →  approx arm l_c ≈ {l_c:.3f} m")
+        #     for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
+        #         x_np_req = fixed.x_cg_max + SM * planform.MAC
+        #         print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
+        #               f"({'OK' if fixed.x_LE_canard < x_np_req < x_AC_w else 'PROBLEM — NP must be between canard and wing AC'})")
         print(f"------------------------------------")
 
     def _cg_updated(self, fixed: Fixed,
