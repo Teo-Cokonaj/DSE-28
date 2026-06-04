@@ -72,8 +72,6 @@ def aircraft(fixed, planform):
 
 class TestFuelReq:
     def test_fuel_req(self, aircraft, assumptions):
-
         req = FuelReq(assumptions)
-        req_pass = req.assess(aircraft)
-        assert 1>2
+        assert req.assess(aircraft)
  
