@@ -8,5 +8,5 @@ from Aircraft.Aircraft import Aircraft
 
 class Requirement:
 
-    def assess(self, aicraft:Aircraft) -> bool:
+    def assess(self, aircraft:Aircraft) -> bool:
         raise NotImplementedError

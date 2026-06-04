@@ -8,14 +8,21 @@ from Drag.Fuselage import Fuselage
 from Drag.LandingGear import LandingGear
 from Drag.Bay import Bay
 
+# to do: add tail cone x location. (default tail upsweep is 15 degrees)
 class Fixed:
-    def __init__(self, mass:float, x_cg:float, z_cg:float, x_LE_canard:float, x_LE_wing:float, x_LE_tail:float, x_nose_gear:float, 
+    def __init__(self, mass:float, fuel_mass:float, x_cg_min:float, x_cg_max:float, x_tail_cone:float, z_cg:float, z_tail_cone:float, z_wing:float, x_LE_canard:float, x_LE_wing:float, x_LE_tail:float, x_nose_gear:float, 
                  x_main_gear:float, y_main_gear:float, fuselage:Fuselage, nose_gear:LandingGear, main_gear:LandingGear, 
                  gear_bay:Bay, engine_bay:Bay):
     
         self.mass = mass
-        self.x_cg = x_cg
+        self.fuel_mass = fuel_mass
+
+        self.x_cg_min = x_cg_min
+        self.x_cg_max = x_cg_max
+        self.x_tail_cone = x_tail_cone # Added to init by Guilherme
         self.z_cg = z_cg
+        self.z_tail_cone = z_tail_cone # Added to init by Guilherme
+        self.z_wing = z_wing # Added to init by Guilherme
 
         self.x_LE_canard = x_LE_canard
         self.x_LE_wing = x_LE_wing

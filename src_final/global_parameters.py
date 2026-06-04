@@ -40,6 +40,7 @@ class Assumptions():
         self.time_half_circle = 60.0 # [s]
         self.omega_go_round = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
         self.airfield_length = 1275. #m #TODO check with the actual airport
+        self.positive_manoeuvring_limit_load_factor=6.0 #CS-23 aerobatic
 
         #Structural properties
         self.structural_safety_factor= 1.5 
@@ -49,6 +50,7 @@ class Assumptions():
         self.energy_density_saf = 42.8e6 # [J/kg]           
 
         #Mass properties
+        self.initial_total_aircraft_mass = 50.0 # [kg]
         self.cg_excursion_mac = 0.5
         self.mass_payload = 5. # [kg]
 
@@ -78,6 +80,10 @@ class Assumptions():
         self.wing_bay_laminar_frac = .1
         self.lg_bay_length_safety_factor = 1.25
         self.lg_bay_wheel_diameter_ratio = 2.
+        
+        # Engine properties (JetCat P100)
+        self.thrust_available = 2*100 # [N]
+        
 
 
     @property
