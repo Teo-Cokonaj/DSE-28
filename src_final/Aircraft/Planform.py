@@ -40,7 +40,7 @@ class Planform(Component):
         self.pos_max_camber = pos_max_camber
         self.mass_cache:float = None
 
-        self.oswald = 4.61*(1 - 0.45 * self.aspect_ratio**.68)*np.cos(self.sweep_LE_rad)**0.15 - 3.1
+        #self.oswald = 4.61*(1 - 0.045 * self.aspect_ratio**.68)*np.cos(self.sweep_LE_rad)**0.15 - 3.1
 
         super().__init__(
             interference_factor = interference_factor, #high wing
@@ -95,6 +95,14 @@ class Planform(Component):
     @property 
     def inviscid_ratio(self)->float:
         return np.pi*self.aspect_ratio*self.oswald 
+    
+    @property
+    def sweep_half_rad(self)->float:
+        return np.arctan(np.tan(self.sweep_LE_rad) - 0.5 * (2*self.c_root/self.span) * (1-self.taper))
+        
+    @property
+    def oswald(self)->float:
+        return 2/(2 - self.aspect_ratio + np.sqrt(4 + self.aspect_ratio**2 * (1 + np.tan(self.sweep_half_rad)**2)))
     
     
     def sectional_properties(self,
