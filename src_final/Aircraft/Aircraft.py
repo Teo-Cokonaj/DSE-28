@@ -51,8 +51,6 @@ class Aircraft:
         wing_loading = self.total_mass() * CONSTANTS.G0 / self.planforms[0].wing_area
         inviscid_ratio = np.pi*self.planforms[0].aspect_ratio*self.planforms[0].oswald
 
-        print(self.planforms[0].oswald)
-
         # CL_max_glide_ratio from Midterm performance_parameters.py
         CL_max_glide_ratio = np.sqrt(inviscid_ratio * self.CD0_go_around)
 

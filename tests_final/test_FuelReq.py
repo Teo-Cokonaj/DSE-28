@@ -75,5 +75,5 @@ class TestFuelReq:
 
         req = FuelReq(assumptions)
         req_pass = req.assess(aircraft)
-        assert req_pass
+        assert 1>2
  
