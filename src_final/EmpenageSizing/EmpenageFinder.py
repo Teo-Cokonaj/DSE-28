@@ -59,10 +59,10 @@ def _downwash(CL_alpha_w: float, AR_w: float) -> float:
     return 2 * CL_alpha_w / (np.pi * AR_w)
 
 
-def _is_set(x) -> bool:
-    #TODO: remove
-    """True when x is a real (non-None, non-NaN) position."""
-    return x is not None and not np.isnan(float(x))
+# def _is_set(x) -> bool:
+#     #TODO: remove
+#     """True when x is a real (non-None, non-NaN) position."""
+#     return x is not None and not np.isnan(float(x))
 
 
 def _make_planform(S: float, AR: float, taper: float, sweep_deg: float, t_c: float) -> Planform:
@@ -76,7 +76,7 @@ def _make_planform(S: float, AR: float, taper: float, sweep_deg: float, t_c: flo
         cm_quarter_chord     = 0.0,
         wetted_surface_ratio = 1.05,
         interference_factor  = 1.05,
-        clmax                = 1.2, #TODO use CL_h from adsee
+        clmax                = -.35*AR**(1/3), #CL_h from ADSEE
         flap                 = False,
         airfoil_lift_slope   = 2 * np.pi,
         cl0                  = 0.0,
@@ -113,17 +113,17 @@ class EmpenageFinder(ABC):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def find_empenage(planform: Planform, fixed: Fixed, stable: bool) -> EmpenageResult:
+    def find_empenage(planform: Planform, fixed: Fixed, planform_type:str, stable: bool) -> EmpenageResult:
         #TODO: change to match the string planform types used elsewhere
-        has_tail   = _is_set(getattr(fixed, 'x_LE_tail',   None))
-        has_canard = _is_set(getattr(fixed, 'x_LE_canard', None))
 
-        if has_tail and has_canard:
+        if planform_type=="three_surface":
             finder = ThreeSurfaceFinder()
-        elif has_canard:
+        elif planform_type=="canard":
             finder = CanardFinder()
-        else:
+        elif planform_type=="tail":
             finder = TailFinder()
+        else:
+            raise NotImplementedError("This planform type not implemented yet")
 
         return finder.size_empenage(planform, fixed, stable)
 
@@ -149,20 +149,20 @@ class EmpenageFinder(ABC):
         print(f"  Wing:   S={planform.wing_area:.4f} m²  MAC={planform.MAC:.4f} m  "
               f"AR={planform.aspect_ratio:.1f}  CL_alpha={CL_w:.3f} /rad")
         print(f"  Wing AC: x_AC_w = {x_AC_w:.4f} m  (x_LE_wing={fixed.x_LE_wing:.3f} + {x_AC_w-fixed.x_LE_wing:.4f})")
-        print(f"  CG (excl. empenage): x_cg = {fixed.x_cg:.4f} m  mass = {fixed.mass:.2f} kg")
+        print(f"  CG (excl. empenage): x_cg = {fixed.x_cg_max:.4f} m  mass = {fixed.mass:.2f} kg")
         print(f"  Downwash: deps/dalpha = {deps:.4f}")
         if _is_set(getattr(fixed, 'x_LE_tail', None)):
             l_h = fixed.x_LE_tail - x_AC_w
             print(f"  Tail LE: {fixed.x_LE_tail:.3f} m  →  approx arm l_h ≈ {l_h:.3f} m")
             for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
-                x_np_req = fixed.x_cg + SM * planform.MAC
+                x_np_req = fixed.x_cg_max + SM * planform.MAC
                 print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
                       f"({'OK' if x_AC_w < x_np_req < fixed.x_LE_tail else 'PROBLEM'})")
         if _is_set(getattr(fixed, 'x_LE_canard', None)):
             l_c = x_AC_w - fixed.x_LE_canard
             print(f"  Canard LE: {fixed.x_LE_canard:.3f} m  →  approx arm l_c ≈ {l_c:.3f} m")
             for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
-                x_np_req = fixed.x_cg + SM * planform.MAC
+                x_np_req = fixed.x_cg_max + SM * planform.MAC
                 print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
                       f"({'OK' if fixed.x_LE_canard < x_np_req < x_AC_w else 'PROBLEM — NP must be between canard and wing AC'})")
         print(f"------------------------------------")
@@ -174,12 +174,12 @@ class EmpenageFinder(ABC):
         """
         Aircraft CG updated to include empenage surface masses.
 
-        fixed.mass / fixed.x_cg represent the aircraft WITHOUT the empenage
+        fixed.mass / fixed.x_cg_max represent the aircraft WITHOUT the empenage
         surfaces being sized here (fuselage, wing, engines, payload, etc.).
         Surface masses are estimated as RHO_SURF * S, structural CG at X_CG_FRAC * MAC.
         """
         m_total = fixed.mass + m_tail + m_canard
-        return (fixed.mass * fixed.x_cg
+        return (fixed.mass * fixed.x_cg_max
                 + m_tail   * x_cg_tail
                 + m_canard * x_cg_canard) / m_total
 
