@@ -36,12 +36,7 @@ class Aircraft:
         return self.total_mass() * CONSTANTS.G0 / self.reference_wing_area()
     
     def thrust_to_weight(self)->float:
-        return Assumptions().thrust_available / self.total_mass()
-    
-        
-
-
-
+        return Assumptions().thrust_available / (self.total_mass() * CONSTANTS.G0)
     
     def mach_go_around(self, assumptions:Assumptions):
 
