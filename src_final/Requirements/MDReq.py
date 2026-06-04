@@ -12,37 +12,41 @@ from src_final.global_parameters import CONSTANTS, Assumptions
 
 
 class MDReq(Requirement):
+    def __init__(self, matching_diagram:MatchingDiagramJet=MatchingDiagramJet(2), assumptions:Assumptions=Assumptions()):
+        self.assumptions = assumptions
+        self.matching_diagram = matching_diagram
+
+
     def assess(self, 
-               aircraft:Aircraft, 
-               planform:Planform, 
-               fixed:Fixed, 
-               matching_diagram:MatchingDiagramJet, 
-               assumptions:Assumptions) -> bool:
+               aircraft:Aircraft) -> bool:
         
-        matching_diagram.add_landing_field_length(
+        fixed = aircraft.fixed
+        planform = aircraft.planforms[0]
+        
+        self.matching_diagram.add_landing_field_length(
             constraint_label = "Landing Length", 
-            field_length = assumptions.airfield_length, 
+            field_length = self.assumptions.airfield_length, 
             CL_max = planform.positive_C_L_max 
             )
 
-        matching_diagram.add_cruise_speed(
+        self.matching_diagram.add_cruise_speed(
             constraint_label = "Mach max", 
-            mach = assumptions.mach_max, 
+            mach = self.assumptions.mach_max, 
             CD0 = aircraft.CD0_mach_max,
             inviscid_ratio = planform.inviscid_ratio,
-            atmosphere = asb.Atmosphere(assumptions.altitude_mach_max),
+            atmosphere = asb.Atmosphere(self.assumptions.altitude_mach_max),
             beta = (1 - (fixed.fuel_mass / aircraft.total_mass()) / 2) #NOTE: we must be able to perform mach max half-fuelled
         )
         
-        matching_diagram.add_cruise_speed(
+        self.matching_diagram.add_cruise_speed(
             constraint_label = "Cruise speed",
-            mach = assumptions.mach_cruise,
+            mach = self.assumptions.mach_cruise,
             CD0 = aircraft.CD0_cruise,
             inviscid_ratio = planform.inviscid_ratio,
-            atmosphere = asb.Atmosphere(assumptions.altitude_mach_max)
+            atmosphere = asb.Atmosphere(self.assumptions.altitude_mach_max)
         )
 
-        matching_diagram.add_climb_gradient(
+        self.matching_diagram.add_climb_gradient(
             constraint_label = "Climb gradient AEO",
             tan_gradient = CONSTANTS.CLIMB_GRADIENT_AEO,
             CD0 = aircraft.CD0_takeoff,
@@ -51,7 +55,7 @@ class MDReq(Requirement):
             atmosphere = asb.Atmosphere(0.)
         )
         
-        matching_diagram.add_climb_gradient(
+        self.matching_diagram.add_climb_gradient(
             constraint_label = "Climb gradient OEI",
             tan_gradient = CONSTANTS.CLIMB_GRADIENT_OEI,
             CD0 = aircraft.CD0_go_around,
@@ -61,9 +65,9 @@ class MDReq(Requirement):
         )
         #NOTE: there is also a 3% climb gradient on balked landing in the landing configuration, but since our Toff and landing configs are same (no HLDs), we skip that one
 
-        matching_diagram.add_takeoff_field_length(
+        self.matching_diagram.add_takeoff_field_length(
             constraint_label = "Takeoff length", 
-            field_length = assumptions.airfield_length,
+            field_length = self.assumptions.airfield_length,
             inviscid_ratio = planform.inviscid_ratio,
             CL_takeoff = planform.positive_C_L_max 
         )
@@ -73,10 +77,10 @@ class MDReq(Requirement):
         
         results = {}
 
-        for label, ws_constraint in matching_diagram.constraints_wing_loading.items():
+        for label, ws_constraint in self.matching_diagram.constraints_wing_loading.items():
             results[label] = bool(wing_loading <= ws_constraint)
 
-        for label, tw_constraint in matching_diagram.constraints_thrust_weight.items():
+        for label, tw_constraint in self.matching_diagram.constraints_thrust_weight.items():
             results[label] = bool(thrust_to_weight >= tw_constraint(wing_loading))
 
         return results
