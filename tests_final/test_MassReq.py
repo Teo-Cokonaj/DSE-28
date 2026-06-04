@@ -18,6 +18,7 @@ def mtow_max():
 @pytest.fixture
 def aircraft_mass():
     aircraft = Aircraft(fixed = Fixed, planforms = list[Planform])
+    
     return aircraft.total_mass()
 
 class TestMassReq:

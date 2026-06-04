@@ -36,4 +36,13 @@ class FuelReq(Requirement):
 
 
         if fuel_mass_available >= fuel_mass_required:
-            pass
+            fuel_mass_pass = True
+
+        if fuel_mass_pass:
+            print('Fuel mass requirement passed!')
+
+        else:
+            print('Fuel mass requirement failed.')
+            print(f'Fuel mass required: {fuel_mass_required}')
+            print(f'Fuel mass HUGO: {fuel_mass_available}')
+            print(f'Difference {fuel_mass_required-fuel_mass_available}')
