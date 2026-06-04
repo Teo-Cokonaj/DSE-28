@@ -75,7 +75,7 @@ class Aircraft:
         Temperature_at_altitude = atmosphere_at_altitude.temperature()
         speed_of_sound_at_altitude = atmosphere_at_altitude.speed_of_sound()                                                                                                  
         airspeed_at_altitude = speed_of_sound_at_altitude*mach
-        total_weight = self.total_mass * CONSTANTS.G0
+        total_weight = self.total_mass() * CONSTANTS.G0
 
         CL_at_altitude = 2*(total_weight/self.planforms[0].wing_area)*1/(airspeed_at_altitude**2)*1/density_at_altitude
 
