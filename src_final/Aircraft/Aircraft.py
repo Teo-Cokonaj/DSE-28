@@ -44,6 +44,8 @@ class Aircraft:
 
     
     def mach_go_around(self, assumptions:Assumptions):
+
+        #TODO: Test the code
  
         #Define atmosphere for go-around
         atmosphere_go_around = asb.Atmosphere(assumptions.altitude_go_round)         
@@ -68,7 +70,7 @@ class Aircraft:
     
     def glide_ratio(self, mach:float, altitude:float, CD0:float) -> float:
 
-        #TODO: Fix CD0 and Component imports (Marek)
+        #TODO: Test the code
         
         atmosphere_at_altitude = asb.Atmosphere(altitude)
         density_at_altitude = atmosphere_at_altitude.density()
