@@ -6,17 +6,11 @@ import os
 import numpy.testing as nte
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src_final.Requirements.MassReq import MassReq
+from src_final.Requirements.FuelReq import FuelReq
 from src_final.Aircraft.Aircraft import Aircraft
 from src_final.Aircraft.Planform import Planform
 from src_final.Aircraft.Fixed import Fixed, Fuselage, Bay, LandingGear
 from src_final.global_parameters import Assumptions, CONSTANTS
-
-# Define an MTOW constraint
-@pytest.fixture
-def mtow_max():
-    mtow_max = 50      # [kg]
-    return mtow_max
 
 @pytest.fixture
 def assumptions():
@@ -75,15 +69,10 @@ def planform(assumptions):
 def aircraft(fixed, planform):
     return Aircraft(fixed = fixed, planforms = [planform])              
 
-class TestMassReq:
-    def test_MassReq(self,
-                    aircraft,
-                    mtow_max):
+class TestMachGoAround:
+    def test_mach_go_around(self, assumptions, fixed, planform):
+        aircraft = Aircraft(fixed = fixed, planforms = [planform])  
+        mach_go_around = aircraft.mach_go_around(assumptions=assumptions)
 
-        print(f'MTOW HUGO requirement: {mtow_max}')
-        print(f'Total HUGO mass: {aircraft.total_mass()}')
-        print(f'Total MTOW margin: {mtow_max-aircraft.total_mass()}')
-
-        req = MassReq(mtow_max=mtow_max)
-
-        assert req.assess(aircraft)
+        print(mach_go_around)
+        assert 1==2
