@@ -79,7 +79,7 @@ class MDReq(Requirement):
         for label, tw_constraint in matching_diagram.constraints_thrust_weight.items():
             results[label] = bool(thrust_to_weight >= tw_constraint(wing_loading))
 
-        return all(results.values())
+        return results
         
         
     
