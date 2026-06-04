@@ -7,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Drag.Fuselage import Fuselage
 from Drag.LandingGear import LandingGear
 from Drag.Bay import Bay
+from Drag.Component import Component
 
 # to do: add tail cone x location. (default tail upsweep is 15 degrees)
 class Fixed:
@@ -39,7 +40,7 @@ class Fixed:
         self.engine_bay = engine_bay
 
 
-    def drag_components(self, gear_down:bool):
+    def drag_components(self, gear_down:bool) -> list[Component]:
         if gear_down:
             return [self.fuselage, self.nose_gear, self.main_gear, self.main_gear, self.gear_bay, self.gear_bay, self.engine_bay, self.engine_bay]
         else:
