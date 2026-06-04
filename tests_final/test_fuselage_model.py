@@ -78,5 +78,5 @@ class TestFuselageModel:
         third_term=fuselage_model.canard_lift_fraction*fuselage_model.total_aircraft_mass*CONSTANTS.G0*fuselage_model.canard_position_m
         reference_main_wing_lift = (first_term+second_term-third_term)/(fuselage_model.main_wing_position_m-fuselage_model.horizontal_tail_position_m)
         np.testing.assert_almost_equal(fuselage_model.L_main_wing,reference_main_wing_lift)
-        reference_ht_lift=
+        # reference_ht_lift=
     # def test_calculate_loads_landing(self):
