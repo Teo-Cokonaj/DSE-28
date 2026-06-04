@@ -60,6 +60,7 @@ def _downwash(CL_alpha_w: float, AR_w: float) -> float:
 
 
 def _is_set(x) -> bool:
+    #TODO: remove
     """True when x is a real (non-None, non-NaN) position."""
     return x is not None and not np.isnan(float(x))
 
@@ -73,9 +74,9 @@ def _make_planform(S: float, AR: float, taper: float, sweep_deg: float, t_c: flo
         taper                = taper,
         thickness_to_chord   = t_c,
         cm_quarter_chord     = 0.0,
-        wetted_surface_ratio = 2.0,
+        wetted_surface_ratio = 1.05,
         interference_factor  = 1.05,
-        clmax                = 1.2,
+        clmax                = 1.2, #TODO use CL_h from adsee
         flap                 = False,
         airfoil_lift_slope   = 2 * np.pi,
         cl0                  = 0.0,
@@ -113,6 +114,7 @@ class EmpenageFinder(ABC):
 
     @staticmethod
     def find_empenage(planform: Planform, fixed: Fixed, stable: bool) -> EmpenageResult:
+        #TODO: change to match the string planform types used elsewhere
         has_tail   = _is_set(getattr(fixed, 'x_LE_tail',   None))
         has_canard = _is_set(getattr(fixed, 'x_LE_canard', None))
 
@@ -168,6 +170,7 @@ class EmpenageFinder(ABC):
     def _cg_updated(self, fixed: Fixed,
                     m_tail: float = 0.0, x_cg_tail: float = 0.0,
                     m_canard: float = 0.0, x_cg_canard: float = 0.0) -> float:
+        #TODO: Add main wing
         """
         Aircraft CG updated to include empenage surface masses.
 
@@ -209,7 +212,7 @@ class EmpenageFinder(ABC):
         for _ in range(20):
             tail       = _make_planform(ratio * planform.wing_area, A_H, TAPER_H, SWEEP_H, T_C_H)
             x_AC_h     = fixed.x_LE_tail + tail.aerodynamic_center(N)
-            CL_h       = _CL_alpha(tail) * (1 - deps)
+            CL_h       = _CL_alpha(tail) * (1 - deps) #TODO replace with the actual Cl_h
 
             # Update CG with current tail mass estimate, then set required NP
             m_tail     = RHO_SURF_H * tail.wing_area
