@@ -74,5 +74,4 @@ class TestMachGoAround:
         aircraft = Aircraft(fixed = fixed, planforms = [planform])  
         mach_go_around = aircraft.mach_go_around(assumptions=assumptions)
 
-        print(mach_go_around)
-        assert 1==2
+        assert 0 < mach_go_around < 0.5
