@@ -52,7 +52,7 @@ class MDReq(Requirement):
             CD0 = aircraft.CD0_takeoff,
             inviscid_ratio = planform.inviscid_ratio,
             all_engines_operative = True,
-            atmosphere = asb.Atmosphere(0.)
+            atmosphere = asb.Atmosphere(CONSTANTS.ALTITUDE_OEI_CLIMB)
         )
         
         self.matching_diagram.add_climb_gradient(
