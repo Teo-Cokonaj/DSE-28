@@ -7,8 +7,14 @@ from Aircraft.Aircraft import Aircraft
 
 
 class MassReq(Requirement):
-    def assess(self, aicraft:Aircraft) -> bool:
-        pass #TODO: check that the total mass of the aircraft (wing empenage fixed) is below the MTOM requirement
+    #TODO: check that the total mass of the aircraft (wing empenage fixed) is below the MTOM requirement
 
-        
+    def __init__(self, mtow_max):
+        self.mtow_max = mtow_max
+
+    def assess(self, aircraft:Aircraft) -> bool:
+        aircraft_mass = aircraft.total_mass()
+
+        if aircraft_mass <= self.mtow_max:
+            pass
         
