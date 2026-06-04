@@ -47,7 +47,10 @@ class Assumptions():
         self.cfrp_density = 1600.0 # [kg/m^3]
         self.cfrp_yield_strength = 600e6 # [Pa]  
         self.cfrp_Young_modulus = 80e9 # [Pa]
-        self.energy_density_saf = 42.8e6 # [J/kg]           
+
+        #Engine parameters
+        self.energy_density_saf = 42.8e6 # [J/kg]       
+        self.sfc = 0.187/3600 # [kg/N/s]    
 
         #Mass properties
         self.initial_total_aircraft_mass = 50.0 # [kg]
@@ -80,6 +83,10 @@ class Assumptions():
         self.wing_bay_laminar_frac = .1
         self.lg_bay_length_safety_factor = 1.25
         self.lg_bay_wheel_diameter_ratio = 2.
+        
+        # Engine properties (JetCat P100)
+        self.thrust_available = 2*100 # [N]
+        
 
 
     @property

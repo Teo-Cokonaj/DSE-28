@@ -7,7 +7,7 @@ import aerosandbox as asb
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from global_parameters import CONSTANTS, Assumptions
-from Class_I.Mission_Segment import Mission_Segment
+from Class_I.MissionSegment import Mission_Segment
 
 def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude_mach_max:float, time_half_turn:float, CL_max_glide_ratio_go_around:float, 
                        glide_ratio_mach_max:float, glide_ratio_cruise:float, glide_ratio_go_around:float, airspeed_approach:float,
