@@ -94,16 +94,16 @@ class TestFuselageModel:
                  )
         fuselage_model.create_nodes()
         fuselage_model.assign_structural_mass()
-        fuselage_model.calculate_loads_flight()
+        fuselage_model.calculate_loads_flight(load_factor=9.0)
 
-        first_term = fuselage_model.horizontal_tail_position_m*(fuselage_model.canard_lift_fraction-1)*fuselage_model.total_aircraft_mass*CONSTANTS.G0
+        first_term = fuselage_model.horizontal_tail_position_m*(fuselage_model.canard_lift_fraction-1)*9.0*fuselage_model.total_aircraft_mass*CONSTANTS.G0
         second_term=np.sum(fuselage_model.nodes*fuselage_model.masses*CONSTANTS.G0)
-        third_term=fuselage_model.canard_lift_fraction*fuselage_model.total_aircraft_mass*CONSTANTS.G0*fuselage_model.canard_position_m
+        third_term=fuselage_model.canard_lift_fraction*9.0*fuselage_model.total_aircraft_mass*CONSTANTS.G0*fuselage_model.canard_position_m
         reference_main_wing_lift = (first_term+second_term-third_term)/(fuselage_model.main_wing_position_m-fuselage_model.horizontal_tail_position_m)
         np.testing.assert_almost_equal(fuselage_model.L_main_wing,reference_main_wing_lift)
-        reference_ht_lift=(1-fuselage_model.canard_lift_fraction)*fuselage_model.total_aircraft_mass*CONSTANTS.G0-reference_main_wing_lift
+        reference_ht_lift=(1-fuselage_model.canard_lift_fraction)*9.0*fuselage_model.total_aircraft_mass*CONSTANTS.G0-reference_main_wing_lift
         np.testing.assert_almost_equal(fuselage_model.L_horizontal_tail,reference_ht_lift)
-        np.testing.assert_almost_equal(np.sum(fuselage_model.loads),0.0)
+        np.testing.assert_almost_equal(np.sum(fuselage_model.loads),8.0*fuselage_model.total_aircraft_mass*CONSTANTS.G0)
         reference_loads=-fuselage_model.masses*CONSTANTS.G0
         locs = [fuselage_model.canard_position_m, fuselage_model.main_wing_position_m, fuselage_model.horizontal_tail_position_m]
         vals = [fuselage_model.L_canard, fuselage_model.L_main_wing, fuselage_model.L_horizontal_tail]
@@ -128,4 +128,80 @@ class TestFuselageModel:
         np.testing.assert_allclose(reference_internal_bending_moments(np.linspace(0.0,fuselage_model.fuselage_length_m,10)),
                                    fuselage_model.internal_bending_moments(np.linspace(0.0,fuselage_model.fuselage_length_m,10)))
 
-    # def test_calculate_loads_landing(self):
+
+    def test_calculate_loads_landing(self,
+                                    material):
+        fuselage_model=FuselageModel(
+                 fuselage_length_m=3.0,
+                 fuselage_diameter_m= 0.3,
+                 minimum_fuselage_thickness_mm=1e-6,
+                 material=material,
+                 main_wing_position_m=1.0,
+                 main_wing_mass_kg=10.0,
+                 horizontal_tail_position_m=3.0,
+                 horizontal_tail_mass_kg=3.0,
+                 landing_gear_position_m=1.5,
+                 landing_gear_mass_kg=3.0,
+                 number_of_nodes=10,
+                 canard_position_m=0.2,
+                 canard_mass_kg=1.0,
+                 canard_lift_fraction=0.20,             
+                 )
+        fuselage_model.create_nodes()
+        fuselage_model.assign_structural_mass()
+        fuselage_model.calculate_loads_landing(landing_load_factor=2.0)
+
+        first_term = fuselage_model.horizontal_tail_position_m*(fuselage_model.canard_lift_fraction-1)*fuselage_model.total_aircraft_mass*CONSTANTS.G0
+        second_term=np.sum(fuselage_model.nodes*fuselage_model.masses*CONSTANTS.G0)
+        third_term=fuselage_model.canard_lift_fraction*fuselage_model.total_aircraft_mass*CONSTANTS.G0*fuselage_model.canard_position_m+2.0*fuselage_model.total_aircraft_mass*CONSTANTS.G0*fuselage_model.landing_gear_position_m
+        reference_main_wing_lift = (first_term+second_term-third_term)/(fuselage_model.main_wing_position_m-fuselage_model.horizontal_tail_position_m)
+        np.testing.assert_almost_equal(fuselage_model.L_main_wing,reference_main_wing_lift)
+        reference_ht_lift=(1-fuselage_model.canard_lift_fraction)*fuselage_model.total_aircraft_mass*CONSTANTS.G0-reference_main_wing_lift
+        np.testing.assert_almost_equal(fuselage_model.L_horizontal_tail,reference_ht_lift)
+        np.testing.assert_almost_equal(np.sum(fuselage_model.loads),2.0*fuselage_model.total_aircraft_mass*CONSTANTS.G0)
+        reference_loads=-fuselage_model.masses*CONSTANTS.G0
+        locs = [fuselage_model.canard_position_m, fuselage_model.main_wing_position_m, fuselage_model.horizontal_tail_position_m,fuselage_model.landing_gear_position_m]
+        vals = [fuselage_model.L_canard, fuselage_model.L_main_wing, fuselage_model.L_horizontal_tail, fuselage_model.force_landing_gear]
+        for loc, val in zip(locs, vals):
+            reference_loads[np.argmin(np.abs(fuselage_model.nodes-loc))] += val
+        np.testing.assert_allclose(reference_loads,fuselage_model.loads)
+        reference_internal_shear_forces=interp1d(fuselage_model.nodes,
+                                              np.cumsum(reference_loads),
+                                              kind='zero',
+                                              fill_value='extrapolate')
+
+        np.testing.assert_allclose(reference_internal_shear_forces(np.linspace(0.0,fuselage_model.fuselage_length_m,10)),
+                                   fuselage_model.internal_shear_forces(np.linspace(0.0,fuselage_model.fuselage_length_m,10)))
+        
+        fine_nodes = np.linspace(fuselage_model.nodes[0], fuselage_model.nodes[-1], 100 * len(fuselage_model.nodes))
+        shear_fine = reference_internal_shear_forces(fine_nodes)
+        reference_internal_bending_moments = np.concatenate([[0], cumulative_trapezoid(shear_fine, fine_nodes)])
+        reference_internal_bending_moments = interp1d(
+                                     fine_nodes,
+                                     reference_internal_bending_moments,
+                                     kind='linear')
+        np.testing.assert_allclose(reference_internal_bending_moments(np.linspace(0.0,fuselage_model.fuselage_length_m,10)),
+                                   fuselage_model.internal_bending_moments(np.linspace(0.0,fuselage_model.fuselage_length_m,10)))
+
+
+    def test_compute_sectional_properties(self,
+                                          fuselage_model):
+        r_o = fuselage_model.fuselage_diameter_m/2
+        r_i = r_o - 1.0/1000
+        y_bar = (4/(3*np.pi))*(r_o**2 + r_o*r_i + r_i**2)/(r_o+r_i)
+        area = (np.pi/2)*(r_o**2 - r_i**2)
+        Q = y_bar * area
+        I_xx =np.pi/4*(r_o**4 - r_i**4)
+
+        np.testing.assert_allclose(fuselage_model.compute_sectional_properties(1.0)[0],Q)
+        np.testing.assert_allclose(fuselage_model.compute_sectional_properties(1.0)[1],I_xx)
+
+
+    def test_buckling_stress(self,
+                             fuselage_model,
+                             material):
+
+        reference_phi=1/16*np.sqrt(fuselage_model.fuselage_diameter_m/2/3.0)
+        reference_gamma=1.0-0.901*(1-np.exp(-reference_phi))
+        reference_sigma_cr=reference_gamma*(material.elastic_modulus*3.0)/(np.sqrt(3*(1-material.poisson_ratio**2))*fuselage_model.fuselage_diameter_m/2)
+        np.testing.assert_almost_equal(fuselage_model.calculate_buckling_stress(3.0),reference_sigma_cr)
