@@ -36,7 +36,18 @@ class WingModel:
         self.wing_root_chord_m = wing_root_chord_m
 
 
-
+    def perimeter_of_section(self,
+                        c_station:float,
+                        thickness_to_chord: float
+                                  ):
+            #Calculating the major and minor axes for each section\
+            a=c_station/2
+            b=a*thickness_to_chord
+            #using Ramanujan's Second Approximation
+            h = (a-b)**2/(a+b)**2
+            perimeter_crossection = np.pi * (a + b ) * [1 + (3*h**2)/(10 + (4-3*h**2)**(1/2))]
+            print(perimeter_crossection)
+            return perimeter_crossection
     def step_torsion_determination(self,
             c_stations:float,
             nr_sections:int,
@@ -50,16 +61,15 @@ class WingModel:
         self.lift_cont_forces = interp1d (reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk)
         c_stations_cop = c_stations[-np.size(reduced_sectional_spanwise_positions):]
         
-
         torsion_per_node_single = self.lift_cont_forces(reduced_sectional_spanwise_positions) * (c_stations_cop / 4.0)
         torsion_per_node_tot = np.cumsum(torsion_per_node_single[::-1])[::-1]
 
         self.tosrion_node_tot = interp1d(reduced_sectional_spanwise_positions,torsion_per_node_tot)
         
         torsion_each_node = self.tosrion_node_tot(reduced_sectional_spanwise_positions)
-        torsion_each_node = np.append(torsion_each_node,np.full(np.size(c_stations) - np.size(torsion_each_node), torsion_each_node[-1]))
+        torsion_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(torsion_each_node), torsion_each_node[0]),torsion_each_node))
         
-        
+        print(torsion_each_node, np.size(torsion_each_node))
 
         #print(self.lift_cont_forces(reduced_sectional_spanwise_positions))
         #plt.plot(reduced_sectional_spanwise_positions,self.tosrion_node_tot(reduced_sectional_spanwise_positions))
@@ -68,7 +78,7 @@ class WingModel:
         return torsion_each_node
 
     def step_rotation_of_wing(self):
-        
+        #assume that the area is given
 
         return rotation
     
@@ -184,7 +194,7 @@ if __name__=='__main__':
             aspect_ratio=20.0,
             span=2.0,
             sweep_quarter_deg=0.0,
-            taper=1.0,
+            taper=0.5,
             thickness_to_chord=0.12,
             cm_quarter_chord=1.0,
             wetted_surface_ratio=1.0,
@@ -211,6 +221,7 @@ if __name__=='__main__':
                                                      initial_total_aircraft_mass=50.0,
                                                      number_of_stations=100)
         c_stations = planform.sectional_properties(number_of_sections=100)[0]
+        print(c_stations)
         torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
         print(torsion)
         shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, nr_sections=nr_sections, modified_sectional_lifts_schrenk=lift_span, debug = True, plot = True)
