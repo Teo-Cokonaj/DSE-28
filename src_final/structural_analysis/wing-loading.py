@@ -71,11 +71,7 @@ class WingModel:
         torsion_each_node = self.tosrion_node_tot(reduced_sectional_spanwise_positions)
         torsion_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(torsion_each_node), torsion_each_node[0]),torsion_each_node))
         
-<<<<<<< HEAD
-
-=======
         #print(torsion_each_node, np.size(torsion_each_node))
->>>>>>> e1b2db3a731d2ce3d8bb9f065e4d3acb2cb60a73
 
         #print(self.lift_cont_forces(reduced_sectional_spanwise_positions))
         #plt.plot(y_stations,torsion_each_node)
@@ -294,13 +290,13 @@ if __name__=='__main__':
                                                      initial_total_aircraft_mass=50.0,
                                                      number_of_stations=100)
         c_stations = planform.sectional_properties(number_of_sections=100)[0]
-<<<<<<< HEAD
+
         y_station_chord = planform.sectional_properties(number_of_sections=100)[2]
         
         torsion = wing_model.step_torsion_determination(c_stations, y_station_chord, span_poz, lift_span)
         rotation = wing_model.step_rotation_of_wing(material_1.shear_modulus , material_2.shear_modulus,planform.thickness_to_chord,wing_model.wing_skin_thickness_m,c_stations,torsion,y_station_chord)
         shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, nr_sections=nr_sections, modified_sectional_lifts_schrenk=lift_span, debug = True, plot = True)
-=======
+
         #print(c_stations)
         #torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
         #print(torsion)
