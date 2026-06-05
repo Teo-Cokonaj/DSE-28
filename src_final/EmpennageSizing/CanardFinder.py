@@ -4,12 +4,12 @@ from Aircraft.Fixed import Fixed
 from EmpennageSizing.EmpennageFinder import EmpennageFinder
 
 class CanardFinder(EmpennageFinder):
-    def __init__(self, fixed, AR_c:float=3., taper_c:float=.7, taper_v:float=.9, SM=0.05):
+    def __init__(self, fixed, AR_c:float=3., taper_c:float=.7, taper_v:float=.9, min_sc_s = 0.05):
         super().__init__(fixed)
         self.AR_c = AR_c
         self.taper_c = taper_c
         self.taper_v = taper_v
-        self.SM = SM
+        self.min_sc_s = min_sc_s
 
 
     def find_planforms(self, main_wing:Planform, initial:float=.1, maxiter:int=50, tolerance:float=1e-4) -> list[Planform]:
@@ -26,6 +26,8 @@ class CanardFinder(EmpennageFinder):
 
             x_cg_mac_min = self._x_cg([main_wing, canard, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail])
             Sh_S_new = (x_cg_mac_min - ac_term) / (CL_c * l_c_mac / main_wing.positive_C_L_max)
+            #NOTE Canard may not be necessary in case the thing can sustain itself as a flying wing, still we cannot have 0 surfaces and the case w\ the canard is most constraining
+            Sh_S_new = max(Sh_S_new, self.min_sc_s)
 
             diff = abs(Sh_S_new - Sh_S) / Sh_S_new
             if  diff < tolerance:
