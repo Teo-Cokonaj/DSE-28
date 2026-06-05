@@ -135,8 +135,6 @@ def landing_gear_response(k:float, c:float, displacement_constraint_compression:
         print("SISO TF of displacement: ", SISO_TF_displacement)
         print("SISO TF of force", SISO_TF_force)
 
-        ml.rlocus(-SISO_TF_displacement)
-
     return y_displacement, y_force, constraints_met
 
 
