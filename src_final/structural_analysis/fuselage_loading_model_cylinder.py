@@ -1,7 +1,8 @@
-import aerosandbox.numpy as np
+import numpy as np
 import matplotlib.pyplot as plt
 import math
-from scipy.integrate import cumulative_trapezoid
+from scipy.integrate import cumulative_trapezoid, quad
+from scipy.interpolate import interp1d
 # import win32com.client
 import os
 import sys
@@ -74,9 +75,7 @@ class FuselageModel:
 
     def calculate_loads_flight(self):
         self.total_aircraft_mass=np.sum(self.masses)
-        print('Total aircraft mass: ',self.total_aircraft_mass)
         self.L_canard=self.canard_lift_fraction*self.total_aircraft_mass*CONSTANTS.G0
-        print('Canard lift: ',self.L_canard)
         
         # Set up the matrices for A * x = B
         A = np.array([
@@ -102,11 +101,19 @@ class FuselageModel:
         for loc, val in zip(locs, vals):
             self.loads[np.argmin(np.abs(self.nodes-loc))] += val
 
-        self.internal_shear_forces = np.cumsum(self.loads) #positive downwards
-
-        self.internal_bending_moments = cumulative_trapezoid(y=self.internal_shear_forces,
-                                                             x=self.nodes,
-                                                             initial=0)
+        self.internal_shear_forces = np.cumsum(self.loads)
+        self.internal_shear_forces = interp1d(self.nodes,
+                                              self.internal_shear_forces,
+                                    kind='zero',
+                                    fill_value='extrapolate')
+        
+        fine_nodes = np.linspace(self.nodes[0], self.nodes[-1], 100 * len(self.nodes))
+        shear_fine = self.internal_shear_forces(fine_nodes)
+        self.internal_bending_moments = np.concatenate([[0], cumulative_trapezoid(shear_fine, fine_nodes)])
+        self.internal_bending_moments = interp1d(
+                                     fine_nodes,
+                                     self.internal_bending_moments,
+                                     kind='linear')
 
 
     def compute_sectional_properties(self,
@@ -339,7 +346,7 @@ if __name__=='__main__':
                  horizontal_tail_mass_kg=3.0,
                  landing_gear_position_m=1.5,
                  landing_gear_mass_kg=3.0,
-                 number_of_nodes=10,
+                 number_of_nodes=1000,
                  canard_position_m=0.2,
                  canard_mass_kg=1.0,
                  canard_lift_fraction=0.2,             
