@@ -192,7 +192,7 @@ class FuselageModel:
         sigma_bending = self.internal_bending_moments(self.nodes)*self.fuselage_diameter_m/(2*I)
         sigma_buckling = self.calculate_buckling_stress(thicknesses_m)
 
-        maximum_allowed_normal_stress = np.minimum(self.material.yield_strength, sigma_buckling)
+        maximum_allowed_normal_stress = np.minimum(0.7*self.material.yield_strength, sigma_buckling)
         maximum_allowed_shear_stress = 0.5*self.material.yield_strength #Tresca
         bending_util = sigma_bending / maximum_allowed_normal_stress
         shear_util = tau_shear / maximum_allowed_shear_stress
@@ -390,7 +390,7 @@ if __name__=='__main__':
                  horizontal_tail_mass_kg=3.0,
                  landing_gear_position_m=1.5,
                  landing_gear_mass_kg=3.0,
-                 number_of_nodes=10,
+                 number_of_nodes=1000,
                  canard_position_m=0.1,
                  canard_mass_kg=1.0,
                  canard_lift_fraction=0.2,             
@@ -400,9 +400,9 @@ if __name__=='__main__':
         fuselage_model.assign_structural_mass()
         #fuselage_model.assign_nonstructural_mass()
         fuselage_model.calculate_loads_flight(9.0)
-        print('FLight loads: ',fuselage_model.loads)
-        fuselage_model.calculate_loads_landing(landing_load_factor=2.0)
-        print('Landing loads: ',fuselage_model.loads)
+        #print('Flight loads: ',fuselage_model.loads)
+        #fuselage_model.calculate_loads_landing(landing_load_factor=2.0)
+        #print('Landing loads: ',fuselage_model.loads)
         fuselage_model.plot_external_loads()
         fuselage_model.plot_shear_and_moment_diagrams()
         fuselage_model.evaluate_thickness(maximum_allowed_thickness_mm=1.0,
