@@ -106,6 +106,22 @@ class Planform(Component):
         return 2/(2 - self.aspect_ratio + np.sqrt(4 + self.aspect_ratio**2 * (1 + np.tan(self.sweep_half_rad)**2)))
     
     
+    @property
+    def CL_alpha(self) -> float:
+        """3-D lift-curve slope via Helmbold–DATCOM [1/rad]."""
+        a0  = self.airfoil_lift_slope
+        AR  = self.aspect_ratio
+        kap = a0 / (2 * np.pi)
+        Lam = self.sweep_half_rad
+        return a0 * AR / (2 + np.sqrt(4 + (AR / kap) ** 2 * (1 + np.tan(Lam) ** 2)))
+
+
+    @property
+    def _downwash(self) -> float:
+        """Simplified downwash gradient dε/dα."""
+        return 2 * self.CL_alpha / (np.pi * self.aspect_ratio)
+    
+    
     def sectional_properties(self,
                         number_of_sections)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
         
