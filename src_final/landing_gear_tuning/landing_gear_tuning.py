@@ -63,7 +63,9 @@ def landing_gear_response(k:float,
 
     inp = max_load * np.ones_like(t)                                                                    # input step array
 
-    y_displacement, T_displacement, x_displacement = ml.lsim(SISO_TF_displacement, inp, T=t, X0 )            # step response of displacement
+
+    # TO DO!!!!! implement X0 as downward velocity component (x2 in the sate vector)
+    y_displacement, T_displacement, x_displacement = ml.lsim(SISO_TF_displacement, inp, T=t )           # step response of displacement
 
     y_force, T_force, x_force = ml.lsim(SISO_TF_force, inp, T=t)                                        # step response of force
 
