@@ -69,7 +69,7 @@ class WingModel:
         torsion_each_node = self.tosrion_node_tot(reduced_sectional_spanwise_positions)
         torsion_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(torsion_each_node), torsion_each_node[0]),torsion_each_node))
         
-        print(torsion_each_node, np.size(torsion_each_node))
+        #print(torsion_each_node, np.size(torsion_each_node))
 
         #print(self.lift_cont_forces(reduced_sectional_spanwise_positions))
         #plt.plot(reduced_sectional_spanwise_positions,self.tosrion_node_tot(reduced_sectional_spanwise_positions))
@@ -123,8 +123,8 @@ class WingModel:
         self.shear_node_tot = interp1d(reduced_sectional_spanwise_positions,shear_wall_cop)
     
         shear_each_node = self.shear_node_tot(reduced_sectional_spanwise_positions)
-        shear_each_node = np.append(shear_each_node,np.full(np.size(c_stations) - np.size(shear_each_node), shear_each_node[-1]))
-
+        shear_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(shear_each_node), shear_each_node[0]), shear_each_node))
+        
         # Step 7 (optional): print values for debug
         if debug:
             print(f'Number of stations [-]: {len(c_stations)}')
@@ -132,12 +132,16 @@ class WingModel:
             print(f'Skin thickness [m]: {thickness_skin}')
             print(f'Chord lengths [m]: {c_stations}')
             print(f'Spanwise positions [m]: {y_stations}')
+            print(f'Torsion [N/m]: {torsion_stations_cop}')
+            print(f'Cross-section Areas [m2]: {cross_section_areas_cop}')
             print(f'Shear stress [Pa]: {shear_each_node}')
 
         # Step 8 (optional): Plot
         if plot:
             fig = plt.figure()
             plt.plot(y_stations, shear_each_node)
+            plt.xlabel("Spanwise Position [m]")
+            plt.ylabel("Shear Stress [Pa]")
             plt.title("Shear Stress Distribution")
             fig.savefig('shear_stress_distribution.png')
             plt.show()
@@ -159,13 +163,34 @@ class WingModel:
         y_stations_cop = y_stations[-np.size(reduced_sectional_spanwise_positions):]
 
         # Step 2: Integrate to get the shear force
+        lift_cont_forces_cop = self.lift_cont_forces(y_stations_cop)
+        self.shear_cont_forces = cumulative_trapezoid(lift_cont_forces_cop,y_stations_cop, initial=0)
 
+        # Step 3: Interpolate the shear
+        self.shear_node_tot = interp1d(reduced_sectional_spanwise_positions,self.shear_cont_forces)
+    
+        shear_each_node = self.shear_node_tot(reduced_sectional_spanwise_positions)
+        shear_each_node = shear_each_node[-1] - shear_each_node
+        shear_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(shear_each_node), shear_each_node[0]), shear_each_node))
+        
         # Step 3 (optional): print intermediate values for debug
+        if debug:
+            print(f'Number of sections: {nr_sections}')
+            print(f'Spanwise positions [m]: {y_stations}')
+            print(f'Distributed lift [N]: {lift_cont_forces_cop}')
+            print(f'Shear force [N]: {shear_each_node}')             
 
         # Step 4 (optional): plot
+        if plot:
+            fig = plt.figure()
+            plt.plot(y_stations, shear_each_node)
+            plt.xlabel('Spanwise Position [m]')
+            plt.ylabel("Shear Force [N]")
+            plt.title("Shear Force Distribution")
+            fig.savefig('shear_force_distribution.png')
+            plt.show()
         
-
-        return shear_force
+        return shear_each_node
 
     def step_moment():
     #distance from root and lift
@@ -221,7 +246,10 @@ if __name__=='__main__':
                                                      initial_total_aircraft_mass=50.0,
                                                      number_of_stations=100)
         c_stations = planform.sectional_properties(number_of_sections=100)[0]
-        print(c_stations)
-        torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
-        print(torsion)
-        shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, nr_sections=nr_sections, modified_sectional_lifts_schrenk=lift_span, debug = True, plot = True)
+        #print(c_stations)
+        #torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
+        #print(torsion)
+        shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, nr_sections=nr_sections,
+                                             modified_sectional_lifts_schrenk=lift_span, debug = True, plot = True)
+        shear_force = wing_model.step_shear_forces(reduced_sectional_spanwise_positions=span_poz,
+                                                   modified_sectional_lifts_schrenk=lift_span,debug = False, plot = True)
