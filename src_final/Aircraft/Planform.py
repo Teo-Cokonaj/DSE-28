@@ -110,13 +110,13 @@ class Planform(Component):
         
         y_stations = np.linspace(0, self.half_span, number_of_sections)
     
-        c_stations = self.c_root + (self.c_tip - self.c_root) * y_stations / self.half_span
+        chord_stations = self.c_root + (self.c_tip - self.c_root) * y_stations / self.half_span
         
         dy = np.diff(y_stations)
-        c_inner = c_stations[:-1]
-        c_outer = c_stations[1:]
+        c_inner = chord_stations[:-1]
+        c_outer = chord_stations[1:]
         
-        return c_stations, 0.5 * (c_inner + c_outer) * dy, y_stations,dy
+        return chord_stations, 0.5 * (c_inner + c_outer) * dy, y_stations,dy
     
     def aerodynamic_center(self,
                        number_of_sections: int,
