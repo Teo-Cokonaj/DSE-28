@@ -5,12 +5,23 @@ import matplotlib.pyplot as plt
 #m = input("Enter the Maximum Take Off Weight:")
 #L = input("Enter the lift at landing:")
 
-def landing_gear_response(k:float, c:float, displacement_constraint_compression:float = -0.0095, force_requirement: float = 4, dt:float = 0.01, t:int = 5, m:float = 50, L:float = 35, debug:bool = False):
+def landing_gear_response(k:float, 
+                          c:float, 
+                          downward_landing_speed:float = 15,                    # Has to be implemented into simulation, but I am not sure how to do that using lsim
+                          displacement_constraint_compression:float = 0.0095, 
+                          force_requirement: float = 4, 
+                          dt:float = 0.01, 
+                          t:int = 5, 
+                          m:float = 50, 
+                          L:float = 35, 
+                          plotting:bool = False, 
+                          debug:bool = False):
 
     # defining units
 
     # k                                     [N/m]
     # c                                     [Pa/m/s]
+    # landing_speed                         [m/s]
     # displacement_constraint_compression   [m]
     # force requirement (how many g)        [-]
     # dt                                    [s]
@@ -35,7 +46,6 @@ def landing_gear_response(k:float, c:float, displacement_constraint_compression:
     D = [[0], [0]]
 
     # creation of a state space
-
     state_space = ml.ss(A, B, C, D)
     MIMO_transfer_function = ml.tf(state_space)
 
@@ -43,17 +53,17 @@ def landing_gear_response(k:float, c:float, displacement_constraint_compression:
     SISO_TF_displacement = MIMO_transfer_function[0, 0]
     SISO_TF_force = MIMO_transfer_function[1,0]
 
-    # Simulating step response of landing gear:
+    #_____________________________________________Simulating step response of landing gear:_____________________________________________________________________________
 
-    max_load = L/m - g                                                                                  # load applied 
+    max_load = g - L/m                                                                                  # load applied [N]
     
-    load_requirement = force_requirement * m * g                                                                          
+    load_requirement = force_requirement * m * g                                                        # [N]              
 
     t = np.arange(0, t + dt, dt)                                                                        # time array
 
     inp = max_load * np.ones_like(t)                                                                    # input step array
 
-    y_displacement, T_displacement, x_displacement = ml.lsim(SISO_TF_displacement, inp, T=t)            # step response of displacement
+    y_displacement, T_displacement, x_displacement = ml.lsim(SISO_TF_displacement, inp, T=t, X0 )            # step response of displacement
 
     y_force, T_force, x_force = ml.lsim(SISO_TF_force, inp, T=t)                                        # step response of force
 
@@ -64,49 +74,51 @@ def landing_gear_response(k:float, c:float, displacement_constraint_compression:
 
     y_force_constraint_compression = force_requirement * g * m / 1000 * np.ones_like(t) 
 
+    #___________________________________________________________________________________________________________________________________________________________________
+
+
 
     # plotting
 
-    fig, axs = plt.subplots(1, 2)                                                                       # subplots
+    if plotting:
+        fig, axs = plt.subplots(1, 2)                                                                       # subplots
 
-    # plotting response
+        # plotting response
 
-    # displacement plotting
+        # displacement plotting
 
-    axs[0].plot(t, 
-                y_displacement * 100,  
-                color='steelblue', 
-                label="Displacement")
-    axs[0].plot(t, 
-                y_displacement_constraint_compression, 
-                'r--',  
-                label=f"Compression limit ({displacement_constraint_compression*100:.2f} cm)")
-    axs[0].set_title("Displacement Response")
-    axs[0].set_xlabel("Time (s)")
-    axs[0].set_ylabel("Displacement (cm)")
-    axs[0].legend()
-    axs[0].grid(True)
+        axs[0].plot(t, 
+                    y_displacement * 100,  
+                    color='steelblue', 
+                    label="Displacement")
+        axs[0].plot(t, 
+                    y_displacement_constraint_compression, 
+                    'r--',  
+                    label=f"Compression limit ({displacement_constraint_compression*100:.2f} cm)")
+        axs[0].set_title("Displacement Response")
+        axs[0].set_xlabel("Time (s)")
+        axs[0].set_ylabel("Displacement (cm)")
+        axs[0].legend()
+        axs[0].grid(True)
 
-    # force plotting
+        # force plotting
 
-    axs[1].plot(t, 
-                y_force / 1000, 
-                color='darkorange', 
-                label="Gear force")
-    axs[1].plot(t, 
-                y_force_constraint_compression, 
-                'r--', 
-                label="4g limit")
-    axs[1].set_title("Force Response")
-    axs[1].set_xlabel("Time (s)")
-    axs[1].set_ylabel("Force (kN)")
-    axs[1].legend()
-    axs[1].grid(True)
+        axs[1].plot(t, 
+                    y_force / 1000, 
+                    color='darkorange', 
+                    label="Gear force")
+        axs[1].plot(t, 
+                    y_force_constraint_compression, 
+                    'r--', 
+                    label="4g limit")
+        axs[1].set_title("Force Response")
+        axs[1].set_xlabel("Time (s)")
+        axs[1].set_ylabel("Force (kN)")
+        axs[1].legend()
+        axs[1].grid(True)
 
-
-
-    plt.tight_layout()
-    plt.show()
+        plt.tight_layout()
+        plt.show()
 
     # constraints met?
 
@@ -139,10 +151,16 @@ def landing_gear_response(k:float, c:float, displacement_constraint_compression:
 
 
 if __name__ == "__main__":
-    K = 60000
-    C = 1000
+    K = 100000
+    C = 120
 
-    y_displacement, y_force, constraints_met = landing_gear_response(K, C, debug = True)
+    y_displacement, y_force, constraints_met = landing_gear_response(K, C, plotting = True, debug = True)
+
+    y_disp_max = np.max(np.abs(y_displacement))
+    y_force_max = np.max(np.abs(y_force))
+
+    print("max displacement: ", y_disp_max * 100, " [cm]")
+    print("max force: ", y_force_max / 1000, " [kN]")
 
     print("The constraints were met: ", constraints_met)
 
