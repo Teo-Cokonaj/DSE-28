@@ -39,6 +39,7 @@ class Planform(Component):
         self.chord_fraction_maximum_thickness = chord_fraction_maximum_thickness
         self.pos_max_camber = pos_max_camber
         self.mass_cache:float = None
+        self.x_cg_cache:float = None
 
         #self.oswald = 4.61*(1 - 0.045 * self.aspect_ratio**.68)*np.cos(self.sweep_LE_rad)**0.15 - 3.1
 

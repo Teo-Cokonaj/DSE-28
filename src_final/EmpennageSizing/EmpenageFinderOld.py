@@ -40,23 +40,23 @@ EmpenageResult = tuple
 # Module-level helpers
 # ---------------------------------------------------------------------------
 
-def _sweep_half(sweep_quarter_rad: float, c_root: float, span: float, taper: float) -> float:
-    """Quarter-chord sweep → half-chord sweep [rad]."""
-    return np.arctan(np.tan(sweep_quarter_rad) - c_root / span * 0.25 * (1 - taper))
+# def _sweep_half(sweep_quarter_rad: float, c_root: float, span: float, taper: float) -> float:
+#     """Quarter-chord sweep → half-chord sweep [rad]."""
+#     return np.arctan(np.tan(sweep_quarter_rad) - c_root / span * 0.25 * (1 - taper))
 
 
-def _CL_alpha(planform: Planform) -> float:
-    """3-D lift-curve slope via Helmbold–DATCOM [1/rad]."""
-    a0  = planform.airfoil_lift_slope
-    AR  = planform.aspect_ratio
-    kap = a0 / (2 * np.pi)
-    Lam = _sweep_half(planform.sweep_quarter_rad, planform.c_root, planform.span, planform.taper)
-    return a0 * AR / (2 + np.sqrt(4 + (AR / kap) ** 2 * (1 + np.tan(Lam) ** 2)))
+# def _CL_alpha(planform: Planform) -> float:
+#     """3-D lift-curve slope via Helmbold–DATCOM [1/rad]."""
+#     a0  = planform.airfoil_lift_slope
+#     AR  = planform.aspect_ratio
+#     kap = a0 / (2 * np.pi)
+#     Lam = _sweep_half(planform.sweep_quarter_rad, planform.c_root, planform.span, planform.taper)
+#     return a0 * AR / (2 + np.sqrt(4 + (AR / kap) ** 2 * (1 + np.tan(Lam) ** 2)))
 
 
-def _downwash(CL_alpha_w: float, AR_w: float) -> float:
-    """Simplified downwash gradient dε/dα."""
-    return 2 * CL_alpha_w / (np.pi * AR_w)
+# def _downwash(CL_alpha_w: float, AR_w: float) -> float:
+#     """Simplified downwash gradient dε/dα."""
+#     return 2 * CL_alpha_w / (np.pi * AR_w)
 
 
 # def _is_set(x) -> bool:
@@ -137,51 +137,51 @@ class EmpenageFinder(ABC):
 
     def _wing_aero(self, planform: Planform, fixed: Fixed):
         """Return (x_AC_wing [absolute], CL_alpha_wing)."""
-        return fixed.x_LE_wing + planform.aerodynamic_center(N), _CL_alpha(planform)
+        return fixed.x_LE_wing + planform.aerodynamic_center(N), planform.positive_C_L_max
 
     @staticmethod
     def diagnose(planform: Planform, fixed: Fixed) -> None:
         """Print key geometry and stability values to help debug sizing issues."""
         x_AC_w = fixed.x_LE_wing + planform.aerodynamic_center(N)
-        CL_w   = _CL_alpha(planform)
-        deps   = _downwash(CL_w, planform.aspect_ratio)
+        CL_w   = planform.positive_C_L_max
+        #deps   = _downwash(CL_w, planform.aspect_ratio)
         print(f"--- Empennage sizing diagnostics ---")
         print(f"  Wing:   S={planform.wing_area:.4f} m²  MAC={planform.MAC:.4f} m  "
               f"AR={planform.aspect_ratio:.1f}  CL_alpha={CL_w:.3f} /rad")
         print(f"  Wing AC: x_AC_w = {x_AC_w:.4f} m  (x_LE_wing={fixed.x_LE_wing:.3f} + {x_AC_w-fixed.x_LE_wing:.4f})")
-        print(f"  CG (excl. empenage): x_cg = {fixed.x_cg_max:.4f} m  mass = {fixed.mass:.2f} kg")
-        print(f"  Downwash: deps/dalpha = {deps:.4f}")
+        print(f"  CG (excl. empenage): x_cg = {fixed.x_cg_min:.4f} m  mass = {fixed.mass:.2f} kg")
+        #print(f"  Downwash: deps/dalpha = {deps:.4f}")
         # if _is_set(getattr(fixed, 'x_LE_tail', None)):
         #     l_h = fixed.x_LE_tail - x_AC_w
         #     print(f"  Tail LE: {fixed.x_LE_tail:.3f} m  →  approx arm l_h ≈ {l_h:.3f} m")
         #     for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
-        #         x_np_req = fixed.x_cg_max + SM * planform.MAC
+        #         x_np_req = fixed.x_cg_min + SM * planform.MAC
         #         print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
         #               f"({'OK' if x_AC_w < x_np_req < fixed.x_LE_tail else 'PROBLEM'})")
         # if _is_set(getattr(fixed, 'x_LE_canard', None)):
         #     l_c = x_AC_w - fixed.x_LE_canard
         #     print(f"  Canard LE: {fixed.x_LE_canard:.3f} m  →  approx arm l_c ≈ {l_c:.3f} m")
         #     for SM_label, SM in [("stable (5%)", SM_STABLE), ("neutral (0%)", SM_UNSTABLE)]:
-        #         x_np_req = fixed.x_cg_max + SM * planform.MAC
+        #         x_np_req = fixed.x_cg_min + SM * planform.MAC
         #         print(f"  Required NP [{SM_label}]: {x_np_req:.4f} m  "
         #               f"({'OK' if fixed.x_LE_canard < x_np_req < x_AC_w else 'PROBLEM — NP must be between canard and wing AC'})")
         print(f"------------------------------------")
 
-    def _cg_updated(self, fixed: Fixed,
+    def _cg_updated(self, fixed: Fixed, main_wing:Planform,
                     m_tail: float = 0.0, x_cg_tail: float = 0.0,
                     m_canard: float = 0.0, x_cg_canard: float = 0.0) -> float:
-        #TODO: Add main wing
         """
         Aircraft CG updated to include empenage surface masses.
 
-        fixed.mass / fixed.x_cg_max represent the aircraft WITHOUT the empenage
+        fixed.mass / fixed.x_cg_min represent the aircraft WITHOUT the empenage
         surfaces being sized here (fuselage, wing, engines, payload, etc.).
         Surface masses are estimated as RHO_SURF * S, structural CG at X_CG_FRAC * MAC.
         """
-        m_total = fixed.mass + m_tail + m_canard
-        return (fixed.mass * fixed.x_cg_max
+        m_total = fixed.mass + m_tail + m_canard + main_wing.mass_cache
+        return (fixed.mass * fixed.x_cg_min
                 + m_tail   * x_cg_tail
-                + m_canard * x_cg_canard) / m_total
+                + m_canard * x_cg_canard
+                + (main_wing.x_cg_cache + fixed.x_LE_wing) * main_wing.mass_cache) / m_total
 
     # ------------------------------------------------------------------
     # Scissor-plot solvers — shared by all subclasses
@@ -206,18 +206,17 @@ class EmpenageFinder(ABC):
             (S_h/S_w, tail_Planform)
         """
         x_AC_w, CL_w = self._wing_aero(planform, fixed)
-        deps          = _downwash(CL_w, planform.aspect_ratio)
 
         ratio = 0.10    # initial S_h/S_w guess
         for _ in range(20):
             tail       = _make_planform(ratio * planform.wing_area, A_H, TAPER_H, SWEEP_H, T_C_H)
             x_AC_h     = fixed.x_LE_tail + tail.aerodynamic_center(N)
-            CL_h       = _CL_alpha(tail) * (1 - deps) #TODO replace with the actual Cl_h
+            CL_h       = -tail.clmax
 
             # Update CG with current tail mass estimate, then set required NP
             m_tail     = RHO_SURF_H * tail.wing_area
             x_cg_tail  = fixed.x_LE_tail + X_CG_FRAC * tail.MAC
-            x_np_req   = self._cg_updated(fixed, m_tail=m_tail, x_cg_tail=x_cg_tail) + SM * planform.MAC
+            x_np_req   = self._cg_updated(fixed, planform, m_tail=m_tail, x_cg_tail=x_cg_tail) + SM * planform.MAC
 
             l_h = x_AC_h - x_AC_w
             if l_h <= 0:
@@ -239,7 +238,7 @@ class EmpenageFinder(ABC):
                     f"CG position: {x_np_req - SM * planform.MAC:.3f} m."
                 )
 
-            ratio_new = (x_np_req - x_AC_w) / ((CL_h / CL_w) * l_h)
+            ratio_new = (x_np_req + planform.cm_quarter_chord/planform.positive_C_L_max - x_AC_w) / ((CL_h / CL_w) * l_h / planform.MAC)
 
             if abs(ratio_new - ratio) < 1e-6:
                 ratio = ratio_new
@@ -272,12 +271,12 @@ class EmpenageFinder(ABC):
         for _ in range(30):
             canard     = _make_planform(ratio * planform.wing_area, A_C, TAPER_C, SWEEP_C, T_C_C)
             x_AC_c     = fixed.x_LE_canard + canard.aerodynamic_center(N)
-            CL_c       = _CL_alpha(canard)
+            CL_c       = canard.clmax
 
             # Update CG with current canard mass estimate, then set required NP
             m_canard    = RHO_SURF_C * canard.wing_area
             x_cg_canard = fixed.x_LE_canard + X_CG_FRAC * canard.MAC
-            x_np_req    = self._cg_updated(fixed, m_canard=m_canard, x_cg_canard=x_cg_canard) + SM * planform.MAC
+            x_np_req    = self._cg_updated(fixed, planform, m_canard=m_canard, x_cg_canard=x_cg_canard) + SM * planform.MAC
 
             if x_np_req >= x_AC_w:
                 raise ValueError(
@@ -325,18 +324,17 @@ class EmpenageFinder(ABC):
             (S_h/S_w, tail_Planform)
         """
         x_AC_w, CL_w = self._wing_aero(planform, fixed)
-        deps          = _downwash(CL_w, planform.aspect_ratio)
 
         ratio_h = 0.10
         for _ in range(20):
             tail      = _make_planform(ratio_h * planform.wing_area, A_H, TAPER_H, SWEEP_H, T_C_H)
             x_AC_h    = fixed.x_LE_tail + tail.aerodynamic_center(N)
-            CL_h      = _CL_alpha(tail) * (1 - deps)
+            CL_h      = -tail.clmax
 
             # Update CG with both canard and current tail mass, then set required NP
             m_tail    = RHO_SURF_H * tail.wing_area
             x_cg_tail = fixed.x_LE_tail + X_CG_FRAC * tail.MAC
-            x_np_req  = self._cg_updated(fixed,
+            x_np_req  = self._cg_updated(fixed, planform,
                                          m_tail=m_tail,     x_cg_tail=x_cg_tail,
                                          m_canard=m_canard, x_cg_canard=x_cg_canard
                                          ) + SM * planform.MAC
@@ -441,7 +439,7 @@ class ThreeSurfaceFinder(EmpenageFinder):
         ratio_c    = V_C * planform.MAC / l_c                   # S_c/S_w
         canard     = _make_planform(ratio_c * planform.wing_area, A_C, TAPER_C, SWEEP_C, T_C_C)
         x_AC_c     = fixed.x_LE_canard + canard.aerodynamic_center(N)
-        CL_c       = _CL_alpha(canard)
+        CL_c       = canard.clmax
         m_canard    = RHO_SURF_C * canard.wing_area
         x_cg_canard = fixed.x_LE_canard + X_CG_FRAC * canard.MAC
 
