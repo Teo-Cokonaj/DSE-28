@@ -78,69 +78,82 @@ class WingModel:
 
 
 
-    def step_shear_stress(self, debug: bool, plot: bool):
+    def step_shear_stress(self,
+                          reduced_sectional_spanwise_positions: float,
+                          nr_sections: int,
+                          modified_sectional_lifts_schrenk:float,
+                          debug: bool,
+                          plot: bool):
     #need torque, area and wall thickness --> for a thin-walled section, tau = T/(2tA)
     # area = assume elliptical shape --> chord, thickness at a given location
     # torsion modelled by Alex
     # thickness = wing skin thickness
 
-        # Step 1: Find the chord length for each station
+        # Step 1: copy the chord length and spanwise positions outside the fuselage
         c_stations, _, y_stations, _ = self.planform.sectional_properties(number_of_sections=self.number_of_nodes)
+        c_stations_cop = c_stations[-np.size(reduced_sectional_spanwise_positions):]
+        y_stations_cop = y_stations[-np.size(reduced_sectional_spanwise_positions):]
 
-        # Step 2: Initialize cross section area, as well as chord length and spanwise position for section midpoints
-        cross_section_area = np.zeros_like(c_stations[1:])
-        c_mid_station = np.zeros_like(c_stations[1:])
-        y_mid_station = np.zeros_like(c_stations[1:])
 
-        # Step 3: Calculate the cross section area of each section (assume an ellipse)
-        for i in range(len(cross_section_area)):
-            c_mid_station[i] = 0.5 * (c_stations[i] + c_stations[i + 1])
-            y_mid_station[i] = 0.5 * (y_stations[i] + y_stations[i + 1])
-            thickness_station = c_mid_station[i] * self.planform.thickness_to_chord
+        # Step 2: Get the thickness and cross section area at each station
+        thickness_stations_cop = c_stations_cop * self.planform.thickness_to_chord
+        cross_section_areas_cop = np.pi * 0.5 * c_stations_cop * 0.5 * y_stations_cop
 
-            cross_section_area[i] = np.pi * 0.5*c_mid_station[i] * 0.5*thickness_station
-            
-        # Step 4: Get the skin thickness
+        # Step 3: Get the skin thickness
         thickness_skin = self.wing_skin_thickness_m
 
-        # Step 5: Get the torsion
-        torsion_stations = None
+        # Step 4: Get the torsion
+        torsion_stations = self.step_torsion_determination(c_stations, nr_sections,reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk)
+        torsion_stations_cop = torsion_stations[-np.size(reduced_sectional_spanwise_positions):]
         
-        # Step 6: Calculate the shear stress
-        shear_wall = np.zeros_like(cross_section_area)
+        # Step 5: Calculate the shear stress
+        shear_wall_cop = torsion_stations_cop/(2*thickness_skin*cross_section_areas_cop)
 
-        for j in range(len(cross_section_area)):
-            shear_wall[i] = torsion_stations[i]/(2*thickness_skin*cross_section_area[i])
+        # Step 6: Interpolate the shear
+        self.shear_node_tot = interp1d(reduced_sectional_spanwise_positions,shear_wall_cop)
+    
+        shear_each_node = self.shear_node_tot(reduced_sectional_spanwise_positions)
+        shear_each_node = np.append(shear_each_node,np.full(np.size(c_stations) - np.size(shear_each_node), shear_each_node[-1]))
 
         # Step 7 (optional): print values for debug
         if debug:
-            print(f'Number of stations: {len(c_stations)}')
-            print(f'Assumed thickness-to-chord: {self.planform.thickness_to_chord}')
-            print(f'Skin thickness: {thickness_skin} m')
-            print(f'Chord lengths: {c_mid_station} m')
-            print(f'Spanwise positions: {y_mid_station} m')
-            print(f'Shear stress: {shear_wall} Pa')
+            print(f'Number of stations [-]: {len(c_stations)}')
+            print(f'Thickness-to-chord [-]: {self.planform.thickness_to_chord}')
+            print(f'Skin thickness [m]: {thickness_skin}')
+            print(f'Chord lengths [m]: {c_stations}')
+            print(f'Spanwise positions [m]: {y_stations}')
+            print(f'Shear stress [Pa]: {shear_each_node}')
 
         # Step 8 (optional): Plot
         if plot:
             fig = plt.figure()
-            plt.plot(y_mid_station, shear_wall)
+            plt.plot(y_stations, shear_each_node)
             plt.title("Shear Stress Distribution")
             fig.savefig('shear_stress_distribution.png')
             plt.show()
             
-        return shear_wall
+        return shear_each_node
 
-    def step_shear_forces(self):
+    def step_shear_forces(self,
+                          reduced_sectional_spanwise_positions:float,
+                          modified_sectional_lifts_schrenk: float,
+                          debug: bool,
+                          plot: bool):
     #lift and segment where it is applied
     # dV/dx = -w(x) --> distributed lift
     # V(x) = int^x_0(-w(x)dx)
         
-        # Step 1: Find the distributed load (lift) on the wing
+        # Step 1: Find the distributed load (lift) on the wing and the spanwise positions of each section
+        self.lift_cont_forces = interp1d (reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk)
+        _, _, y_stations, _ = self.planform.sectional_properties(number_of_sections=self.number_of_nodes)
+        y_stations_cop = y_stations[-np.size(reduced_sectional_spanwise_positions):]
 
         # Step 2: Integrate to get the shear force
 
-        # Step 3: Plot
+        # Step 3 (optional): print intermediate values for debug
+
+        # Step 4 (optional): plot
+        
 
         return shear_force
 
@@ -200,3 +213,4 @@ if __name__=='__main__':
         c_stations = planform.sectional_properties(number_of_sections=100)[0]
         torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
         print(torsion)
+        shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, nr_sections=nr_sections, modified_sectional_lifts_schrenk=lift_span, debug = True, plot = True)
