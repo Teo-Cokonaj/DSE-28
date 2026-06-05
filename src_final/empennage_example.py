@@ -9,7 +9,7 @@ from Aircraft.Fixed import Fixed
 from Drag.Fuselage import Fuselage
 from Drag.LandingGear import LandingGear
 from Drag.Bay import Bay
-from EmpenageSizing.EmpenageFinder import EmpenageFinder
+from src_final.EmpenageSizing.EmpenageFinderOld import EmpenageFinder
 
 
 def report(label, tail, canard, wing_area):
@@ -30,11 +30,13 @@ def report(label, tail, canard, wing_area):
 # Wing (~22 m², light twin)
 # ---------------------------------------------------------------------------
 wing = Planform(
-    aspect_ratio=27.0, span=2.66, sweep_quarter_deg=15, taper=0.5,
+    aspect_ratio=27.0, span=2.66, sweep_quarter_deg=-20, taper=0.5,
     thickness_to_chord=0.12, cm_quarter_chord=-0.05,
     wetted_surface_ratio=2.05, interference_factor=1.0,
     clmax=1.5, flap=False, airfoil_lift_slope=2*np.pi, cl0=0.0,
 )
+wing.mass_cache = 5.
+wing.x_cg_cache = 0.
 print(f"Wing: S = {wing.wing_area:.2f} m²  MAC = {wing.MAC:.3f} m  (wing AC ~{4.5 + wing.aerodynamic_center(50):.3f} m from nose)")
 
 # ---------------------------------------------------------------------------
