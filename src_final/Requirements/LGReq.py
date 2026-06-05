@@ -14,8 +14,8 @@ class LGReq(Requirement):
         x_tail_cone = aircraft.fixed.x_tail_cone # add to fixed class
         x_nose_lg = aircraft.fixed.x_nose_gear
 
-        y_wing_span = aircraft.planforms.span
-        y_main_lg = aircraft.fixed.main_gear
+        y_wing_span = aircraft.planforms[0].span
+        y_main_lg = aircraft.fixed.y_main_gear
 
         z_cg = aircraft.fixed.z_cg
         z_tail_cone = aircraft.fixed.z_tail_cone # add to fixed class
