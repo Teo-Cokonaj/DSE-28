@@ -65,10 +65,14 @@ def landing_gear_response(k:float,
 
 
     # TO DO!!!!! implement X0 as downward velocity component (x2 in the sate vector)
-    y_displacement, T_displacement, x_displacement = ml.lsim(SISO_TF_displacement, inp, T=t )           # step response of displacement
+    #y_displacement, T_displacement, x_displacement = ml.lsim(SISO_TF_displacement, inp, T=t)           # step response of displacement
 
-    y_force, T_force, x_force = ml.lsim(SISO_TF_force, inp, T=t)                                        # step response of force
+    #y_force, T_force, x_force = ml.lsim(SISO_TF_force, inp, T=t)                                       # step response of force
 
+    y, T, x = ml.lsim(state_space, inp, T=t, X0=[0, downward_landing_speed])
+    y_displacement = y[:, 0]         
+    y_force        = y[:, 1]     
+    
     # constraints of displacement response
     y_displacement_constraint_compression = displacement_constraint_compression * 100 * np.ones_like(t)       
 
@@ -156,7 +160,7 @@ if __name__ == "__main__":
     K = 100000
     C = 120
 
-    y_displacement, y_force, constraints_met = landing_gear_response(K, C, plotting = True, debug = True)
+    y_displacement, y_force, constraints_met = landing_gear_response(K, C, plotting = True, debug = False)
 
     y_disp_max = np.max(np.abs(y_displacement))
     y_force_max = np.max(np.abs(y_force))
