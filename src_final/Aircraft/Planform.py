@@ -117,9 +117,9 @@ class Planform(Component):
 
 
     @property
-    def _downwash(self) -> float:
+    def downwash(self) -> float:
         """Simplified downwash gradient dε/dα."""
-        return 2 * self.CL_alpha / (np.pi * self.aspect_ratio)
+        return 4 / (2 + self.aspect_ratio)
     
     
     def sectional_properties(self,

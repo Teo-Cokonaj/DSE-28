@@ -4,12 +4,14 @@ from Aircraft.Fixed import Fixed
 from EmpennageSizing.EmpennageFinder import EmpennageFinder
 
 class CanardFinder(EmpennageFinder):
-    def __init__(self, fixed, AR_c:float=3., taper_c:float=.7, taper_v:float=.9, min_sc_s = 0.05):
+    def __init__(self, fixed, AR_c:float=3., taper_c:float=1., taper_v:float=1., min_sc_s:float = 0.05, AR_v:float=4., Sv_S:float=0.15):
         super().__init__(fixed)
         self.AR_c = AR_c
         self.taper_c = taper_c
         self.taper_v = taper_v
         self.min_sc_s = min_sc_s
+        self.AR_v = AR_v
+        self.Sv_S = Sv_S
 
 
     def find_planforms(self, main_wing:Planform, initial:float=.1, maxiter:int=50, tolerance:float=1e-4) -> list[Planform]:
@@ -58,10 +60,11 @@ class CanardFinder(EmpennageFinder):
         canard.x_cg_cache = canard.x_MAC + canard.MAC / 3 #TODO: rough assumption revise
         canard.mass_cache = 0.5 #TODO actually conduct the structural analysishere
 
-        AR_v = 2 * canard.span / (1 + 1/self.taper_v) / canard.c_root #NOTE: to fit the horizontal tail
+        vertical_surface = 2 * self.Sv_S * main_wing.wing_area #NOTE: 2 as rudder is only 1 sided
+        vertical_span = np.sqrt(vertical_surface*self.AR_v)
         vertical_tail = Planform(
-            aspect_ratio=AR_v, 
-            span=canard.span,
+            aspect_ratio=self.AR_v, 
+            span=vertical_span,
             taper=self.taper_v,
             sweep_quarter_deg=np.rad2deg(main_wing.sweep_quarter_rad),
             thickness_to_chord=0.12,
