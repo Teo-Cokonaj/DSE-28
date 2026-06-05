@@ -41,7 +41,6 @@ aircraft:list[Aircraft] = list()
 for planform_recovered in plaforms_recovered:
     main_wing = planform_recovered[0]
     planform_type = planform_recovered[1]
-    planform_stable = planform_recovered[2]
     
     # Add cache entries for the planforms
     main_wing.add_cache_entry("go_around", assumptions.airspeed_approach/asb.Atmosphere(assumptions.altitude_go_round).speed_of_sound(), assumptions.altitude_go_round)
