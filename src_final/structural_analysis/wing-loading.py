@@ -4,6 +4,7 @@ import math
 from scipy.optimize import root_scalar
 from scipy.integrate import cumulative_trapezoid
 import parameters
+from scipy.interpolate import interp1d
 from parameters import *
 import os
 import sys
@@ -36,30 +37,46 @@ class WingModel:
 
 
 
-    def step_torsion_determination(self):
-        c_stations, sectional_areas, y_stations, dy = self.planform.sectional_properties(number_of_sections=self.number_of_nodes)
-        reduced_sectional_spanwise_positions, modified_sectional_lifts_schrenk = self.planform.estimate_conservative_lift_distribution(
-            diameter_fuselage=0.31,
-            positive_manoeuvring_limit_load_factor=6.0,
-            initial_total_aircraft_mass=50.0,
-            number_of_stations=self.number_of_nodes,
-        )
+    def step_torsion_determination(self,
+            c_stations:float,
+            nr_sections:int,
+            reduced_sectional_spanwise_positions: float,
+            modified_sectional_lifts_schrenk:float
 
-        torsion_per_node_single = modified_sectional_lifts_schrenk * (c_stations / 4.0)
+    ):
+        """This code computes the torsion at each instant on the wing and it accounts for the 
+            part of the beam that is also inside of the fuselage
+        """
+        self.lift_cont_forces = interp1d (reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk)
+        c_stations_cop = c_stations[-np.size(reduced_sectional_spanwise_positions):]
+        
+
+        torsion_per_node_single = self.lift_cont_forces(reduced_sectional_spanwise_positions) * (c_stations_cop / 4.0)
         torsion_per_node_tot = np.cumsum(torsion_per_node_single[::-1])[::-1]
 
-        return torsion_per_node_tot
+        self.tosrion_node_tot = interp1d(reduced_sectional_spanwise_positions,torsion_per_node_tot)
+        
+        torsion_each_node = self.tosrion_node_tot(reduced_sectional_spanwise_positions)
+        torsion_each_node = np.append(torsion_each_node,np.full(np.size(c_stations) - np.size(torsion_each_node), torsion_each_node[-1]))
+        
+        
 
-
-    def step_vertical_defletion():
-    #still need to understand the stuff of this I will ask more from teo
-        return deflection
+        #print(self.lift_cont_forces(reduced_sectional_spanwise_positions))
+        #plt.plot(reduced_sectional_spanwise_positions,self.tosrion_node_tot(reduced_sectional_spanwise_positions))
+        #plt.plot(reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk)
+        #plt.show()
+        return torsion_each_node
 
     def step_rotation_of_wing(self):
         
 
-    
         return rotation
+    
+    def step_vertical_defletion():
+    #still need to understand the stuff of this I will ask more from teo
+        return deflection
+
+
 
     def step_shear_stress():
     #need torque, area and wall thickness
@@ -114,5 +131,11 @@ if __name__=='__main__':
                  )
 
         # Quick sanity-run of torsion computation
-        torsion = wing_model.step_torsion_determination()
-        print("Torsion array shape:", getattr(torsion, 'shape', None))
+        nr_sections =100
+        span_poz, lift_span = planform.estimate_conservative_lift_distribution(diameter_fuselage=0.31,
+                                                     positive_manoeuvring_limit_load_factor=6.0,
+                                                     initial_total_aircraft_mass=50.0,
+                                                     number_of_stations=100)
+        c_stations = planform.sectional_properties(number_of_sections=100)[0]
+        torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
+        print(torsion)
