@@ -28,8 +28,8 @@ class CanardFinder(EmpennageFinder):
 
             x_cg_mac_min = self._x_cg([main_wing, canard, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail])
             Sh_S_new = (x_cg_mac_min - ac_term) / (CL_c * l_c_mac / main_wing.positive_C_L_max)
-            #NOTE Canard may not be necessary in case the thing can sustain itself as a flying wing, still we cannot have 0 surfaces and the case w\ the canard is most constraining
-            Sh_S_new = max(Sh_S_new, self.min_sc_s)
+            #NOTE Canard may need to provide negative lift in some unstable cases
+            Sh_S_new = abs(Sh_S_new)
 
             diff = abs(Sh_S_new - Sh_S) / Sh_S_new
             if  diff < tolerance:
