@@ -144,7 +144,10 @@ class WingModel:
         shear_wall_cop = torsion_stations_cop/(2*thickness_skin*cross_section_areas_cop)
 
         # Step 6: Interpolate the shear
-        self.shear_node_tot = interp1d(reduced_sectional_spanwise_positions,shear_wall_cop)
+        self.shear_node_tot = interp1d(reduced_sectional_spanwise_positions,
+                                       shear_wall_cop,
+                                       kind = 'zero',
+                                       fill_value = 'extrapolate')
     
         self.shear_stress_each_node = self.shear_node_tot(reduced_sectional_spanwise_positions)
         self.shear_stress_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(self.shear_stress_each_node), self.shear_stress_each_node[0]), self.shear_stress_each_node))
@@ -227,7 +230,7 @@ class WingModel:
         self.internal_bending_moments_int = interp1d(
                                      y_stations_cop_fine,
                                      internal_bending_moments_cop,
-                                     kind='linear',
+                                     kind='zero',
                                      bounds_error=False,
                                      fill_value='extrapolate')
         
@@ -298,10 +301,10 @@ if __name__=='__main__':
         span_poz, lift_span = planform.estimate_conservative_lift_distribution(diameter_fuselage=0.31,
                                                      positive_manoeuvring_limit_load_factor=6.0,
                                                      initial_total_aircraft_mass=50.0,
-                                                     number_of_stations=100)
-        c_stations = planform.sectional_properties(number_of_sections=100)[0]
+                                                     number_of_stations=wing_model.number_of_nodes)
+        c_stations = planform.sectional_properties(number_of_sections=wing_model.number_of_nodes)[0]
 
-        y_station_chord = planform.sectional_properties(number_of_sections=100)[2]
+        y_station_chord = planform.sectional_properties(number_of_sections=wing_model.number_of_nodes)[2]
         
         #torsion = wing_model.step_torsion_determination(c_stations, y_station_chord, span_poz, lift_span)
         #rotation = wing_model.step_rotation_of_wing(material_1.shear_modulus , material_2.shear_modulus,planform.thickness_to_chord,wing_model.wing_skin_thickness_m,c_stations,torsion,y_station_chord)
@@ -311,7 +314,7 @@ if __name__=='__main__':
         #torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
         #print(torsion)
         wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, nr_sections=nr_sections,
-                                             modified_sectional_lifts_schrenk=lift_span, debug = False, plot = False)
+                                             modified_sectional_lifts_schrenk=lift_span, debug = True, plot = True)
         wing_model.step_shear_forces(reduced_sectional_spanwise_positions=span_poz,
                                                    modified_sectional_lifts_schrenk=lift_span,debug = False, plot = False)
         wing_model.step_moment(debug = False, plot = False)
