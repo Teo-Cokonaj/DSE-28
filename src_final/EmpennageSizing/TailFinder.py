@@ -33,12 +33,12 @@ class TailFinder(EmpennageFinder):
             x_cg_mac_min = self._x_cg([main_wing, horizontal_tail, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail])
             Sh_S_new_ctrl = abs((x_cg_mac_min - ac_term) / (CL_h * l_h_mac / main_wing.positive_C_L_max))
 
-            if main_wing.sweep_quarter_rad > 0:
-                downwash = self.downwash_gradient(main_wing, l_h_mac * main_wing.MAC, vertical_tail)
-                x_cg_mac_max = self._x_cg([main_wing, horizontal_tail, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail], False)
-                Sh_S_new_stab = (x_cg_mac_max - x_ac_mac - self.SM) / ((1-downwash) * horizontal_tail.CL_alpha * l_h_mac / main_wing.CL_alpha)
-            else:
-                Sh_S_new_stab = 0
+            #if main_wing.sweep_quarter_rad > 0:
+            downwash = self.downwash_gradient(main_wing, l_h_mac * main_wing.MAC, vertical_tail)
+            x_cg_mac_max = self._x_cg([main_wing, horizontal_tail, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail], False)
+            Sh_S_new_stab = (x_cg_mac_max - x_ac_mac - self.SM) / ((1-downwash) * horizontal_tail.CL_alpha * l_h_mac / main_wing.CL_alpha)
+            #else:
+                #Sh_S_new_stab = 0
             
             Sh_S_new = max(Sh_S_new_ctrl, Sh_S_new_stab)
             assert Sh_S_new > 0

@@ -27,9 +27,8 @@ class CanardFinder(EmpennageFinder):
             CL_c = canard.positive_C_L_max
 
             x_cg_mac_min = self._x_cg([main_wing, canard, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail])
-            Sh_S_new = (x_cg_mac_min - ac_term) / (CL_c * l_c_mac / main_wing.positive_C_L_max)
+            Sh_S_new = abs((x_cg_mac_min - ac_term) / (CL_c * l_c_mac / main_wing.positive_C_L_max))
             #NOTE Canard may need to provide negative lift in some unstable cases
-            Sh_S_new = abs(Sh_S_new)
 
             diff = abs(Sh_S_new - Sh_S) / Sh_S_new
             if  diff < tolerance:
