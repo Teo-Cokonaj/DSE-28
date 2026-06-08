@@ -4,6 +4,7 @@ import math
 import os
 import sys
 from scipy.interpolate import interp1d
+from scipy.integrate import cumulative_trapezoid
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -98,6 +99,8 @@ class TestShearBending:
         dummy_lift_cont_cop = dummy_lift_forces(dummy_y_stations_cop)
 
         dummy_internal_shear_forces_cop = np.cumsum(dummy_lift_cont_cop[::-1])[::-1]
+
+
         dummy_internal_shear_forces_cop_int = interp1d(dummy_y_stations_cop, dummy_internal_shear_forces_cop,
                                                         kind="zero",
                                                         fill_value="extrapolate")
@@ -109,8 +112,14 @@ class TestShearBending:
         print(f'Dummy shear force [N]: {dummy_shear_force}')
         
         # STEP 3: Bending moments
+        dummy_internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(dummy_internal_shear_forces_cop[::-1], dummy_y_stations_cop[::-1])])[::-1]
+        dummy_internal_bending_moments_int = interp1d(dummy_y_stations_cop,
+                                     dummy_internal_bending_moments_cop,
+                                     kind='zero',
+                                     bounds_error=False,
+                                     fill_value='extrapolate')
         
-
+        dummy_internal_bending_moments_int = dummy_internal_bending_moments_int(dummy_y_stations)       
         
         # STEP 4: Run the actual functions to see if it computes the stresses correctly
         shear_stresses_test = WingModel.step_shear_stress(wing_model, reduced_sectional_spanwise_positions,
@@ -122,10 +131,11 @@ class TestShearBending:
 
         print(f'Computed shear stress [Pa]: {shear_stresses_test}')
         print(f'Computed shear force [N]: {shear_forces_test}')
+        print(f'Dummy bending moment [Nm]: {dummy_internal_bending_moments_int}')
         print(f'Computed bending moment [Nm]: {bending_moments_test}')
 
         assert np.allclose(dummy_shear_stress, shear_stresses_test, 1e-6, 1e-6)
         assert np.allclose(dummy_shear_force, shear_forces_test, 1e-6, 1e-6)
-        assert 1>2
+        assert np.allclose(dummy_internal_bending_moments_int, bending_moments_test, 1e-6, 1e-6)
 
 

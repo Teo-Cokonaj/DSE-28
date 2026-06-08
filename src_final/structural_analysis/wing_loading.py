@@ -222,19 +222,16 @@ class WingModel:
                     debug: bool,
                     plot: bool):
     # Step 1: Integrate the shear loads
-        y_stations_cop_fine = np.linspace(self.y_stations_cop[0], self.y_stations_cop[-1], 100 * len(self.y_stations_cop))
-        y_stations_fine =  np.linspace(self.y_stations[0], self.y_stations[-1], 100 * len(self.y_stations))
-        internal_shear_forces_cop_fine = self.internal_shear_forces_cop_int(y_stations_cop_fine)
-        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(internal_shear_forces_cop_fine[::-1], y_stations_cop_fine[::-1])])[::-1]
+        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(self.internal_shear_forces_cop[::-1], self.y_stations_cop[::-1])])[::-1]
         self.internal_bending_moments_int = interp1d(
-                                     y_stations_cop_fine,
+                                     self.y_stations_cop,
                                      internal_bending_moments_cop,
                                      kind='zero',
                                      bounds_error=False,
                                      fill_value='extrapolate')
         
-        self.internal_bending_moments_cop = self.internal_bending_moments_int(y_stations_cop_fine)
-        self.internal_bending_moments = self.internal_bending_moments_int(y_stations_fine)
+        self.internal_bending_moments_cop = self.internal_bending_moments_int(self.y_stations_cop)
+        self.internal_bending_moments = self.internal_bending_moments_int(self.y_stations)
 
         # Step 2 (optional): print intermediate values if debug
         if debug:
@@ -246,7 +243,7 @@ class WingModel:
         # Step 3 (optional): plot
         if plot:
             fig = plt.figure()
-            plt.plot(y_stations_fine, self.internal_bending_moments)
+            plt.plot(self.y_stations, self.internal_bending_moments)
             plt.xlabel('Spanwise Position [m]')
             plt.ylabel("Bending Moment [Nm]")
             plt.title("Bending Moment Distribution")
