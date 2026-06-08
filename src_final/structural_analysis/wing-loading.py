@@ -188,13 +188,13 @@ class WingModel:
         self.internal_shear_forces_cop = np.cumsum(self.lift_cont_forces_cop[::-1])[::-1]
 
         # Step 3: Interpolate the shear
-        self.internal_shear_forces_cop = interp1d(self.y_stations_cop,
+        self.internal_shear_forces_cop_int = interp1d(self.y_stations_cop,
                                               self.internal_shear_forces_cop,
                                               kind='zero',
                                               fill_value='extrapolate')
         
-        self.shear_each_node_cop = self.internal_shear_forces_cop(self.y_stations_cop)        
-        self.shear_each_node = self.internal_shear_forces_cop(self.y_stations)
+        self.shear_each_node_cop = self.internal_shear_forces_cop_int(self.y_stations_cop)        
+        self.shear_each_node = self.internal_shear_forces_cop_int(self.y_stations)
         self.shear_force_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(self.shear_each_node), self.shear_each_node[0]), self.shear_each_node))
         
         # Step 3 (optional): print intermediate values for debug
@@ -222,24 +222,34 @@ class WingModel:
     # Step 1: Integrate the shear loads
         y_stations_cop_fine = np.linspace(self.y_stations_cop[0], self.y_stations_cop[-1], 100 * len(self.y_stations_cop))
         y_stations_fine =  np.linspace(self.y_stations[0], self.y_stations[-1], 100 * len(self.y_stations))
-        internal_shear_forces_cop_fine = self.internal_shear_forces_cop(y_stations_cop_fine)
-        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(internal_shear_forces_cop_fine, y_stations_cop_fine)])
-        print(internal_bending_moments_cop)
-        self.internal_bending_moments = interp1d(
+        internal_shear_forces_cop_fine = self.internal_shear_forces_cop_int(y_stations_cop_fine)
+        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(internal_shear_forces_cop_fine, y_stations_cop_fine)])[::-1]
+        self.internal_bending_moments_int = interp1d(
                                      y_stations_cop_fine,
                                      internal_bending_moments_cop,
-                                     kind='linear')
-        self.internal_bending_moments = self.internal_bending_moments(y_stations_fine)
+                                     kind='linear',
+                                     bounds_error=False,
+                                     fill_value='extrapolate')
+        
+        self.internal_bending_moments_cop = self.internal_bending_moments_int(y_stations_cop_fine)
+        self.internal_bending_moments = self.internal_bending_moments_int(y_stations_fine)
 
         # Step 2 (optional): print intermediate values if debug
         if debug:
             print(f'Number of sections: {len(self.y_stations)}')
             print(f'Spanwise positions [m]: {self.y_stations}')
-            print(f'Shear forces (outside of fuselage) [N]: {self.internal_shear_forces_cop}')
             print(f'Bending Moments [Nm]: {self.internal_bending_moments}')
 
 
         # Step 3 (optional): plot
+        if plot:
+            fig = plt.figure()
+            plt.plot(y_stations_fine, self.internal_bending_moments)
+            plt.xlabel('Spanwise Position [m]')
+            plt.ylabel("Bending Moment [Nm]")
+            plt.title("Bending Moment Distribution")
+            fig.savefig('bending_moment_distribution.png')
+            plt.show()
 
 
 
@@ -293,9 +303,9 @@ if __name__=='__main__':
 
         y_station_chord = planform.sectional_properties(number_of_sections=100)[2]
         
-        torsion = wing_model.step_torsion_determination(c_stations, y_station_chord, span_poz, lift_span)
-        rotation = wing_model.step_rotation_of_wing(material_1.shear_modulus , material_2.shear_modulus,planform.thickness_to_chord,wing_model.wing_skin_thickness_m,c_stations,torsion,y_station_chord)
-        shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, nr_sections=nr_sections, modified_sectional_lifts_schrenk=lift_span, debug = True, plot = True)
+        #torsion = wing_model.step_torsion_determination(c_stations, y_station_chord, span_poz, lift_span)
+        #rotation = wing_model.step_rotation_of_wing(material_1.shear_modulus , material_2.shear_modulus,planform.thickness_to_chord,wing_model.wing_skin_thickness_m,c_stations,torsion,y_station_chord)
+        
 
         #print(c_stations)
         #torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
@@ -304,5 +314,5 @@ if __name__=='__main__':
                                              modified_sectional_lifts_schrenk=lift_span, debug = False, plot = False)
         wing_model.step_shear_forces(reduced_sectional_spanwise_positions=span_poz,
                                                    modified_sectional_lifts_schrenk=lift_span,debug = False, plot = False)
-        wing_model.step_moment(debug = True, plot = True)
+        wing_model.step_moment(debug = False, plot = False)
         
