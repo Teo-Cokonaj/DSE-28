@@ -29,7 +29,7 @@ class NoFusWing():
     def __init__(self, S:float, b:float):
         self.WingSurface=S  
         self.span=b         
-    def SPL(self,f,theta,h,V):
+    def SPL(self,f,theta,V):
         delta=0.37*(self.WingSurface/self.span)*(V*self.WingSurface/self.span*nu)**(0.3)
         OASPL=50*np.log10(V/51.44)+10*np.log10(delta*self.span/(1**2)*(np.cos(phi)**2)*(np.cos(theta/2)**2))+101.3
         DeltaSPL=-0.03*(1/152.4)*(f/(0.1*V/delta)-1)**(3/2)
@@ -40,7 +40,7 @@ class NoFusWing():
 class Noise(): 
     def __init__(self):
         self.Jet=NoJet()
-    def SPL(self,f,S,b,theta,h,V,c,r):
+    def SPL(self,f,S,b,theta,V,c,r):
         if c==0:
             NoJetSPL=NoJet.SPL_idle(f)+20*np.log10(1.2)    
         if c==1:
@@ -48,11 +48,11 @@ class Noise():
         if c==2:
             NoJetSPL=NoJet.SPL_max(f)+20*np.log10(1.2)  
             
-        NoFusWingSPL=NoFusWing(S,b).SPL(f,theta,h,V)
+        NoFusWingSPL=NoFusWing(S,b).SPL(f,theta,V)
         NoTurb=np.log10(2)+NoJetSPL
         SPL_total= np.log10((10**NoFusWingSPL+10**NoTurb))+20*np.log10(1/r) #np.log10((10**NoTurb)) #20*np.log10(1/r)10**NoFusWingSPL (10**NoFusWingSPL)
         return(SPL_total)
-    def plotFlyover(self,S,b,theta,h,V,c,r):
+    def plotFlyover(self,S,b,theta,V,c,r):
         x=[]
         y=[]
         z=[]
@@ -61,7 +61,7 @@ class Noise():
             for f in range(400,15000,20):
                 z.append(i)
                 x.append(f)
-                Result=self.SPL(f,S,b,theta,h,V,2,rit)
+                Result=self.SPL(f,S,b,theta,V,2,rit)
                 y.append(Result.real)
         plt.figure()
         sc = plt.scatter(z, x, c=y, cmap='viridis', s=40)
@@ -72,7 +72,7 @@ class Noise():
         plt.show()
         return ("done")
     
-    def plotOperation(self,S,b,theta,h,V):
+    def plotOperation(self,S,b,theta,V):
         x=[]
         y=[]
         z=[]
@@ -82,7 +82,7 @@ class Noise():
                 z.append(i)
                 x.append(f)
                 r=i+1
-                Result=self.SPL(f,S,b,theta,h,V,2,r)
+                Result=self.SPL(f,S,b,theta,V,2,r)
                 y.append(Result.real)
         
         for i in range(1000,2000,10):
@@ -91,9 +91,9 @@ class Noise():
                 x.append(f)
                 r=1000
                 if (i<=1300 and 1000<=i):
-                    Result=self.SPL(f,S,b,theta,h,V,2,r)*(1-(i-1000)/300)+self.SPL(f,S,b,theta,h,V,1,r)*((i-1000)/300)
+                    Result=self.SPL(f,S,b,theta,V,2,r)*(1-(i-1000)/300)+self.SPL(f,S,b,theta,V,1,r)*((i-1000)/300)
                 else:
-                    Result=self.SPL(f,S,b,theta,h,V,1,r)
+                    Result=self.SPL(f,S,b,theta,V,1,r)
                 #Result=self.SPL(f,S,b,theta,h,V,1,r)
                 y.append(Result.real)
         
@@ -104,9 +104,9 @@ class Noise():
                 x.append(f)
                 r=1000-(i-2000)*2+0.001
                 if (i<=2100 and 2000<=i):
-                    Result=self.SPL(f,S,b,theta,h,V,1,r)*(1-(i-2000)/100)+self.SPL(f,S,b,theta,h,V,0,r)*((i-2000)/100)
+                    Result=self.SPL(f,S,b,theta,V,1,r)*(1-(i-2000)/100)+self.SPL(f,S,b,theta,V,0,r)*((i-2000)/100)
                 else:
-                    Result=self.SPL(f,S,b,theta,h,V,0,r)
+                    Result=self.SPL(f,S,b,theta,V,0,r)
                 y.append(Result.real)
         
         plt.figure()
@@ -122,36 +122,10 @@ class Noise():
            
     
 noise = Noise()
-noise.plotFlyover(S,b,theta,10,V,2,2000)
-noise.plotOperation(S,b,theta,h,V)
+noise.plotFlyover(S,b,theta,V,2,1000)
+noise.plotOperation(S,b,theta,V)
 
 
-"""
-for i in range(0,1000,10):
-    for f in range(0,15000,20):
-        z.append(i)
-        x.append(f)
-        r=i+1
-        Result=Noise.SPL(f,S,b,theta,h,V,N_s,N_t,Di,2,r)
-        y.append(Result.real)
-        
-for i in range(1000,2000,10):
-    for f in range(0,15000,20):
-        z.append(i)
-        x.append(f)
-        r=1000
-        Result=Noise.SPL(f,S,b,theta,h,V,N_s,N_t,Di,1,r)
-        y.append(Result.real)
-        
-for i in range(2000,2500,10):
-    for f in range(0,15000,20):
-        z.append(i)
-        x.append(f)
-        r=1000-(i-2000)*2+1
-        Result=Noise.SPL(f,S,b,theta,h,V,N_s,N_t,Di,0,r)
-        y.append(Result.real)
-"""  
-    
 
 
 
