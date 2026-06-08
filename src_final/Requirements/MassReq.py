@@ -1,0 +1,20 @@
+import sys
+import os
+import numpy as np
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src_final.Requirements.Requirement import Requirement
+from Aircraft.Aircraft import Aircraft
+
+
+class MassReq(Requirement):
+    #TODO: check that the total mass of the aircraft (wing empenage fixed) is below the MTOM requirement
+
+    def __init__(self, mtow_max):
+        self.mtow_max = mtow_max
+
+    def assess(self, aircraft:Aircraft) -> bool:
+        aircraft_mass = aircraft.total_mass()
+
+        if aircraft_mass <= self.mtow_max:
+            pass
+        
