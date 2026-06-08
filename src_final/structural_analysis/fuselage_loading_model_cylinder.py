@@ -70,7 +70,7 @@ class FuselageModel:
         front_node_idx=np.argmin(np.abs(self.nodes-component_front_position_along_fuselage))
         aft_node_idx = np.argmin(np.abs(self.nodes-component_aft_position_along_fuselage))
         mass_per_node=component_mass/(aft_node_idx-front_node_idx+1) #uniform weight assumption
-        self.masses[front_node_idx:aft_node_idx]+=mass_per_node
+        self.masses[front_node_idx:(aft_node_idx+1)]+=mass_per_node
 
 
     def calculate_loads_flight(self,
@@ -92,24 +92,28 @@ class FuselageModel:
         solution = np.linalg.solve(A, B)
         self.L_main_wing=solution[0][0]
         self.L_horizontal_tail=solution[1][0]
-        
-        #loads due to weight
-        self.loads = -((load_factor)*self.masses*CONSTANTS.G0).copy() #positive load upwards
 
-        # Apply point loads to the load vector
+        self.loads=np.zeros_like(self.nodes)
+        print('Loads: ',self.loads)
+
+        # loads due to wing, canard, tail
         locs = [self.canard_position_m, self.main_wing_position_m, self.horizontal_tail_position_m]
         vals = [self.L_canard, self.L_main_wing, self.L_horizontal_tail]
         for loc, val in zip(locs, vals):
             self.loads[np.argmin(np.abs(self.nodes-loc))] += val
+            print('Loads: ',self.loads)
+        #loads due to weight
+        self.loads -=self.masses*CONSTANTS.G0*load_factor
+        print('Loads: ',self.loads)
 
         self.calculate_internal_loads()
 
     
     def calculate_loads_landing(self,
-                                landing_load_factor: float):
+                                landing_deceleration_in_terms_of_g: float):
         self.total_aircraft_mass=np.sum(self.masses)
         self.L_canard=self.canard_lift_fraction*self.total_aircraft_mass*CONSTANTS.G0
-        self.force_landing_gear = (landing_load_factor-1)*self.total_aircraft_mass*CONSTANTS.G0
+        self.force_landing_gear = abs(landing_deceleration_in_terms_of_g)*self.total_aircraft_mass*CONSTANTS.G0
         
         # Set up the matrices for A * x = B
         A = np.array([
@@ -129,23 +133,27 @@ class FuselageModel:
         self.center_of_mass_position=np.sum(self.nodes*self.masses*CONSTANTS.G0)/np.sum(self.masses*CONSTANTS.G0)
         self.MMOI_cg=np.sum(self.masses*(self.nodes-self.center_of_mass_position)**2)
 
-        self.external_loads = -(self.masses*CONSTANTS.G0).copy() #positive load upwards
+        self.loads=np.zeros_like(self.nodes)
+        
+        #loads due to wing, canard, tail
         locs = [self.canard_position_m, self.main_wing_position_m, self.horizontal_tail_position_m, self.landing_gear_position_m]
         vals = [self.L_canard, self.L_main_wing, self.L_horizontal_tail, self.force_landing_gear]
         for loc, val in zip(locs, vals):
-            self.external_loads[np.argmin(np.abs(self.nodes-loc))] += val
-        self.external_moment_sum_about_cg=np.sum((self.nodes-self.center_of_mass_position)*self.external_loads)
+            self.loads[np.argmin(np.abs(self.nodes-loc))] += val
+        #loads due to weight
+        self.loads -=self.masses*CONSTANTS.G0
 
+        self.external_moment_sum_about_cg=np.sum((self.nodes-self.center_of_mass_position)*self.loads)
         self.rotational_acceleration = self.external_moment_sum_about_cg/self.MMOI_cg
-        self.inertia_relief_loads=-self.masses*((landing_load_factor-1)*CONSTANTS.G0+self.rotational_acceleration*(self.nodes-self.center_of_mass_position))
+        self.accelerations=abs(landing_deceleration_in_terms_of_g)*CONSTANTS.G0+self.rotational_acceleration*(self.nodes-self.center_of_mass_position)
 
-        self.loads = self.external_loads+self.inertia_relief_loads
+        self.loads -=self.masses*self.accelerations
 
         self.calculate_internal_loads()
 
         
     def calculate_internal_loads(self):
-        self.internal_shear_forces = np.cumsum(self.loads)
+        self.internal_shear_forces = np.cumsum(self.loads) #positive downwards
         self.internal_shear_forces = interp1d(self.nodes,
                                               self.internal_shear_forces,
                                     kind='zero',
@@ -189,10 +197,14 @@ class FuselageModel:
 
         Q, I = self.compute_sectional_properties(t_skin_mm=thicknesses_m*1000)
         tau_shear = self.internal_shear_forces(self.nodes) * Q / (I * thicknesses_m)
-        sigma_bending = self.internal_bending_moments(self.nodes)*self.fuselage_diameter_m/(2*I)
+        sigma_bending = np.abs(self.internal_bending_moments(self.nodes)*self.fuselage_diameter_m/(2*I))
         sigma_buckling = self.calculate_buckling_stress(thicknesses_m)
 
+        print('Sigma bending [Mpa]: ',sigma_bending/1e6)
+        print('Sigma buckling [Mpa]: ',sigma_buckling/1e6)
+
         maximum_allowed_normal_stress = np.minimum(0.7*self.material.yield_strength, sigma_buckling)
+        print('Max allowed normal stress [Mpa]: ',maximum_allowed_normal_stress/1e6)
         maximum_allowed_shear_stress = 0.5*self.material.yield_strength #Tresca
         bending_util = sigma_bending / maximum_allowed_normal_stress
         shear_util = tau_shear / maximum_allowed_shear_stress
@@ -318,7 +330,7 @@ class FuselageModel:
 #             i1, i2 = st1 + num_angles + j, st1 + num_angles + j + 1
 #             i3, i4 = st2 + num_angles + j, st2 + num_angles + j + 1
 #             faces.append([i1, i4, i2]) 
-#             faces.append([i1, i3, i4])
+#             faces.append([i1, i3, i4])f
 #             face_colors.append(color_inner)
 #             face_colors.append(color_inner)
 
@@ -400,9 +412,24 @@ if __name__=='__main__':
         fuselage_model.assign_structural_mass()
         #fuselage_model.assign_nonstructural_mass()
         fuselage_model.calculate_loads_flight(9.0)
-        #print('Flight loads: ',fuselage_model.loads)
-        #fuselage_model.calculate_loads_landing(landing_load_factor=2.0)
+        print('Internal shear forces (flight): ',fuselage_model.internal_shear_forces(fuselage_model.nodes))
+        print('Internal bending moments (flight): ',fuselage_model.internal_bending_moments(fuselage_model.nodes))        
+        bending_util, shear_util = fuselage_model.thickness_utils(np.ones_like(fuselage_model.nodes)*fuselage_model.minimum_thickness_mm/1000)
+        print('Bending util (flight): ',bending_util)
+        print('Shear util (flight): ',shear_util)
+        fuselage_model.plot_external_loads()
+        fuselage_model.plot_shear_and_moment_diagrams()
+        fuselage_model.evaluate_thickness(maximum_allowed_thickness_mm=1.0,
+                                          thickness_step_mm=0.01)        
+        fuselage_model.plot_required_thickness()
+
+        fuselage_model.calculate_loads_landing(landing_deceleration_in_terms_of_g=4.0)
         #print('Landing loads: ',fuselage_model.loads)
+        print('Internal shear forces (landing): ', fuselage_model.internal_shear_forces(fuselage_model.nodes))
+        print('Internal bending moments (landing): ',fuselage_model.internal_bending_moments(fuselage_model.nodes))
+        bending_util, shear_util = fuselage_model.thickness_utils(np.ones_like(fuselage_model.nodes)*fuselage_model.minimum_thickness_mm/1000)
+        print('Bending util (landing): ',bending_util)
+        print('Shear util (landing): ',shear_util)
         fuselage_model.plot_external_loads()
         fuselage_model.plot_shear_and_moment_diagrams()
         fuselage_model.evaluate_thickness(maximum_allowed_thickness_mm=1.0,
