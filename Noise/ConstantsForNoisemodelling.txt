@@ -1,0 +1,30 @@
+X0 = -9.992824
+X1 = -7.587345
+X2 = -14.74888
+X3 = 33.07829
+X4 = 114.1251
+X5 = -308.0667
+X6 = 210.4914
+X7 = -45.19879
+
+CO2_per_fuel=3.16
+H2O_per_fuel=1.23
+NMVOCs_per_fuel=0.38*10**(-3)
+SO42_per_fuel=6.54*10**(-7)
+CO_per_fuel=0.003
+Soot_per_fuel=0.03*10**(-3)
+Contrails_cirrusb_per_fuel=3.16
+
+CO2_GWP=1
+H2O_GWP=0.22
+NMVOCs_GWP=14.0
+SO42_GWP=-832
+CO_GWP=9
+Soot_GWP=4288
+Contrails_cirrusb_GWP=2.32
+
+delta=1.51*10**(−5)
+V=100
+h=100
+theta=0
+phi=0
