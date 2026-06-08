@@ -6,12 +6,14 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src_final.landing_gear_tuning.landing_gear_tuning import landing_gear_response
+#from src_final.landing_gear_tuning.landing_gear_tuning import landing_gear_response
+
+from landing_gear_tuning import landing_gear_response
 
 
 def spring_and_damper_optimiser(c_max:float,
                                 k_max:float,
-                                downward_landing_speed:float = 15,
+                                downward_landing_speed:float = 0.5,
                                 displacement_constraint_compression:float = 0.0095, 
                                 force_requirement: float = 4, 
                                 dt:float = 0.01, 
@@ -47,17 +49,12 @@ def spring_and_damper_optimiser(c_max:float,
         
         return 0.5 * normalised_displacement + 0.5 * normalised_force                                                                             
     
-
-
-
-
     # constraints
 
     # Basic Stuff:
 
     def constraint_no_overdamping(v):
         c, k = v
-
         return (4 * m * k) - (c**2)
     
     def constraint_max_force(v):
@@ -105,14 +102,14 @@ def spring_and_damper_optimiser(c_max:float,
     (1e-3, k_max)   # Bounds for k
 ]
 
-    # Initial Guess:                                                                            # TO DO!!!!!
-    x0 = [100, 80000]
+    # Initial Guess:                                                       
+    x0 = [100, 50000]
 
     #_________________________________________________________________________Optimiser output_______________________________________________________________________
     result = opti.minimize(
         objective,
         x0,
-        method='SLSQP',
+        method='COBYLA',
         bounds = bounds,
         constraints=constraints,
         options={'ftol': 1e-9, 'disp': True, 'maxiter': 1000}
@@ -131,7 +128,7 @@ def spring_and_damper_optimiser(c_max:float,
 
 
 if __name__ == "__main__":
-    c_opt, k_opt = spring_and_damper_optimiser(c_max = 1000, k_max = 150000)
+    c_opt, k_opt = spring_and_damper_optimiser(c_max = 1000000, k_max = 1500000)
 
     print("optimal damping constant: ", c_opt)
     print("optimal spring constant: ", k_opt)

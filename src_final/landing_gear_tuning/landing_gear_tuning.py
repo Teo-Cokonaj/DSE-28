@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 
 def landing_gear_response(k:float, 
                           c:float, 
-                          downward_landing_speed:float = 15,                    # Has to be implemented into simulation, but I am not sure how to do that using lsim
+                          downward_landing_speed:float = 0.5,                    # Has to be implemented into simulation, but I am not sure how to do that using lsim
                           displacement_constraint_compression:float = 0.0095, 
                           force_requirement: float = 4, 
                           dt:float = 0.01, 
                           t:int = 5, 
                           m:float = 50, 
-                          L:float = 35, 
+                          L:float = 490, 
                           plotting:bool = False, 
                           debug:bool = False):
 
@@ -128,39 +128,60 @@ def landing_gear_response(k:float,
 
     # constraints met?
 
-    peak_displacement = np.max(np.abs(y_displacement)) * 100
-    peak_force = np.max(np.abs(y_force)) / 1000
+    peak_displacement = np.max(np.abs(y_displacement)) 
+    peak_force = np.max(np.abs(y_force)) 
 
-    met_displacement_constraints = peak_displacement < np.abs(displacement_constraint_compression) * 100 
-    met_force_constraints = peak_force < load_requirement / 1000
+    met_displacement_constraints = peak_displacement < np.abs(displacement_constraint_compression) 
+    met_force_constraints = peak_force < load_requirement 
 
     constraints_met = False
+    force_constraint = False
+    displacement_constraint = False
+
+    constraint_status = 0
 
 
-    if met_displacement_constraints:
-        if met_force_constraints:
-            constraints_met = True
+# debugging and constraint status evaluation
+
+    met_displacement_constraints = peak_displacement < np.abs(displacement_constraint_compression) 
+    met_force_constraints = peak_force < load_requirement 
+
+    # Determine constraint status based on your truth table
+    if met_displacement_constraints and met_force_constraints:
+                                                                                                                                    # Both met: Check if system is overdamped (c^2 >= 4*m*k)
+        if (c ** 2) >= (4 * m * k):
+            constraint_status = 4  
+                                                                                                            # Overdamped / invalid
         else:
-            print("Failed to meet force constraints")
-
+            constraint_status = 3  
+                                                                                                             # Both constraints met (underdamped)
+    elif met_displacement_constraints and not met_force_constraints:
+        constraint_status = 1        
+                                                                                                       # Only displacement constraint met
+    elif not met_displacement_constraints and met_force_constraints:
+        constraint_status = 2    
+                                                                                                           # Only force constraint met
     else:
-        print("Failed to meet displacement constraints")
+        constraint_status = 0                                                                                                       # Neither constraint met
 
-
-    # debugging
     if debug:
-        print("MIMO TF from state space (two transfer functions expected with same denominator): ", MIMO_transfer_function)
-        print("SISO TF of displacement: ", SISO_TF_displacement)
-        print("SISO TF of force", SISO_TF_force)
+        labels = {
+             0: "Neither displacement nor force constraint met",
+             1: "Only displacement constraint met",
+             2: "Only force constraint met",
+             3: "Both constraints met (Underdamped)",
+             4: "Overdamped / Invalid",
+        }
 
-    return y_displacement, y_force, constraints_met
+    # Return the status integer instead of the old boolean
+    return y_displacement, y_force, constraint_status
 
 
 if __name__ == "__main__":
-    K = 100000
-    C = 120
+    K = 1000
+    C = 10
 
-    y_displacement, y_force, constraints_met = landing_gear_response(K, C, plotting = True, debug = False)
+    y_displacement, y_force, constraint_status = landing_gear_response(K, C, plotting = True, debug = False)
 
     y_disp_max = np.max(np.abs(y_displacement))
     y_force_max = np.max(np.abs(y_force))
@@ -168,6 +189,6 @@ if __name__ == "__main__":
     print("max displacement: ", y_disp_max * 100, " [cm]")
     print("max force: ", y_force_max / 1000, " [kN]")
 
-    print("The constraints were met: ", constraints_met)
+    print("The constraints were met: ", constraint_status)
 
 
