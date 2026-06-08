@@ -1,3 +1,4 @@
+from aerosandbox import Atmosphere
 import numpy as np
 import matplotlib.pyplot as plt
 import math
@@ -8,7 +9,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..')))
 from src_final.structural_analysis.Material import Material
-from src_final.global_parameters import CONSTANTS
+from src_final.global_parameters import CONSTANTS, Assumptions
 
 class FuselageModel:
     def __init__(self,
@@ -25,7 +26,7 @@ class FuselageModel:
                  number_of_nodes: int,
                  canard_position_m: float,
                  canard_mass_kg: float,
-                 canard_lift_fraction: float = None,             
+                 canard_lift_fraction: float,            
                  ):
         
         self.fuselage_length_m=fuselage_length_m
@@ -42,8 +43,8 @@ class FuselageModel:
         self.horizontal_tail_mass_kg=horizontal_tail_mass_kg
         self.landing_gear_mass_kg=landing_gear_mass_kg
         self.canard_mass_kg=canard_mass_kg
-        
 
+        
     def create_nodes(self):
         self.nodes = np.linspace(0, self.fuselage_length_m, self.number_of_nodes)
         self.node_spacing = self.nodes[1]-self.nodes[0]
@@ -74,7 +75,9 @@ class FuselageModel:
 
 
     def calculate_loads_flight(self,
-                               load_factor: float):
+                               load_factor: float,
+                               altitude: float = 0.0,
+                               ):
         self.total_aircraft_mass=np.sum(self.masses)
         self.L_canard=self.canard_lift_fraction*load_factor*self.total_aircraft_mass*CONSTANTS.G0
         
@@ -94,17 +97,17 @@ class FuselageModel:
         self.L_horizontal_tail=solution[1][0]
 
         self.loads=np.zeros_like(self.nodes)
-        print('Loads: ',self.loads)
+        #print('Loads: ',self.loads)
 
         # loads due to wing, canard, tail
         locs = [self.canard_position_m, self.main_wing_position_m, self.horizontal_tail_position_m]
         vals = [self.L_canard, self.L_main_wing, self.L_horizontal_tail]
         for loc, val in zip(locs, vals):
             self.loads[np.argmin(np.abs(self.nodes-loc))] += val
-            print('Loads: ',self.loads)
+            #print('Loads: ',self.loads)
         #loads due to weight
         self.loads -=self.masses*CONSTANTS.G0*load_factor
-        print('Loads: ',self.loads)
+        self.empennage_torque=self.calculate_empennage_torque(altitude)
 
         self.calculate_internal_loads()
 
@@ -149,9 +152,28 @@ class FuselageModel:
 
         self.loads -=self.masses*self.accelerations
 
+        self.empennage_torque=self.calculate_empennage_torque()
+
         self.calculate_internal_loads()
 
+
+    def calculate_empennage_torque(self,
+                                   altitude: float=0.0) -> float:
         
+        atmosphere=Atmosphere(altitude)
+        assumptions=Assumptions()
+        airspeed=float(assumptions.mach_max*atmosphere.speed_of_sound())
+
+        dynamic_pressure=float(0.5*atmosphere.density()*airspeed**2)
+        C_L_max=0.9*assumptions.VT_clmax #no sweep of VT, conservative
+        torque=assumptions.VT_height_m/2*C_L_max*dynamic_pressure*assumptions.VT_surface_area_m2
+
+        return torque
+
+        
+    #def calculate_attachment_stresses(self):
+        
+
     def calculate_internal_loads(self):
         self.internal_shear_forces = np.cumsum(self.loads) #positive downwards
         self.internal_shear_forces = interp1d(self.nodes,
@@ -166,18 +188,27 @@ class FuselageModel:
                                      fine_nodes,
                                      self.internal_bending_moments,
                                      kind='linear')
+        self.internal_torques = np.zeros_like(fine_nodes)
+        print(self.internal_torques.shape)
+        print(fine_nodes.shape)
+        self.internal_torques[np.argmin(np.abs(self.nodes-self.main_wing_position_m)):]+=self.empennage_torque
+        self.internal_torques = interp1d(
+                                     fine_nodes,
+                                     self.internal_torques,
+                                     kind='linear')
         
 
     def compute_sectional_properties(self,
-                                     t_skin_mm: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
+                                     t_skin_mm: np.ndarray) -> tuple[np.ndarray,np.ndarray,float]:
         r_o = self.fuselage_diameter_m/2
         r_i = r_o - t_skin_mm/1000
         y_bar = (4/(3*math.pi))*(r_o**2 + r_o*r_i + r_i**2)/(r_o+r_i)
         area = (math.pi/2)*(r_o**2 - r_i**2)
         Q = y_bar * area
         I_xx =np.pi/4*(r_o**4 - r_i**4)
+        enclosed_area=(self.fuselage_diameter_m/2)**2*np.pi
 
-        return Q, I_xx
+        return Q, I_xx, enclosed_area
     
     
     def calculate_buckling_stress(self,
@@ -195,22 +226,22 @@ class FuselageModel:
     def thickness_utils(self,
                         thicknesses_m: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
 
-        Q, I = self.compute_sectional_properties(t_skin_mm=thicknesses_m*1000)
-        tau_shear = self.internal_shear_forces(self.nodes) * Q / (I * thicknesses_m)
+        Q, I, enclosed_area = self.compute_sectional_properties(t_skin_mm=thicknesses_m*1000)
+        tau_shear = np.abs(self.internal_shear_forces(self.nodes) * Q / (I * thicknesses_m))+np.abs(self.internal_torques(self.nodes)*thicknesses_m/2/enclosed_area)
         sigma_bending = np.abs(self.internal_bending_moments(self.nodes)*self.fuselage_diameter_m/(2*I))
-        sigma_buckling = self.calculate_buckling_stress(thicknesses_m)
+        sigma_buckling = np.abs(self.calculate_buckling_stress(thicknesses_m))
 
-        print('Sigma bending [Mpa]: ',sigma_bending/1e6)
-        print('Sigma buckling [Mpa]: ',sigma_buckling/1e6)
+        ##print('Sigma bending [Mpa]: ',sigma_bending/1e6)
+        ##print('Sigma buckling [Mpa]: ',sigma_buckling/1e6)
 
         maximum_allowed_normal_stress = np.minimum(0.7*self.material.yield_strength, sigma_buckling)
-        print('Max allowed normal stress [Mpa]: ',maximum_allowed_normal_stress/1e6)
+        ##print('Max allowed normal stress [Mpa]: ',maximum_allowed_normal_stress/1e6)
         maximum_allowed_shear_stress = 0.5*self.material.yield_strength #Tresca
         bending_util = sigma_bending / maximum_allowed_normal_stress
         shear_util = tau_shear / maximum_allowed_shear_stress
 
-        #print('Bending util: ',bending_util)
-        #print('Shear util: ',shear_util)
+        ##print('Bending util: ',bending_util)
+        ##print('Shear util: ',shear_util)
 
         return bending_util, shear_util
 
@@ -219,7 +250,7 @@ class FuselageModel:
                            maximum_allowed_thickness_mm: float,
                            thickness_step_mm: float):
         self.thicknesses_m = np.ones_like(self.nodes)*self.minimum_thickness_mm/1000
-        #print('self.thicknesses_m: ',self.thicknesses_m)
+        ##print('self.thicknesses_m: ',self.thicknesses_m)
         
         bending_util, shear_util = self.thickness_utils(self.thicknesses_m)
         while len(self.thicknesses_m[(bending_util>1.0)|(shear_util>1.0)])>0:
@@ -240,7 +271,7 @@ class FuselageModel:
 
 
     def plot_shear_and_moment_diagrams(self):
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 8))
         
         ax1.plot(self.nodes, self.internal_shear_forces(self.nodes), label='Shear Force (N)', color='blue')
         ax1.set_title('Shear Force Diagram')
@@ -255,6 +286,13 @@ class FuselageModel:
         ax2.set_ylabel('Bending Moment (Nm)')
         ax2.grid()
         ax2.legend()
+
+        ax3.plot(self.nodes, self.internal_torques(self.nodes), label='Torque (Nm)', color='green')
+        ax3.set_title('Torque Diagram')
+        ax3.set_xlabel('Position along Fuselage (m)')
+        ax3.set_ylabel('Torque (Nm)')
+        ax3.grid()
+        ax3.legend()
         
         #plt.suptitle('suptitle')
         plt.tight_layout()
@@ -384,7 +422,7 @@ class FuselageModel:
 
 if __name__=='__main__':
         material = Material(density=1600,
-                            elastic_modulus=70e9,
+                            elastic_modulus=50e9,
                             shear_modulus=5e9,
                             poisson_ratio=0.3,
                             yield_strength=600e6,
@@ -397,14 +435,14 @@ if __name__=='__main__':
                  minimum_fuselage_thickness_mm=0.1,
                  material=material,
                  main_wing_position_m=1.0,
-                 main_wing_mass_kg=10.0,
+                 main_wing_mass_kg=3.0,
                  horizontal_tail_position_m=2.9,
-                 horizontal_tail_mass_kg=3.0,
+                 horizontal_tail_mass_kg=0.5,
                  landing_gear_position_m=1.5,
-                 landing_gear_mass_kg=3.0,
+                 landing_gear_mass_kg=1.0,
                  number_of_nodes=1000,
                  canard_position_m=0.1,
-                 canard_mass_kg=1.0,
+                 canard_mass_kg=0.3,
                  canard_lift_fraction=0.2,             
                  )
         
@@ -412,11 +450,11 @@ if __name__=='__main__':
         fuselage_model.assign_structural_mass()
         #fuselage_model.assign_nonstructural_mass()
         fuselage_model.calculate_loads_flight(9.0)
-        print('Internal shear forces (flight): ',fuselage_model.internal_shear_forces(fuselage_model.nodes))
-        print('Internal bending moments (flight): ',fuselage_model.internal_bending_moments(fuselage_model.nodes))        
+        #print('Internal shear forces (flight): ',fuselage_model.internal_shear_forces(fuselage_model.nodes))
+        #print('Internal bending moments (flight): ',fuselage_model.internal_bending_moments(fuselage_model.nodes))        
         bending_util, shear_util = fuselage_model.thickness_utils(np.ones_like(fuselage_model.nodes)*fuselage_model.minimum_thickness_mm/1000)
-        print('Bending util (flight): ',bending_util)
-        print('Shear util (flight): ',shear_util)
+        #print('Bending util (flight): ',bending_util)
+        #print('Shear util (flight): ',shear_util)
         fuselage_model.plot_external_loads()
         fuselage_model.plot_shear_and_moment_diagrams()
         fuselage_model.evaluate_thickness(maximum_allowed_thickness_mm=1.0,
@@ -424,12 +462,12 @@ if __name__=='__main__':
         fuselage_model.plot_required_thickness()
 
         fuselage_model.calculate_loads_landing(landing_deceleration_in_terms_of_g=4.0)
-        #print('Landing loads: ',fuselage_model.loads)
-        print('Internal shear forces (landing): ', fuselage_model.internal_shear_forces(fuselage_model.nodes))
-        print('Internal bending moments (landing): ',fuselage_model.internal_bending_moments(fuselage_model.nodes))
+        ##print('Landing loads: ',fuselage_model.loads)
+        #print('Internal shear forces (landing): ', fuselage_model.internal_shear_forces(fuselage_model.nodes))
+        #print('Internal bending moments (landing): ',fuselage_model.internal_bending_moments(fuselage_model.nodes))
         bending_util, shear_util = fuselage_model.thickness_utils(np.ones_like(fuselage_model.nodes)*fuselage_model.minimum_thickness_mm/1000)
-        print('Bending util (landing): ',bending_util)
-        print('Shear util (landing): ',shear_util)
+        #print('Bending util (landing): ',bending_util)
+        #print('Shear util (landing): ',shear_util)
         fuselage_model.plot_external_loads()
         fuselage_model.plot_shear_and_moment_diagrams()
         fuselage_model.evaluate_thickness(maximum_allowed_thickness_mm=1.0,
