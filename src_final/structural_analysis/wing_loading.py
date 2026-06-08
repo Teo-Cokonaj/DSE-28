@@ -201,7 +201,7 @@ class WingModel:
         
         # Step 3 (optional): print intermediate values for debug
         if debug:
-            print(f'Number of sections: {nr_sections}')
+            print(f'Number of sections: {self.number_of_nodes}')
             print(f'Spanwise positions [m]: {self.y_stations}')
             print(f'Distributed lift [N]: {self.lift_cont_forces_cop}')
             print(f'Shear force [N]: {self.shear_each_node}')             
@@ -225,7 +225,7 @@ class WingModel:
         y_stations_cop_fine = np.linspace(self.y_stations_cop[0], self.y_stations_cop[-1], 100 * len(self.y_stations_cop))
         y_stations_fine =  np.linspace(self.y_stations[0], self.y_stations[-1], 100 * len(self.y_stations))
         internal_shear_forces_cop_fine = self.internal_shear_forces_cop_int(y_stations_cop_fine)
-        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(internal_shear_forces_cop_fine, y_stations_cop_fine)])[::-1]
+        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(internal_shear_forces_cop_fine[::-1], y_stations_cop_fine[::-1])])[::-1]
         self.internal_bending_moments_int = interp1d(
                                      y_stations_cop_fine,
                                      internal_bending_moments_cop,

@@ -3,6 +3,7 @@ import aerosandbox.numpy as np
 import math
 import os
 import sys
+from scipy.interpolate import interp1d
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -86,17 +87,45 @@ class TestShearBending:
         dummy_shear_stress = dummy_torsion/(2*dummy_skin_thickness*dummy_cross_section)
 
         # If fails, compare the cross-sections and shear stresses to see what went wrong
-        print(f'Dummy cross section: {dummy_cross_section}')
-        print(f'Dummy shear stress: {dummy_shear_stress}')
+        print(f'Dummy cross section [m2]: {dummy_cross_section}')
+        print(f'Dummy shear stress [Pa]: {dummy_shear_stress}')
 
-        # Run the actual function to see if it computes the stresses correctly
-        shear_stresses_test = WingModel.step_shear_stress(wing_model, reduced_sectional_spanwise_positions,
-                                    modified_sectional_lifts_schrenk, debug = False, plot = False)
         
         # STEP 2: Shear forces
+        dummy_lift_forces = interp1d(reduced_sectional_spanwise_positions, modified_sectional_lifts_schrenk)
+        _, _, dummy_y_stations, _ = planform.sectional_properties(number_of_sections=wing_model.number_of_nodes)
+        dummy_y_stations_cop = dummy_y_stations[-np.size(reduced_sectional_spanwise_positions):]
+        dummy_lift_cont_cop = dummy_lift_forces(dummy_y_stations_cop)
+
+        dummy_internal_shear_forces_cop = np.cumsum(dummy_lift_cont_cop[::-1])[::-1]
+        dummy_internal_shear_forces_cop_int = interp1d(dummy_y_stations_cop, dummy_internal_shear_forces_cop,
+                                                        kind="zero",
+                                                        fill_value="extrapolate")
+
+        dummy_shear_each_node = dummy_internal_shear_forces_cop_int(dummy_y_stations)
+        dummy_shear_force = np.concatenate((np.full(np.size(dummy_y_stations) - np.size(dummy_shear_each_node),
+                                                dummy_shear_each_node[0]), dummy_shear_each_node))
+        
+        print(f'Dummy shear force [N]: {dummy_shear_force}')
+        
+        # STEP 3: Bending moments
         
 
         
+        # STEP 4: Run the actual functions to see if it computes the stresses correctly
+        shear_stresses_test = WingModel.step_shear_stress(wing_model, reduced_sectional_spanwise_positions,
+                                    modified_sectional_lifts_schrenk, debug = False, plot = False)
+        shear_forces_test = WingModel.step_shear_forces(wing_model, reduced_sectional_spanwise_positions, modified_sectional_lifts_schrenk,
+                                                        debug = False, plot = False)
+        bending_moments_test = WingModel.step_moment(wing_model, debug = False, plot = False)
+
+
+        print(f'Computed shear stress [Pa]: {shear_stresses_test}')
+        print(f'Computed shear force [N]: {shear_forces_test}')
+        print(f'Computed bending moment [Nm]: {bending_moments_test}')
+
         assert np.allclose(dummy_shear_stress, shear_stresses_test, 1e-6, 1e-6)
+        assert np.allclose(dummy_shear_force, shear_forces_test, 1e-6, 1e-6)
+        assert 1>2
 
 
