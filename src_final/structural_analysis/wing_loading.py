@@ -3,9 +3,7 @@ import matplotlib.pyplot as plt
 import math
 from scipy.optimize import root_scalar
 from scipy.integrate import cumulative_trapezoid
-import parameters
 from scipy.interpolate import interp1d
-from parameters import *
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..')))
@@ -130,7 +128,7 @@ class WingModel:
 
         # Step 2: Get the thickness and cross section area at each station
         thickness_stations_cop = c_stations_cop * self.planform.thickness_to_chord
-        cross_section_areas_cop = np.pi * 0.5 * c_stations_cop * 0.5 * y_stations_cop
+        cross_section_areas_cop = np.pi * 0.5 * c_stations_cop * 0.5 * thickness_stations_cop
 
         # Step 3: Get the skin thickness
         thickness_skin = self.wing_skin_thickness_m
@@ -149,9 +147,6 @@ class WingModel:
                                        fill_value = 'extrapolate')
     
         self.shear_stress_each_node = self.shear_node_tot(reduced_sectional_spanwise_positions)
-        print(reduced_sectional_spanwise_positions)
-        print(np.size(c_stations))
-        print(np.size(self.shear_stress_each_node))
         self.shear_stress_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(self.shear_stress_each_node), self.shear_stress_each_node[0]), self.shear_stress_each_node))
         
         # Step 7 (optional): print values for debug
@@ -174,6 +169,8 @@ class WingModel:
             plt.title("Shear Stress Distribution")
             fig.savefig('shear_stress_distribution.png')
             plt.show()
+
+        return self.shear_stress_each_node
             
 
     def step_shear_forces(self,
@@ -200,7 +197,7 @@ class WingModel:
         
         self.shear_each_node_cop = self.internal_shear_forces_cop_int(self.y_stations_cop)        
         self.shear_each_node = self.internal_shear_forces_cop_int(self.y_stations)
-        self.shear_force_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(self.shear_each_node), self.shear_each_node[0]), self.shear_each_node))
+        self.shear_force_each_node = np.concatenate(( np.full(np.size(self.y_stations) - np.size(self.shear_each_node), self.shear_each_node[0]), self.shear_each_node))
         
         # Step 3 (optional): print intermediate values for debug
         if debug:
@@ -219,7 +216,7 @@ class WingModel:
             fig.savefig('shear_force_distribution.png')
             plt.show()
         
-
+        return self.shear_force_each_node
 
     def step_moment(self,
                     debug: bool,
@@ -256,6 +253,7 @@ class WingModel:
             fig.savefig('bending_moment_distribution.png')
             plt.show()
 
+        return self.internal_bending_moments
 
 
 if __name__=='__main__':
@@ -316,7 +314,7 @@ if __name__=='__main__':
         #torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
         #print(torsion)
         wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, modified_sectional_lifts_schrenk=lift_span,
-                                     debug = True, plot = True)
+                                     debug = False, plot = True)
         wing_model.step_shear_forces(reduced_sectional_spanwise_positions=span_poz,
                                                    modified_sectional_lifts_schrenk=lift_span,debug = False, plot = True)
         wing_model.step_moment(debug = False, plot = True)
