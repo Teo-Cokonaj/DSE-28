@@ -43,7 +43,7 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude
     segment_go_around.equivalent_range *= CONSTANTS.N_LANDING_ATTEMPTS 
 
     fuel_frac_cruise = segment_cruise.fuel_fraction(efficiency_cruise, energy_density_saf)
-
+    
     fuel_frac_mach_max_local = segment_mach_max.fuel_fraction(efficiency_mach_max, energy_density_saf)
     fuel_frac_mach_max = fuel_frac_mach_max_local*(1-fuel_frac_cruise)
 
