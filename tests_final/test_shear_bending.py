@@ -48,8 +48,6 @@ def wing_model(planform, material):
             material_1 = material,
             material_2 = material,
             planform = planform,
-            wing_tip_choad_m = 0.1,
-            wing_root_chord_m = 0.1
             )
 
 @pytest.fixture
@@ -71,7 +69,7 @@ def modified_sectional_lifts_schrenk(conservative_lift_distribution):
 @pytest.fixture
 def test_torsion(planform, wing_model, reduced_sectional_spanwise_positions, modified_sectional_lifts_schrenk):
     return wing_model.step_torsion_determination(planform.sectional_properties(number_of_sections=wing_model.number_of_nodes)[0],planform.sectional_properties(number_of_sections=wing_model.number_of_nodes)[2],
-                                                 reduced_sectional_spanwise_positions, modified_sectional_lifts_schrenk)
+                                                 reduced_sectional_spanwise_positions, modified_sectional_lifts_schrenk, plot = False)
 
 class TestShearBending:
     def test_shear_stress(self, wing_model, planform, reduced_sectional_spanwise_positions, modified_sectional_lifts_schrenk, test_torsion):

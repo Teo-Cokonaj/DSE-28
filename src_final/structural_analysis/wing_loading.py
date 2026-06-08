@@ -25,8 +25,6 @@ class WingModel:
                  material_1:Material,
                  material_2:Material,
                  planform:Planform,
-                 wing_tip_choad_m:float,
-                 wing_root_chord_m: float,
                 ):
         self.wing_leng_m = wing_leng_m
         self.wing_skin_thickness_m = wing_skin_thickness_m
@@ -34,8 +32,6 @@ class WingModel:
         self.material_2 = material_2
         self.number_of_nodes = number_of_nodes
         self.planform = planform
-        self.wing_tip_choad_m = wing_tip_choad_m
-        self.wing_root_chord_m = wing_root_chord_m
 
 
 
@@ -207,7 +203,7 @@ class WingModel:
         thickness_skin = self.wing_skin_thickness_m
 
         # Step 4: Get the torsion
-        torsion_stations = self.step_torsion_determination(c_stations, nr_sections,reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk,plot = False)
+        torsion_stations = self.step_torsion_determination(c_stations,y_stations,reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk,plot = False)
         torsion_stations_cop = torsion_stations[-np.size(reduced_sectional_spanwise_positions):]
         
         # Step 5: Calculate the shear stress
@@ -386,7 +382,7 @@ if __name__=='__main__':
         c_stations = planform.sectional_properties(number_of_sections=100)[0]
         
         
-        shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, nr_sections=nr_sections, modified_sectional_lifts_schrenk=lift_span, debug = True, plot = True)
+        shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, modified_sectional_lifts_schrenk=lift_span, debug = True, plot = True)
         p_crush = wing_model.step_crushing_pressure(c_stations,material_1.elastic_modulus,planform.thickness_to_chord,y_station_chord)
         
         
