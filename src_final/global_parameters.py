@@ -36,7 +36,7 @@ class Assumptions():
         self.atmosphere_cruise = Atmosphere(self.altitude_cruise)
         self.air_density_cruise_altitude = self.atmosphere_cruise.density() # [kg/m^3]
         self.temperature_cruise_altitude = self.atmosphere_cruise.temperature() #[K]
-        self.altitude_go_round = 1500 / .3048 # [m]
+        self.altitude_go_round = 1500 * .3048 # [m]
         self.time_half_circle = 60.0 # [s]
         self.omega_go_round = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
         self.airfield_length = 1275. #m #TODO check with the actual airport
