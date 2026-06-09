@@ -509,7 +509,6 @@ if __name__=='__main__':
                  wing_skin_thickness_m =0.01,
                  number_of_nodes=100,
                  material_1 = material_1,
-                 material_2 = material_2,
                  planform = planform,
                  )
         
