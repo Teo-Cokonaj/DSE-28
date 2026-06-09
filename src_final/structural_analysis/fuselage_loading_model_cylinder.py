@@ -10,21 +10,25 @@ from scipy.interpolate import interp1d
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..')))
+from src_final.structural_analysis.wing_loading import WingModel
 from src_final.structural_analysis.Material import Material
 from src_final.global_parameters import CONSTANTS, Assumptions
+from src_final.Aircraft.Planform import Planform
 
 class FuselageModel:
     def __init__(self,
                  minimum_fuselage_thickness_mm: float,
                  material: Material,
+                 wing_model: WingModel,
                  number_of_nodes: int,
-                 canard_lift_fraction: float,            
+                 canard_lift_fraction: float,  
                  ):
         
         self.minimum_thickness_mm=minimum_fuselage_thickness_mm
         self.material=material
         self.number_of_nodes=number_of_nodes
         self.canard_lift_fraction=canard_lift_fraction
+        #self.moment_due_to_wing=wing_model.tosrion_node_tot[0]
 
         
     def create_nodes(self):
@@ -34,6 +38,7 @@ class FuselageModel:
 
     def load_components_from_csv(self,
                                  csv_path: str):
+        
         df = pd.read_csv(csv_path)
 
         def get_cg_x(name_prefix: str):
@@ -63,29 +68,39 @@ class FuselageModel:
         self.vertical_tail_x_m       = get_cg_x("Vertical_Tail")
         self.landing_gear_x_m = get_cg_x("Metal Strut")
         self.baseline_fuselage_mass = get_mass("Main Body")
-        self.fuselage_diameter_m=self.baseline_fuselage_mass/(self.material.density*self.fuselage_length_m*self.minimum_thickness_mm/1000*np.pi)
+        
+
+        if abs(self.canard_lift_fraction)>1e-3:
+            skip = {"C. Port Cover <1>","C. Port Foam <1>"}
+        else:
+            skip = {"Canard"}
 
         for _, row in df.iterrows():
+            if row["Component Name"]=="Main Body <1>":
+                self.fuselage_diameter_m=row["Size Y (m)"]
+
+            if row["Component Name"]=="Vertical_Tail <3>":
+                self.vertical_tail_height_m=row["Size Z (m)"]
+                
+            name = row["Component Name"]
+            if any(name.startswith(prefix) for prefix in skip):
+                continue
+
             self.assign_mass(
-                component_mass=row["Mass (kg)"],
-                component_cg_position_along_fuselage=row["Assembly CG X (m)"],
-                component_length_m=row["Size X (m)"],
-            )
+                    component_mass=row["Mass (kg)"],
+                    component_cg_position_along_fuselage=row["Assembly CG X (m)"],
+                    component_length_m=row["Size X (m)"],
+                )
 
 
     def assign_mass(self,
                     component_mass: float,
                     component_cg_position_along_fuselage: float,
                     component_length_m: float):
-        
-        print(f'Adding mass of {component_mass}')
 
         component_front = component_cg_position_along_fuselage - component_length_m / 2
-        print('component_front: ',component_front)
         component_aft   = component_front + component_length_m
-        print('component_aft: ',component_aft)
         fuselage_end    = self.nodes[-1]
-        print('fuselage end: ',fuselage_end)
 
         # Split mass proportionally between interior and overflow
         if component_aft > fuselage_end and component_front<fuselage_end:
@@ -101,8 +116,6 @@ class FuselageModel:
 
         front_node_idx = np.argmin(np.abs(self.nodes - component_front))
         aft_node_idx   = np.argmin(np.abs(self.nodes - component_aft))
-                                        
-        print(f'to nodes between {front_node_idx} and {aft_node_idx}')
 
         n_nodes = aft_node_idx - front_node_idx + 1
         self.masses[front_node_idx:aft_node_idx + 1] += interior_mass / n_nodes
@@ -111,10 +124,8 @@ class FuselageModel:
 
     def calculate_loads_flight(self,
                                load_factor: float,
-                               altitude: float = 0.0,
                                ):
         self.total_aircraft_mass=np.sum(self.masses)
-        print('Total aircraft mass: ',self.total_aircraft_mass)
         self.L_canard=self.canard_lift_fraction*load_factor*self.total_aircraft_mass*CONSTANTS.G0
         
         # Set up the matrices for A * x = B
@@ -133,7 +144,6 @@ class FuselageModel:
         self.L_horizontal_tail=solution[1][0]
 
         self.loads=np.zeros_like(self.nodes)
-        #print('Loads: ',self.loads)
 
         # loads due to wing, canard, tail
         locs = [self.canard_x_m, self.main_wing_x_m, self.horizontal_tail_x_m]
@@ -143,7 +153,7 @@ class FuselageModel:
             #print('Loads: ',self.loads)
         #loads due to weight
         self.loads -=self.masses*CONSTANTS.G0*load_factor
-        self.empennage_torque=self.calculate_empennage_torque(altitude)
+        self.empennage_torque=self.calculate_empennage_torque()
 
         self.calculate_internal_loads()
 
@@ -193,16 +203,15 @@ class FuselageModel:
         self.calculate_internal_loads()
 
 
-    def calculate_empennage_torque(self,
-                                   altitude: float=0.0) -> float:
+    def calculate_empennage_torque(self) -> float:
         
-        atmosphere=Atmosphere(altitude)
+        atmosphere=Atmosphere(altitude=8230.0) #altitude of Mach max
         assumptions=Assumptions()
         airspeed=float(assumptions.mach_max*atmosphere.speed_of_sound())
 
         dynamic_pressure=float(0.5*atmosphere.density()*airspeed**2)
         C_L_max=0.9*assumptions.VT_clmax #no sweep of VT, conservative
-        torque=assumptions.VT_height_m/2*C_L_max*dynamic_pressure*assumptions.VT_surface_area_m2
+        torque=self.vertical_tail_height_m/2*C_L_max*dynamic_pressure*assumptions.VT_surface_area_m2
 
         return torque
 
@@ -225,9 +234,8 @@ class FuselageModel:
                                      self.internal_bending_moments,
                                      kind='linear')
         self.internal_torques = np.zeros_like(fine_nodes)
-        print(self.internal_torques.shape)
-        print(fine_nodes.shape)
-        self.internal_torques[np.argmin(np.abs(fine_nodes - self.main_wing_x_m)):] += self.empennage_torque
+        self.internal_torques[np.argmin(np.abs(fine_nodes - self.main_wing_x_m)):-1] += self.empennage_torque
+
         self.internal_torques = interp1d(
                                      fine_nodes,
                                      self.internal_torques,
@@ -468,6 +476,43 @@ class FuselageModel:
 #     return
 
 if __name__=='__main__': 
+        material_1 = Material(density=1600,
+                            elastic_modulus=70e9,
+                            shear_modulus=5e9,
+                            poisson_ratio=0.3,
+                            yield_strength=600e6,
+                            fracture_strength=600e6
+                            )
+        material_2  = Material(density=75,
+                            elastic_modulus=1.5e6,
+                            shear_modulus=1.3e6,
+                            poisson_ratio=0.3,
+                            yield_strength=600e6,
+                            fracture_strength=600e6
+                            )
+        
+        planform=Planform(
+            aspect_ratio=20.0,
+            span=10.0,
+            sweep_quarter_deg=0.0,
+            taper=0.5,
+            thickness_to_chord=0.12,
+            cm_quarter_chord=1.0,
+            wetted_surface_ratio=1.0,
+            interference_factor=1.0,
+            clmax=1.5,
+            flap=False,
+        )
+
+        wing_model= WingModel(
+                 wing_leng_m=10,
+                 wing_skin_thickness_m =0.01,
+                 number_of_nodes=100,
+                 material_1 = material_1,
+                 material_2 = material_2,
+                 planform = planform,
+                 )
+        
         material = Material(density=1600,
                             elastic_modulus=50e9,
                             shear_modulus=5e9,
@@ -480,7 +525,8 @@ if __name__=='__main__':
                  minimum_fuselage_thickness_mm=0.1,
                  material=material,
                  number_of_nodes=1000,
-                 canard_lift_fraction=0.2,             
+                 canard_lift_fraction=0.1, 
+                 wing_model=wing_model            
                  )
         
         from pathlib import Path

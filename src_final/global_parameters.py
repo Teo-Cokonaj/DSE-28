@@ -66,7 +66,6 @@ class Assumptions():
         self.fuselage_base_area = 0 # A_base should only reflect truly blunt aft terminations
 
         #Vertical tail properties
-        self.VT_height_m= 1.5 #conservative
         self.VT_surface_area_m2=0.25 #based on FLEXOP
         self.VT_clmax=2*np.pi
         
