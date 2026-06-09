@@ -25,7 +25,7 @@ from tau_curve_approximation import tau_func
         # tau = tau(0.3)
             # Extrapolate Tau function from 4 points 
 
-def aileron_sizing(b1, b2, delta_a_max, V, chords_ratio, n_sections, planform:Planform):
+def compute_p(b1, b2, delta_a_max, V, chords_ratio, n_sections, planform:Planform):
     C_l_alpha = planform.airfoil_lift_slope
     S_ref = planform.wing_area
     b = planform.span
