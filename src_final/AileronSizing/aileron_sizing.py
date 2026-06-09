@@ -52,8 +52,46 @@ def compute_p(b1, b2, delta_a_max, V, chords_ratio, n_sections, planform:Planfor
     return P
     
 
-    
+def size_ailerons(delta_a_max, Vmin, Vmax, chords_ratio, n_sections, planform:Planform, roll_rate_min:float, roll_rate_max:float, y_fus:float)->list[tuple[float, float]]:
+    halfspan = planform.span / 2
+    quarterspan = planform.span / 4
+    aileron_opt:list[tuple[float, float]] = [(y_fus, halfspan)]
+    tot_length_current = halfspan
 
+    #option one - single aileron
+    for i, b1 in enumerate(np.linspace(y_fus, halfspan, n_sections)):
+        for b2 in np.linspace(b1, halfspan, n_sections-i):
+            roll_rate_min_computed = compute_p(b1, b2, delta_a_max, Vmin, chords_ratio, n_sections, planform)
+            roll_rate_max_computed = compute_p(b1, b2, delta_a_max, Vmax, chords_ratio, n_sections, planform)
+            if (roll_rate_min_computed > roll_rate_min) and (roll_rate_max > roll_rate_max_computed) and ((b2 - b1) < tot_length_current):
+                aileron_opt = [(b1, b2)]
+                tot_length_current = b2 - b1
+                break
+            
+    #option two - inboard and outboard aileron
+    #inboard aileron for high speed
+    inboard_aileron:tuple[float, float] = (y_fus, quarterspan)
+    tot_length_inboard = quarterspan - y_fus
+    for i, b1 in enumerate(np.linspace(0, quarterspan, n_sections //2)):
+        for b2 in np.linspace(b1, quarterspan, n_sections //2 - i):
+            roll_rate_computed = compute_p(b1, b2, delta_a_max, Vmax, chords_ratio, n_sections, planform)
+            if (roll_rate_max > roll_rate_computed > roll_rate_min) and ((b2-b1) < tot_length_inboard):
+                inboard_aileron = (b2, b1)
+                tot_length_current = b2 - b1
+                break
+
+    #outboard_aileron for lowspeed
+    for i, b1 in enumerate(np.linspace(quarterspan, halfspan, n_sections //2)):
+        for b2 in np.linspace(b1, halfspan, n_sections //2 - i):
+            roll_rate_computed = compute_p(b1, b2, delta_a_max, Vmin, chords_ratio, n_sections, planform)
+            if (roll_rate_computed > roll_rate_min) and ((b2 - b1 + tot_length_inboard) < tot_length_current):
+                aileron_opt = [inboard_aileron, (b2, b1)]
+                tot_length_current = tot_length_inboard + b2 - b1
+                break
+
+    assert tot_length_current < halfspan - y_fus
+    
+    return aileron_opt
 
 
 
