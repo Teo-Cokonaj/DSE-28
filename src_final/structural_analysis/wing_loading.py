@@ -124,7 +124,7 @@ class WingModel:
         if plot:
             plt.figure()
             plt.plot(y_cop, self.lift_span, color="red", label="lift")
-            plt.plot(y_cop, -weight, color="blue", label="weight")
+            plt.plot(y_cop, -inertial_weight, color="blue", label="inertial_weight")
             plt.plot(y_cop, self.force_distribution, color="black", label="net force")
             plt.xlabel("Spanwise position y [m]")
             plt.ylabel("Force per station [N]")
@@ -296,7 +296,7 @@ class WingModel:
         self.shear_stress_each_node = self.shear_node_tot(reduced_sectional_spanwise_positions)
         self.shear_stress_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(self.shear_stress_each_node), self.shear_stress_each_node[0]), self.shear_stress_each_node))
         
-        # Step 7 (optional): print values for debug
+       
         if debug:
             print(f'Number of stations [-]: {len(c_stations)}')
             print(f'Thickness-to-chord [-]: {self.planform.thickness_to_chord}')
@@ -307,7 +307,7 @@ class WingModel:
             print(f'Cross-section Areas [m2]: {cross_section_areas_cop}')
             print(f'Shear stress [Pa]: {self.shear_stress_each_node}')
 
-        # Step 8 (optional): Plot
+       
         if plot:
             fig = plt.figure()
             plt.plot(y_stations, self.shear_stress_each_node/1e6)
@@ -444,25 +444,25 @@ if __name__=='__main__':
                  number_of_nodes=100,
                  material_1 = material_1,
                  planform = planform,
-                 load_factor = 7,
+                 load_factor = 1,
                  )
         wing_model.planform_data()
+        plot_1 = True
+        force_distribution, lift, weight = wing_model.force_per_unit(plot=plot_1)
 
-        force_distribution, lift, weight = wing_model.force_per_unit(plot=False)
+        torque = wing_model.step_torsion_determination(plot=plot_1)
 
-        torque = wing_model.step_torsion_determination(plot=False)
+        shear_force = wing_model.step_shear_forces(debug=False, plot=plot_1)
 
-        shear_force = wing_model.step_shear_forces(debug=False, plot=False)
-
-        bending_moment = wing_model.step_moment(debug=False, plot=False)
+        bending_moment = wing_model.step_moment(debug=False, plot=plot_1)
 
         twist_rad, twist_deg = wing_model.step_rotation_of_wing(
             torsion=torque,
-            plot=False
+            plot=plot_1
         )
 
         slope_rad, deflection_m = wing_model.step_vertical_deflection(
-            plot=False,
+            plot=plot_1,
             moments=bending_moment
         )
 
@@ -472,7 +472,7 @@ if __name__=='__main__':
 
         shear_stress = wing_model.step_shear_stress(
             debug=False,
-            plot=False
+            plot=plot_1
         )
 
         buckling_stress = wing_model.buckling_model()
