@@ -24,19 +24,20 @@ class WingModel:
                  number_of_nodes: int,
                  material_1:Material,
                  planform:Planform,
-                 load_factor:int,
+                 load_factor:float,
                 ):
         self.wing_leng_m = wing_leng_m
         self.wing_skin_thickness_m = wing_skin_thickness_m
         self.material_1=material_1
         self.number_of_nodes = number_of_nodes
         self.planform = planform
-        self.laod_factor = load_factor
+        self.load_factor = load_factor
 
-    def planform_data(self):
+    def planform_data(self,
+                      ):
         self.span_poz, self.lift_span = self.planform.estimate_conservative_lift_distribution(
             diameter_fuselage=0.31,
-            positive_manoeuvring_limit_load_factor=6.0,
+            positive_manoeuvring_limit_load_factor=self.load_factor,
             initial_total_aircraft_mass=50.0,
             number_of_stations=self.number_of_nodes
         )
@@ -76,7 +77,30 @@ class WingModel:
             
             return np.squeeze(area_momement_x),np.squeeze(area_momement_y)
     
+    # def wing_weight_distribution(self):
+    #     perimeter, _ = self.perimeter_area_of_section()
+
+    #     n_lift = np.size(self.span_poz)
+
+    #     perimeter_cop = perimeter[-n_lift:]
+
+    #     if np.size(self.dy) == 1:
+    #         dy_cop = np.ones(n_lift) * self.dy
+    #     else:
+    #         dy_cop = self.dy[-n_lift:]
+
+    #     mass_per_station = (
+    #         self.material_1.density
+    #         * perimeter_cop
+    #         * self.wing_skin_thickness_m
+    #         * dy_cop
+    #     )
+
+    #     weight_per_station = mass_per_station * 9.81
+
+    #     return weight_per_station
     
+
     def force_per_unit(self, plot: bool = False):
         perimeter, _ = self.perimeter_area_of_section()
 
@@ -91,9 +115,11 @@ class WingModel:
             dy_cop = self.dy[-n_lift:]
 
         mass = self.material_1.density * perimeter_cop * self.wing_skin_thickness_m * dy_cop
-        weight = mass * 9.81
+        
+        inertial_weight = self.load_factor * mass * 9.81
+        
 
-        self.force_distribution = self.lift_span - weight
+        self.force_distribution = self.lift_span - inertial_weight
 
         if plot:
             plt.figure()
@@ -107,7 +133,7 @@ class WingModel:
             plt.legend()
             plt.show()
 
-        return self.force_distribution, self.lift_span, weight
+        return self.force_distribution, self.lift_span, inertial_weight
          
 
 
@@ -116,7 +142,7 @@ class WingModel:
             plot: bool,
  ):
         reduced_sectional_spanwise_positions = self.span_poz
-        self.force_cont_forces = interp1d (reduced_sectional_spanwise_positions,self.force_distribution)
+        self.force_cont_forces = interp1d (reduced_sectional_spanwise_positions,self.lift_span)
         c_stations_cop = self.chord_stations[-np.size(reduced_sectional_spanwise_positions):]
         
         torsion_per_node_single = self.force_cont_forces(reduced_sectional_spanwise_positions) * (c_stations_cop / 4.0)
@@ -205,22 +231,23 @@ class WingModel:
         return theta, displacement
 
 
-    def step_crushing_pressure(self,
-                         moments: np.ndarray | None = None,
-                               ):
-        if moments is None:
-              M = self.step_moment(False,False)
-        else:
-             M = np.asarray(moments,dtype = float)
+#     def step_crushing_pressure(self,
+#                          moments: np.ndarray | None = None,
+#                                ):
+#         if moments is None:
+#               M = self.step_moment(False,False)
+#         else:
+#              M = np.asarray(moments,dtype = float)
         
-        Ix = self.area_moment_inertia()[0]
-        crushing_pressure = (
-        self.wing_skin_thickness_m
-        * self.chord_stations
-        * M**2
-        / (2 * self.material_1.elastic_modulus * Ix)
-)
-        return crushing_pressure
+#         Ix = self.area_moment_inertia()[0]
+#         crushing_pressure = (
+#         self.wing_skin_thickness_m
+#         * self.chord_stations
+#         * M**2
+#         / (2 * self.material_1.elastic_modulus * Ix)
+# )           
+#         print(crushing_pressure)
+#         return crushing_pressure
 
     def buckling_model(self):
         C = 4 #from SAD
@@ -382,7 +409,7 @@ class WingModel:
         y_max = self.planform.thickness_to_chord * self.chord_stations
         bending_stress = moments * y_max / Ix
 
-        diff = bending_stress- buckling_stress
+        diff = buckling_stress- bending_stress
 
         return diff
 
@@ -390,18 +417,18 @@ class WingModel:
 
 
 if __name__=='__main__':
-        material_1 = Material(density=1600,
-                            elastic_modulus=70e9,
-                            shear_modulus=5e9,
-                            poisson_ratio=0.3,
-                            yield_strength=600e6,
+        material_1 = Material(density=1570,
+                            elastic_modulus=69e9,
+                            shear_modulus=5.58e9,
+                            poisson_ratio=0.048,
+                            yield_strength=896e6,
                             fracture_strength=600e6
                             )
         
         planform=Planform(
-            aspect_ratio=20.0,
-            span=10.0,
-            sweep_quarter_deg=0.0,
+            aspect_ratio=27.0,
+            span=2.67,
+            sweep_quarter_deg=15,
             taper=0.5,
             thickness_to_chord=0.12,
             cm_quarter_chord=1.0,
@@ -412,12 +439,12 @@ if __name__=='__main__':
         )
 
         wing_model= WingModel(
-                 wing_leng_m=10,
-                 wing_skin_thickness_m =0.002,
+                 wing_leng_m=2.67,
+                 wing_skin_thickness_m =0.006,
                  number_of_nodes=100,
                  material_1 = material_1,
                  planform = planform,
-                 load_factor = 9,
+                 load_factor = 7,
                  )
         wing_model.planform_data()
 
@@ -439,9 +466,9 @@ if __name__=='__main__':
             moments=bending_moment
         )
 
-        crushing_pressure = wing_model.step_crushing_pressure(
-            moments=bending_moment
-        )
+        # crushing_pressure = wing_model.step_crushing_pressure(
+        #     moments=bending_moment
+        # )
 
         shear_stress = wing_model.step_shear_stress(
             debug=False,
@@ -449,6 +476,8 @@ if __name__=='__main__':
         )
 
         buckling_stress = wing_model.buckling_model()
+        are_we_buckling = wing_model.wing_stres_per_com()
+       
 
         print("\n========== WING STRUCTURAL RESULTS ==========")
         print(f"Root torque:              {torque[0]:.3f} N m")
@@ -458,8 +487,9 @@ if __name__=='__main__':
         print(f"Tip twist:                {twist_deg[-1]:.6f} deg")
         print(f"Tip vertical deflection:  {deflection_m[-1]:.6f} m")
         print(f"Max shear stress:         {np.max(np.abs(shear_stress)) / 1e6:.3f} MPa")
-        print(f"Max crushing pressure:    {np.max(np.abs(crushing_pressure)) / 1e6:.3f} MPa")
+        #print(f"Max crushing pressure:    {np.max(np.abs(crushing_pressure)) / 1e6:.3f} MPa")
         print(f"Max buckling stress is    {np.max(buckling_stress)} MPa")
+        print(f"Are we buckling with this? {np.any(  are_we_buckling< 0)}")
         
 
 
