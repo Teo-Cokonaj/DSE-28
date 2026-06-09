@@ -1,5 +1,7 @@
 from aerosandbox import Atmosphere
 import numpy as np
+import pandas as pd
+import os
 import matplotlib.pyplot as plt
 import math
 from scipy.integrate import cumulative_trapezoid, quad
@@ -13,65 +15,98 @@ from src_final.global_parameters import CONSTANTS, Assumptions
 
 class FuselageModel:
     def __init__(self,
-                 fuselage_length_m: float,
-                 fuselage_diameter_m: float,
                  minimum_fuselage_thickness_mm: float,
                  material: Material,
-                 main_wing_position_m: float,
-                 main_wing_mass_kg: float,
-                 horizontal_tail_position_m: float,
-                 horizontal_tail_mass_kg: float,
-                 landing_gear_position_m: float,
-                 landing_gear_mass_kg: float,
                  number_of_nodes: int,
-                 canard_position_m: float,
-                 canard_mass_kg: float,
                  canard_lift_fraction: float,            
                  ):
         
-        self.fuselage_length_m=fuselage_length_m
-        self.fuselage_diameter_m=fuselage_diameter_m
         self.minimum_thickness_mm=minimum_fuselage_thickness_mm
         self.material=material
-        self.main_wing_position_m=main_wing_position_m
-        self.horizontal_tail_position_m=horizontal_tail_position_m
         self.number_of_nodes=number_of_nodes
-        self.landing_gear_position_m=landing_gear_position_m
-        self.canard_position_m=canard_position_m
         self.canard_lift_fraction=canard_lift_fraction
-        self.main_wing_mass_kg=main_wing_mass_kg
-        self.horizontal_tail_mass_kg=horizontal_tail_mass_kg
-        self.landing_gear_mass_kg=landing_gear_mass_kg
-        self.canard_mass_kg=canard_mass_kg
 
         
     def create_nodes(self):
         self.nodes = np.linspace(0, self.fuselage_length_m, self.number_of_nodes)
-        self.node_spacing = self.nodes[1]-self.nodes[0]
-        self.masses=np.zeros_like(self.nodes)
+        self.masses = np.zeros_like(self.nodes)
 
 
-    def assign_structural_mass(self):
-        #thin-walled assumption
-        self.total_fuselage_structural_mass=(self.fuselage_diameter_m*np.pi*(self.minimum_thickness_mm/1000))*self.fuselage_length_m*self.material.density
-        fuselage_mass_per_node=self.total_fuselage_structural_mass/self.number_of_nodes
-        self.masses+=fuselage_mass_per_node
-        self.masses[np.argmin(np.abs(self.nodes-self.main_wing_position_m))]+=self.main_wing_mass_kg
-        self.masses[np.argmin(np.abs(self.nodes-self.canard_position_m))]+=self.canard_mass_kg
-        self.masses[np.argmin(np.abs(self.nodes-self.landing_gear_position_m))]+=self.landing_gear_mass_kg
-        self.masses[np.argmin(np.abs(self.nodes-self.horizontal_tail_position_m))]+=self.horizontal_tail_mass_kg
+    def load_components_from_csv(self,
+                                 csv_path: str):
+        df = pd.read_csv(csv_path)
+
+        def get_cg_x(name_prefix: str):
+            mask = df["Component Name"].str.startswith(name_prefix)
+            if not mask.any():
+                raise ValueError(f"CSV must contain a '{name_prefix}' entry.")
+            return df[mask].iloc[0]["Assembly CG X (m)"]
+        
+        def get_mass(name_prefix: str):
+            mask = df["Component Name"].str.startswith(name_prefix)
+            if not mask.any():
+                raise ValueError(f"CSV must contain a '{name_prefix}' entry.")
+            return df[mask].iloc[0]["Mass (kg)"]
+
+        # Fuselage length and node initialisation
+        main_body_mask = df["Component Name"].str.startswith("Main Body")
+        if not main_body_mask.any():
+            raise ValueError("CSV must contain a 'Main Body' entry to define fuselage length.")
+        main_body = df[main_body_mask].iloc[0]
+        self.fuselage_length_m = main_body["Size X (m)"]
+        self.create_nodes()
+
+        # Key structural positions
+        self.canard_x_m              = get_cg_x("Canard")
+        self.main_wing_x_m           = get_cg_x("Main Wing")
+        self.horizontal_tail_x_m     = get_cg_x("Horizontal_TailPlane")
+        self.vertical_tail_x_m       = get_cg_x("Vertical_Tail")
+        self.landing_gear_x_m = get_cg_x("Metal Strut")
+        self.baseline_fuselage_mass = get_mass("Main Body")
+        self.fuselage_diameter_m=self.baseline_fuselage_mass/(self.material.density*self.fuselage_length_m*self.minimum_thickness_mm/1000*np.pi)
+
+        for _, row in df.iterrows():
+            self.assign_mass(
+                component_mass=row["Mass (kg)"],
+                component_cg_position_along_fuselage=row["Assembly CG X (m)"],
+                component_length_m=row["Size X (m)"],
+            )
 
 
-    def assign_nonstructural_mass(self,
-                      component_mass: float,
-                      component_cg_position_along_fuselage: float,
-                      component_length_m: float):
-        component_front_position_along_fuselage=component_cg_position_along_fuselage-component_length_m/2
-        component_aft_position_along_fuselage=component_front_position_along_fuselage+component_length_m
-        front_node_idx=np.argmin(np.abs(self.nodes-component_front_position_along_fuselage))
-        aft_node_idx = np.argmin(np.abs(self.nodes-component_aft_position_along_fuselage))
-        mass_per_node=component_mass/(aft_node_idx-front_node_idx+1) #uniform weight assumption
-        self.masses[front_node_idx:(aft_node_idx+1)]+=mass_per_node
+    def assign_mass(self,
+                    component_mass: float,
+                    component_cg_position_along_fuselage: float,
+                    component_length_m: float):
+        
+        print(f'Adding mass of {component_mass}')
+
+        component_front = component_cg_position_along_fuselage - component_length_m / 2
+        print('component_front: ',component_front)
+        component_aft   = component_front + component_length_m
+        print('component_aft: ',component_aft)
+        fuselage_end    = self.nodes[-1]
+        print('fuselage end: ',fuselage_end)
+
+        # Split mass proportionally between interior and overflow
+        if component_aft > fuselage_end and component_front<fuselage_end:
+            interior_fraction = (fuselage_end - component_front) / (component_aft - component_front)
+            overflow_mass     = component_mass * (1.0 - interior_fraction)
+            interior_mass     = component_mass * interior_fraction
+        elif component_aft>fuselage_end and component_front>fuselage_end:
+            interior_mass=0.0
+            overflow_mass=component_mass
+        else:
+            interior_mass = component_mass
+            overflow_mass = 0.0
+
+        front_node_idx = np.argmin(np.abs(self.nodes - component_front))
+        aft_node_idx   = np.argmin(np.abs(self.nodes - component_aft))
+                                        
+        print(f'to nodes between {front_node_idx} and {aft_node_idx}')
+
+        n_nodes = aft_node_idx - front_node_idx + 1
+        self.masses[front_node_idx:aft_node_idx + 1] += interior_mass / n_nodes
+        self.masses[-1] += overflow_mass
 
 
     def calculate_loads_flight(self,
@@ -79,17 +114,18 @@ class FuselageModel:
                                altitude: float = 0.0,
                                ):
         self.total_aircraft_mass=np.sum(self.masses)
+        print('Total aircraft mass: ',self.total_aircraft_mass)
         self.L_canard=self.canard_lift_fraction*load_factor*self.total_aircraft_mass*CONSTANTS.G0
         
         # Set up the matrices for A * x = B
         A = np.array([
             [1.0, 1.0],                                  
-            [self.main_wing_position_m, self.horizontal_tail_position_m]              
+            [self.main_wing_x_m, self.horizontal_tail_x_m]              
         ])
 
         B = np.array([
             [(1-self.canard_lift_fraction)*load_factor*self.total_aircraft_mass*CONSTANTS.G0],                                # Force constants
-            [np.sum(self.nodes*load_factor*self.masses*CONSTANTS.G0) - self.canard_lift_fraction*load_factor*self.total_aircraft_mass*CONSTANTS.G0*self.canard_position_m]       # Moment constants
+            [np.sum(self.nodes*load_factor*self.masses*CONSTANTS.G0) - self.canard_lift_fraction*load_factor*self.total_aircraft_mass*CONSTANTS.G0*self.canard_x_m]       # Moment constants
         ])
 
         solution = np.linalg.solve(A, B)
@@ -100,7 +136,7 @@ class FuselageModel:
         #print('Loads: ',self.loads)
 
         # loads due to wing, canard, tail
-        locs = [self.canard_position_m, self.main_wing_position_m, self.horizontal_tail_position_m]
+        locs = [self.canard_x_m, self.main_wing_x_m, self.horizontal_tail_x_m]
         vals = [self.L_canard, self.L_main_wing, self.L_horizontal_tail]
         for loc, val in zip(locs, vals):
             self.loads[np.argmin(np.abs(self.nodes-loc))] += val
@@ -121,12 +157,12 @@ class FuselageModel:
         # Set up the matrices for A * x = B
         A = np.array([
             [1.0, 1.0],                                  
-            [self.main_wing_position_m, self.horizontal_tail_position_m]              
+            [self.main_wing_x_m, self.horizontal_tail_x_m]              
         ])
 
         B = np.array([
             [(1-self.canard_lift_fraction)*self.total_aircraft_mass*CONSTANTS.G0],                # Force constants
-            [np.sum(self.nodes*self.masses*CONSTANTS.G0) - self.canard_lift_fraction*self.total_aircraft_mass*CONSTANTS.G0*self.canard_position_m]       # Moment constants
+            [np.sum(self.nodes*self.masses*CONSTANTS.G0) - self.canard_lift_fraction*self.total_aircraft_mass*CONSTANTS.G0*self.canard_x_m]       # Moment constants
         ])
 
         solution = np.linalg.solve(A, B)
@@ -139,7 +175,7 @@ class FuselageModel:
         self.loads=np.zeros_like(self.nodes)
         
         #loads due to wing, canard, tail
-        locs = [self.canard_position_m, self.main_wing_position_m, self.horizontal_tail_position_m, self.landing_gear_position_m]
+        locs = [self.canard_x_m, self.main_wing_x_m, self.horizontal_tail_x_m, self.landing_gear_x_m]
         vals = [self.L_canard, self.L_main_wing, self.L_horizontal_tail, self.force_landing_gear]
         for loc, val in zip(locs, vals):
             self.loads[np.argmin(np.abs(self.nodes-loc))] += val
@@ -191,7 +227,7 @@ class FuselageModel:
         self.internal_torques = np.zeros_like(fine_nodes)
         print(self.internal_torques.shape)
         print(fine_nodes.shape)
-        self.internal_torques[np.argmin(np.abs(self.nodes-self.main_wing_position_m)):]+=self.empennage_torque
+        self.internal_torques[np.argmin(np.abs(fine_nodes - self.main_wing_x_m)):] += self.empennage_torque
         self.internal_torques = interp1d(
                                      fine_nodes,
                                      self.internal_torques,
@@ -227,7 +263,7 @@ class FuselageModel:
                         thicknesses_m: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
 
         Q, I, enclosed_area = self.compute_sectional_properties(t_skin_mm=thicknesses_m*1000)
-        tau_shear = np.abs(self.internal_shear_forces(self.nodes) * Q / (I * thicknesses_m))+np.abs(self.internal_torques(self.nodes)*thicknesses_m/2/enclosed_area)
+        tau_shear = np.abs(self.internal_shear_forces(self.nodes) * Q / (I * thicknesses_m))+np.abs(self.internal_torques(self.nodes)/thicknesses_m/2/enclosed_area)
         sigma_bending = np.abs(self.internal_bending_moments(self.nodes)*self.fuselage_diameter_m/(2*I))
         sigma_buckling = np.abs(self.calculate_buckling_stress(thicknesses_m))
 
@@ -257,6 +293,17 @@ class FuselageModel:
             self.thicknesses_m[(bending_util>1.0)|(shear_util>1.0)] +=thickness_step_mm/1000
             assert len(self.thicknesses_m[self.thicknesses_m>(maximum_allowed_thickness_mm/1000)])==0, "Maximum thickness exceeded!"
             bending_util, shear_util = self.thickness_utils(self.thicknesses_m)
+
+
+    def plot_mass_distribution(self):
+        plt.figure(figsize=(10, 4))
+        plt.plot(self.nodes, self.masses)
+        plt.title('Masses')
+        plt.xlabel('Position along Fuselage (m)')
+        plt.ylabel('Mass (kg)')
+        plt.grid()
+        plt.legend()
+        plt.show()
 
 
     def plot_external_loads(self):
@@ -420,7 +467,7 @@ class FuselageModel:
 #     pyrender.Viewer(scene, use_raymond_lighting=True, viewport_size=(1920, 1080))
 #     return
 
-if __name__=='__main__':
+if __name__=='__main__': 
         material = Material(density=1600,
                             elastic_modulus=50e9,
                             shear_modulus=5e9,
@@ -430,25 +477,17 @@ if __name__=='__main__':
                             )
         
         fuselage_model= FuselageModel(
-                 fuselage_length_m=3.0,
-                 fuselage_diameter_m= 0.2,
                  minimum_fuselage_thickness_mm=0.1,
                  material=material,
-                 main_wing_position_m=1.0,
-                 main_wing_mass_kg=3.0,
-                 horizontal_tail_position_m=2.9,
-                 horizontal_tail_mass_kg=0.5,
-                 landing_gear_position_m=1.5,
-                 landing_gear_mass_kg=1.0,
                  number_of_nodes=1000,
-                 canard_position_m=0.1,
-                 canard_mass_kg=0.3,
                  canard_lift_fraction=0.2,             
                  )
         
-        fuselage_model.create_nodes()
-        fuselage_model.assign_structural_mass()
-        #fuselage_model.assign_nonstructural_mass()
+        from pathlib import Path
+        csv_path = Path(__file__).parent / "onshape_mass_distribution.csv"
+        fuselage_model.load_components_from_csv(str(csv_path))
+        fuselage_model.plot_mass_distribution()
+
         fuselage_model.calculate_loads_flight(9.0)
         #print('Internal shear forces (flight): ',fuselage_model.internal_shear_forces(fuselage_model.nodes))
         #print('Internal bending moments (flight): ',fuselage_model.internal_bending_moments(fuselage_model.nodes))        
