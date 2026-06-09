@@ -231,7 +231,7 @@ class WingModel:
         thickness_skin = self.wing_skin_thickness_m
 
         # Step 4: Get the torsion
-        torsion_stations = self.step_torsion_determination(c_stations, nr_sections,reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk,plot = False)
+        torsion_stations = self.step_torsion_determination(c_stations,y_stations,reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk,plot = False)
         torsion_stations_cop = torsion_stations[-np.size(reduced_sectional_spanwise_positions):]
         
         # Step 5: Calculate the shear stress
@@ -319,10 +319,7 @@ class WingModel:
                     debug: bool,
                     plot: bool):
     # Step 1: Integrate the shear loads
-        y_stations_cop_fine = np.linspace(self.y_stations_cop[0], self.y_stations_cop[-1], 1 * len(self.y_stations_cop))
-        y_stations_fine =  np.linspace(self.y_stations[0], self.y_stations[-1], 1 * len(self.y_stations))
-        internal_shear_forces_cop_fine = self.internal_shear_forces_cop_int(y_stations_cop_fine)
-        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(internal_shear_forces_cop_fine[::-1], y_stations_cop_fine[::-1])])[::-1]
+        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(self.internal_shear_forces_cop[::-1], self.y_stations_cop[::-1])])[::-1]
         self.internal_bending_moments_int = interp1d(
                                      self.y_stations_cop,
                                      internal_bending_moments_cop,
