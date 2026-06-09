@@ -24,87 +24,111 @@ class WingModel:
                  number_of_nodes: int,
                  material_1:Material,
                  planform:Planform,
+                 load_factor:int,
                 ):
         self.wing_leng_m = wing_leng_m
         self.wing_skin_thickness_m = wing_skin_thickness_m
         self.material_1=material_1
         self.number_of_nodes = number_of_nodes
         self.planform = planform
+        self.laod_factor = load_factor
 
-   
+    def planform_data(self):
+        self.span_poz, self.lift_span = self.planform.estimate_conservative_lift_distribution(
+            diameter_fuselage=0.31,
+            positive_manoeuvring_limit_load_factor=6.0,
+            initial_total_aircraft_mass=50.0,
+            number_of_stations=self.number_of_nodes
+        )
 
-    def perimeter_area_of_section(self,
-                        c_station:np.ndarray,
-                        thickness_to_chord: float
-                                  ):
-            
-            a=c_station/2
-            b=a*thickness_to_chord
-            #Using Ramanujan's Second Approximation
-            h = (a-b)**2/(a+b)**2
-            perimeter_crossection = np.pi * (a + b ) * [1 + (3*h)/(10 + (4-3*h)**(1/2))]
-            area = np.pi*a*b
-            perimeter_crossection = np.squeeze(perimeter_crossection)
-            return perimeter_crossection,area
+        self.chord_stations, _, self.y_stations_chord, self.dy = self.planform.sectional_properties(
+            number_of_sections=self.number_of_nodes
+        )
+
+        self.y_stations = self.y_stations_chord
+
+        self.span_poz = np.asarray(self.span_poz, dtype=float)
+        self.lift_span = np.asarray(self.lift_span, dtype=float)
+        self.chord_stations = np.asarray(self.chord_stations, dtype=float)
+
+        return self.span_poz, self.lift_span, self.chord_stations, self.y_stations_chord, self.dy
     
-    def area_moment_inertia(self,
-            c_satations:np.ndarray,
-            thicchness_to_chord:float
-                            ):
-            a = c_satations/2
-            b = a* thicchness_to_chord
+
+    def perimeter_area_of_section(self):
+        a = self.chord_stations / 2
+        b = a * self.planform.thickness_to_chord
+
+        h = (a - b)**2 / (a + b)**2
+
+        perimeter_crosssection = np.pi * (a + b) * (
+            1 + (3 * h) / (10 + (4 - 3 * h)**0.5)
+        )
+
+        area = np.pi * a * b
+
+        return np.squeeze(perimeter_crosssection), np.squeeze(area)
+    
+    def area_moment_inertia(self):
+            a = self.chord_stations/2
+            b = a* planform.thickness_to_chord
             area_momement_x = np.pi * a *b**3 /4
             area_momement_y = np.pi * b*a**3 /4
             
             return np.squeeze(area_momement_x),np.squeeze(area_momement_y)
     
     
-    def force_per_unit(self,
-                       chord_station:np.ndarray,
-                       wing_skin_thickness:float,
-                       thickness_to_chord:float,
-                       density: float,
-                       y_poz:np.asarray,
-                       dy:float,
-                       lift_disttribution:np.ndarray
-                       ):
-         perimeter,_ = self.perimeter_area_of_section(chord_station,thickness_to_chord)
-         perimeter = perimeter[np.size(chord_station) - np.size(lift_disttribution): ]
-         dy = dy[np.size(dy) - np.size(lift_disttribution): ]
-         mass = density * perimeter * wing_skin_thickness*dy
-         weight = mass * 9.81
-         force_distribution = lift_disttribution - weight
-         y_poz = y_poz[np.size(chord_station) - np.size(lift_disttribution):]
-         plt.plot(y_poz,lift_disttribution,color="red",label = "lift distribution")
-         plt.plot(y_poz,-weight,color="blue",label = "weight distribution")
-         plt.grid(True)
-         plt.show()
-        
-         return force_distribution, lift_disttribution
+    def force_per_unit(self, plot: bool = False):
+        perimeter, _ = self.perimeter_area_of_section()
+
+        n_lift = np.size(self.lift_span)
+
+        perimeter_cop = perimeter[-n_lift:]
+        y_cop = self.span_poz
+
+        if np.size(self.dy) == 1:
+            dy_cop = np.ones(n_lift) * self.dy
+        else:
+            dy_cop = self.dy[-n_lift:]
+
+        mass = self.material_1.density * perimeter_cop * self.wing_skin_thickness_m * dy_cop
+        weight = mass * 9.81
+
+        self.force_distribution = self.lift_span - weight
+
+        if plot:
+            plt.figure()
+            plt.plot(y_cop, self.lift_span, color="red", label="lift")
+            plt.plot(y_cop, -weight, color="blue", label="weight")
+            plt.plot(y_cop, self.force_distribution, color="black", label="net force")
+            plt.xlabel("Spanwise position y [m]")
+            plt.ylabel("Force per station [N]")
+            plt.title("Lift, Weight, and Net Force Distribution")
+            plt.grid(True)
+            plt.legend()
+            plt.show()
+
+        return self.force_distribution, self.lift_span, weight
          
 
 
 
     def step_torsion_determination(self,
-            c_stations:float,
-            y_stations:np.asarray,
-            reduced_sectional_spanwise_positions: float,
-            force_on_wing:np.asarray,
             plot: bool,
  ):
-        self.force_cont_forces = interp1d (reduced_sectional_spanwise_positions,force_on_wing)
-        c_stations_cop = c_stations[-np.size(reduced_sectional_spanwise_positions):]
+        reduced_sectional_spanwise_positions = self.span_poz
+        self.force_cont_forces = interp1d (reduced_sectional_spanwise_positions,self.force_distribution)
+        c_stations_cop = self.chord_stations[-np.size(reduced_sectional_spanwise_positions):]
         
         torsion_per_node_single = self.force_cont_forces(reduced_sectional_spanwise_positions) * (c_stations_cop / 4.0)
         torsion_per_node_tot = np.cumsum(torsion_per_node_single[::-1])[::-1]
 
-        self.tosrion_node_tot = interp1d(reduced_sectional_spanwise_positions,torsion_per_node_tot)
+        self.torsion_node_tot = interp1d(reduced_sectional_spanwise_positions,torsion_per_node_tot)
         
-        torsion_each_node = self.tosrion_node_tot(reduced_sectional_spanwise_positions)
-        torsion_each_node = np.concatenate(( np.full(np.size(c_stations) - np.size(torsion_each_node), torsion_each_node[0]),torsion_each_node))
+        torsion_each_node = self.torsion_node_tot(reduced_sectional_spanwise_positions)
+        torsion_each_node = np.concatenate(( np.full(np.size(self.chord_stations) - np.size(torsion_each_node), torsion_each_node[0]),torsion_each_node))
         if plot:
             plt.figure()
-            plt.plot(y_stations, torsion_each_node)
+            plt.plot(self.y_stations, torsion_each_node)
             plt.xlabel("Spanwise position y [m]")
             plt.ylabel("Torsion")
             plt.title("Torsion Along Half Span")
@@ -114,25 +138,20 @@ class WingModel:
         return torsion_each_node
 
     def step_rotation_of_wing(self,
-                              G1:float,
-                              thicknes_to_chord:float,
-                              skin_thickness:float,
-                              chords:np.ndarray,
                               torsion:np.ndarray,
-                              y_poz:np.ndarray,
                               plot: bool,
                               ):
         #fitst we compute the rotation of the outer shell
         """Get the torsion from pervious funtion"""
         
-        perimeter , area  = self.perimeter_area_of_section(chords,thicknes_to_chord)
-        rotation_rate_shell = torsion * perimeter/(4 * area**2 * G1 * skin_thickness)
-        rotation = cumulative_trapezoid(rotation_rate_shell,y_poz,initial = 0)
+        perimeter , area  = self.perimeter_area_of_section()
+        rotation_rate_shell = torsion * perimeter/(4 * area**2 * material_1.shear_modulus * self.wing_skin_thickness_m)
+        rotation = cumulative_trapezoid(rotation_rate_shell,self.y_stations_chord,initial = 0)
         rotation = np.squeeze(rotation)
         rotation_deg = np.degrees(rotation)
         if plot:
             plt.figure()
-            plt.plot(y_poz, rotation)
+            plt.plot(self.y_stations_chord, rotation)
             plt.xlabel("Spanwise position y [m]")
             plt.ylabel("Rotation θ [rad]")
             plt.title("Rotation along span")
@@ -144,17 +163,12 @@ class WingModel:
 
 
     
-    def step_vertical_defletion(self,
-                        y_poz:np.ndarray,
-                        E:float,
-                        chord_stations:np.ndarray,
-                        thickness_to_chord:float,
+    def step_vertical_deflection(self,
                         plot: bool,
                         moments: np.ndarray | None = None,
                                 ):
-        y_poz = np.asarray(y_poz,dtype=float)
 
-        Ix,Iy = self.area_moment_inertia(chord_stations, thickness_to_chord)
+        Ix,Iy = self.area_moment_inertia()
         if moments is None:
             
             M = self.step_moment(plot=False, debug=False)
@@ -164,13 +178,13 @@ class WingModel:
 
         v_boundary_root = 0
         theta_boundary_root = 0
-        EI = E * Ix
+        EI = self.material_1.elastic_modulus * Ix
         curvature = -M/EI
-        theta = theta_boundary_root + cumulative_trapezoid(curvature,y_poz,initial=0.0)
-        displacement  = v_boundary_root + cumulative_trapezoid(theta,y_poz,initial=0.0)
+        theta = theta_boundary_root + cumulative_trapezoid(curvature,self.y_stations_chord,initial=0.0)
+        displacement  = v_boundary_root + cumulative_trapezoid(theta,self.y_stations_chord,initial=0.0)
         if plot:
             plt.figure()
-            plt.plot(y_poz, theta)
+            plt.plot(self.y_stations_chord, theta)
             plt.xlabel("Spanwise position y [m]")
             plt.ylabel("Rotation θ [rad]")
             plt.title("Wing Slope Along Span")
@@ -179,7 +193,7 @@ class WingModel:
 
             
             plt.figure()
-            plt.plot(y_poz, displacement)
+            plt.plot(self.y_stations_chord, displacement)
             plt.xlabel("Spanwise position y [m]")
             plt.ylabel("Vertical displacement v [m]")
             plt.title("Wing Vertical Deflection Along Span")
@@ -192,9 +206,6 @@ class WingModel:
 
 
     def step_crushing_pressure(self,
-                         chord_stations:np.asarray,
-                         E: float,
-                         thichness_to_chord:float,
                          moments: np.ndarray | None = None,
                                ):
         if moments is None:
@@ -202,16 +213,28 @@ class WingModel:
         else:
              M = np.asarray(moments,dtype = float)
         
-        Ix = self.area_moment_inertia(chord_stations,thichness_to_chord)[0]
-        crushing_pressure  = self.wing_skin_thickness_m * chord_stations * M**2/(2* E * Ix)
+        Ix = self.area_moment_inertia()[0]
+        crushing_pressure = (
+        self.wing_skin_thickness_m
+        * self.chord_stations
+        * M**2
+        / (2 * self.material_1.elastic_modulus * Ix)
+)
         return crushing_pressure
+
+    def buckling_model(self):
+        C = 4 #from SAD
+        crit_stress = C * np.pi**2 * self.material_1.elastic_modulus/(12*(1-self.material_1.poisson_ratio)**2)*(self.wing_skin_thickness_m/self.chord_stations)
+        return crit_stress
 
 
     def step_shear_stress(self,
-                          reduced_sectional_spanwise_positions: float,
-                          modified_sectional_lifts_schrenk:float,
+                          #reduced_sectional_spanwise_positions: float,
+                          #modified_sectional_lifts_schrenk:float,
                           debug: bool,
                           plot: bool):
+        modified_sectional_lifts_schrenk = self.force_distribution
+        reduced_sectional_spanwise_positions = self.span_poz
     #need torque, area and wall thickness --> for a thin-walled section, tau = T/(2tA)
     # area = assume elliptical shape --> chord, thickness at a given location
     # torsion modelled by Alex
@@ -231,7 +254,7 @@ class WingModel:
         thickness_skin = self.wing_skin_thickness_m
 
         # Step 4: Get the torsion
-        torsion_stations = self.step_torsion_determination(c_stations,y_stations,reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk,plot = False)
+        torsion_stations = self.step_torsion_determination(plot=False)
         torsion_stations_cop = torsion_stations[-np.size(reduced_sectional_spanwise_positions):]
         
         # Step 5: Calculate the shear stress
@@ -271,11 +294,12 @@ class WingModel:
             
 
     def step_shear_forces(self,
-                          reduced_sectional_spanwise_positions:float,
-                          modified_sectional_lifts_schrenk: float,
+                        #  reduced_sectional_spanwise_positions:float,
+                        #  modified_sectional_lifts_schrenk: float,
                           debug: bool,
                           plot: bool):
-        
+        reduced_sectional_spanwise_positions = self.span_poz
+        modified_sectional_lifts_schrenk = self.force_distribution
         # Step 1: Find the lift acting on the wing and the spanwise positions of each section
         self.lift_cont_forces = interp1d (reduced_sectional_spanwise_positions,modified_sectional_lifts_schrenk)
         _, _, self.y_stations, _ = self.planform.sectional_properties(number_of_sections=self.number_of_nodes)
@@ -319,7 +343,10 @@ class WingModel:
                     debug: bool,
                     plot: bool):
     # Step 1: Integrate the shear loads
-        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(self.internal_shear_forces_cop[::-1], self.y_stations_cop[::-1])])[::-1]
+        y_stations_cop_fine = np.linspace(self.y_stations_cop[0], self.y_stations_cop[-1], 1 * len(self.y_stations_cop))
+        y_stations_fine =  np.linspace(self.y_stations[0], self.y_stations[-1], 1 * len(self.y_stations))
+        internal_shear_forces_cop_fine = self.internal_shear_forces_cop_int(y_stations_cop_fine)
+        internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(internal_shear_forces_cop_fine[::-1], y_stations_cop_fine[::-1])])[::-1]
         self.internal_bending_moments_int = interp1d(
                                      self.y_stations_cop,
                                      internal_bending_moments_cop,
@@ -344,9 +371,20 @@ class WingModel:
             plt.xlabel('Spanwise Position [m]')
             plt.ylabel("Bending Moment [Nm]")
             plt.title("Bending Moment Distribution")
-            fig.savefig('bending_moment_distribution.png')
+            
             plt.show()
         return self.internal_bending_moments
+
+    def wing_stres_per_com(self):
+        buckling_stress = self.buckling_model()
+        moments = self.step_moment(False, False)
+        Ix,_ = self.area_moment_inertia()
+        y_max = self.planform.thickness_to_chord * self.chord_stations
+        bending_stress = moments * y_max / Ix
+
+        diff = bending_stress- buckling_stress
+
+        return diff
 
     
 
@@ -379,46 +417,70 @@ if __name__=='__main__':
                  number_of_nodes=100,
                  material_1 = material_1,
                  planform = planform,
+                 load_factor = 9,
                  )
+        wing_model.planform_data()
+
+        force_distribution, lift, weight = wing_model.force_per_unit(plot=False)
+
+        torque = wing_model.step_torsion_determination(plot=False)
+
+        shear_force = wing_model.step_shear_forces(debug=False, plot=False)
+
+        bending_moment = wing_model.step_moment(debug=False, plot=False)
+
+        twist_rad, twist_deg = wing_model.step_rotation_of_wing(
+            torsion=torque,
+            plot=False
+        )
+
+        slope_rad, deflection_m = wing_model.step_vertical_deflection(
+            plot=False,
+            moments=bending_moment
+        )
+
+        crushing_pressure = wing_model.step_crushing_pressure(
+            moments=bending_moment
+        )
+
+        shear_stress = wing_model.step_shear_stress(
+            debug=False,
+            plot=False
+        )
+
+        buckling_stress = wing_model.buckling_model()
+
+        print("\n========== WING STRUCTURAL RESULTS ==========")
+        print(f"Root torque:              {torque[0]:.3f} N m")
+        print(f"Tip torque:               {torque[-1]:.3f} N m")
+        print(f"Root shear force:         {shear_force[0]:.3f} N")
+        print(f"Root bending moment:      {bending_moment[0]:.3f} N m")
+        print(f"Tip twist:                {twist_deg[-1]:.6f} deg")
+        print(f"Tip vertical deflection:  {deflection_m[-1]:.6f} m")
+        print(f"Max shear stress:         {np.max(np.abs(shear_stress)) / 1e6:.3f} MPa")
+        print(f"Max crushing pressure:    {np.max(np.abs(crushing_pressure)) / 1e6:.3f} MPa")
+        print(f"Max buckling stress is    {np.max(buckling_stress)} MPa")
+        
+
 
         # Quick sanity-run of torsion computation
-        span_poz, lift_span = planform.estimate_conservative_lift_distribution(diameter_fuselage=0.31,
-                                                     positive_manoeuvring_limit_load_factor=6.0,
-                                                     initial_total_aircraft_mass=50.0,
-                                                     number_of_stations=wing_model.number_of_nodes)
-        c_stations = planform.sectional_properties(number_of_sections=wing_model.number_of_nodes)[0]
+        # span_poz, lift_span = planform.estimate_conservative_lift_distribution(diameter_fuselage=0.31,
+        #                                              positive_manoeuvring_limit_load_factor=6.0,
+        #                                              initial_total_aircraft_mass=50.0,
+        #                                              number_of_stations=wing_model.number_of_nodes)
+        # c_stations = planform.sectional_properties(number_of_sections=wing_model.number_of_nodes)[0]
 
-        _,_,y_station_chord,dy = planform.sectional_properties(number_of_sections=wing_model.number_of_nodes)
-        force_along_wing = wing_model.force_per_unit(c_stations,wing_model.wing_skin_thickness_m,planform.thickness_to_chord,material_1.density,y_station_chord,dy,lift_span)
-        print(force_along_wing[0])
-        torsion = wing_model.step_torsion_determination(c_stations, y_station_chord, span_poz, lift_span,plot=True)
-        wing_model.step_shear_forces(reduced_sectional_spanwise_positions=span_poz,
-                                                  modified_sectional_lifts_schrenk=force_along_wing[0],debug = False, plot = False)
-        wing_model.step_moment(debug = False, plot = False)
-        rotation = wing_model.step_rotation_of_wing(material_1.shear_modulus ,planform.thickness_to_chord,wing_model.wing_skin_thickness_m,c_stations,torsion,y_station_chord,True)
-        deflection  = wing_model.step_vertical_defletion(y_station_chord,material_1.elastic_modulus,c_stations,planform.thickness_to_chord,plot=True)
+        # _,_,y_station_chord,dy = planform.sectional_properties(number_of_sections=wing_model.number_of_nodes)
+        # force_along_wing = wing_model.force_per_unit(c_stations,wing_model.wing_skin_thickness_m,planform.thickness_to_chord,material_1.density,y_station_chord,dy,lift_span)
+        # torsion = wing_model.step_torsion_determination(c_stations, y_station_chord, span_poz, lift_span,plot=True)
+        # wing_model.step_shear_forces(reduced_sectional_spanwise_positions=span_poz,
+        #                                           modified_sectional_lifts_schrenk=force_along_wing[0],debug = False, plot = False)
+        # wing_model.step_moment(debug = False, plot = False)
+        # rotation = wing_model.step_rotation_of_wing(material_1.shear_modulus ,planform.thickness_to_chord,wing_model.wing_skin_thickness_m,c_stations,torsion,y_station_chord,True)
+        # deflection  = wing_model.step_vertical_defletion(y_station_chord,material_1.elastic_modulus,c_stations,planform.thickness_to_chord,plot=True)
 
         
-        shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, modified_sectional_lifts_schrenk=force_along_wing[0], debug = True, plot = True)
-        p_crush = wing_model.step_crushing_pressure(c_stations,material_1.elastic_modulus,planform.thickness_to_chord,y_station_chord)
+        # shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, modified_sectional_lifts_schrenk=force_along_wing[0], debug = True, plot = True)
+        # p_crush = wing_model.step_crushing_pressure(c_stations,material_1.elastic_modulus,planform.thickness_to_chord,y_station_chord)
        
         
-        
-
-"""DEPRICATED """
-
-"""
-
-#rotation = wing_model.step_rotation_of_wing(material_1.shear_modulus , material_2.shear_modulus,planform.thickness_to_chord,wing_model.wing_skin_thickness_m,c_stations,torsion,y_station_chord)
-        
-
-        #print(c_stations)
-        #torsion = wing_model.step_torsion_determination(c_stations,nr_sections,span_poz,lift_span)
-        #print(torsion)
-        wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, modified_sectional_lifts_schrenk=lift_span,
-                                     debug = False, plot = True)
-        wing_model.step_shear_forces(reduced_sectional_spanwise_positions=span_poz,
-                                                   modified_sectional_lifts_schrenk=lift_span,debug = False, plot = True)
-        wing_model.step_moment(debug = False, plot = True)
- """       
-""""""
