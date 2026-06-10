@@ -19,14 +19,14 @@ from src_final.Aircraft.Planform import Planform
 
 class WingModel:
     def __init__(self,
-                 wing_leng_m:float,
+
                  wing_skin_thickness_m:float,
                  number_of_nodes: int,
                  material_1:Material,
                  planform:Planform,
                  load_factor:float,
                 ):
-        self.wing_leng_m = wing_leng_m
+        self.wing_leng_m = planform.span
         self.wing_skin_thickness_m = wing_skin_thickness_m
         self.material_1=material_1
         self.number_of_nodes = number_of_nodes
@@ -51,12 +51,12 @@ class WingModel:
         self.span_poz = np.asarray(self.span_poz, dtype=float)
         self.lift_span = np.asarray(self.lift_span, dtype=float)
         self.chord_stations = np.asarray(self.chord_stations, dtype=float)
-
+        print(np.sum(self.lift_span)/9.81)
         return self.span_poz, self.lift_span, self.chord_stations, self.y_stations_chord, self.dy
     
 
     def perimeter_area_of_section(self):
-        a = self.chord_stations / 2
+        a = self.chord_stations
         b = a * self.planform.thickness_to_chord
 
         h = (a - b)**2 / (a + b)**2
@@ -65,16 +65,17 @@ class WingModel:
             1 + (3 * h) / (10 + (4 - 3 * h)**0.5)
         )
 
-        area = np.pi * a * b
+        area = np.pi * (a * b - (a-self.wing_skin_thickness_m*2)* (b-self.wing_skin_thickness_m*2)) /4
 
         return np.squeeze(perimeter_crosssection), np.squeeze(area)
     
     def area_moment_inertia(self):
-            a = self.chord_stations/2
+            a = self.chord_stations
             b = a* planform.thickness_to_chord
-            area_momement_x = np.pi * a *b**3 /4
+            area_momement_x = np.pi * (a *b**3 - ((a-self.wing_skin_thickness_m*2) * (b-self.wing_skin_thickness_m*2)**3)) /64
             area_momement_y = np.pi * b*a**3 /4
-            
+            print(a,"\n")
+            print(b,"\n")
             return np.squeeze(area_momement_x),np.squeeze(area_momement_y)
     
     # def wing_weight_distribution(self):
@@ -439,15 +440,14 @@ if __name__=='__main__':
         )
 
         wing_model= WingModel(
-                 wing_leng_m=2.67,
-                 wing_skin_thickness_m =0.006,
+                 wing_skin_thickness_m =0.002,
                  number_of_nodes=100,
                  material_1 = material_1,
                  planform = planform,
                  load_factor = 1,
                  )
         wing_model.planform_data()
-        plot_1 = True
+        plot_1 = False
         force_distribution, lift, weight = wing_model.force_per_unit(plot=plot_1)
 
         torque = wing_model.step_torsion_determination(plot=plot_1)
