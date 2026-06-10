@@ -136,28 +136,24 @@ class TestShearBending:
         dummy_internal_shear_forces_cop_fine = dummy_internal_shear_forces_cop_int(
             dummy_y_stations_cop_fine
         )
-        dummy_internal_bending_moments_cop = np.concatenate(
-            [
-                [0],
-                cumulative_trapezoid(
-                    dummy_internal_shear_forces_cop_fine[::-1],
-                    dummy_y_stations_cop_fine[::-1],
-                ),
-            ]
-        )[::-1]
+        dummy_internal_bending_moments_cop = np.concatenate([[0], cumulative_trapezoid(dummy_internal_shear_forces_cop_fine[::-1],
+                    dummy_y_stations_cop_fine[::-1],),])[::-1]
         dummy_internal_bending_moments_int = interp1d(dummy_y_stations_cop,
                                      dummy_internal_bending_moments_cop,
                                      kind='zero',
                                      bounds_error=False,
                                      fill_value='extrapolate')
         
-        dummy_internal_bending_moments_int = dummy_internal_bending_moments_int(dummy_y_stations)       
+        dummy_internal_bending_moments_int = dummy_internal_bending_moments_int(dummy_y_stations)
+
+        print(f'Dummy internal bending moments [Nm]: {dummy_internal_bending_moments_int}')       
         
         # STEP 4: Run the actual functions to see if it computes the stresses correctly
         shear_stresses_test = wing_model.step_shear_stress(debug = False, plot = False)
         shear_forces_test = wing_model.step_shear_forces(debug = False, plot = False)
         bending_moments_test = wing_model.step_moment(debug = False, plot = False)
 
-
         print(f'Computed shear stress [Pa]: {shear_stresses_test}')
-
+        assert np.allclose(dummy_shear_stress, shear_stresses_test, 1e-6, 1e-6)
+        assert np.allclose(dummy_shear_force, shear_forces_test, 1e-6, 1e-6)
+        assert np.allclose(dummy_internal_bending_moments_int, bending_moments_test, 1e-6, 1e-6)
