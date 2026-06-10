@@ -23,6 +23,8 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
                     material_1 = material,
                     planform = planform,
                     load_factor = 1,
+                    load_factor_maneuver=3,
+                    local_fuselage_diameter=fuselage_diameter
                     )
         wing_model.planform_data(diameter_fuselage=fuselage_diameter)
         plot_1 = False
@@ -49,7 +51,7 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
         #     moments=bending_moment
         # )
 
-        shear_stress = wing_model.step_shear_stress(
+        shear_stress = wing_model.step_shear_stress_total(
             debug=False,
             plot=plot_1
         )
@@ -58,9 +60,9 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
         are_we_buckling = wing_model.wing_stres_per_com()
         normal_stress = wing_model.bending_stresses()
 
-        print(f"Stresses {np.max(shear_stress)}, {np.max(normal_stress)}, material {material.yield_strength}")
+        print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}, material {material.yield_strength}")
 
-        if (np.max(shear_stress) < material.yield_strength / 2) and (np.any(are_we_buckling) > 0) and (np.max(normal_stress) < material.yield_strength):
+        if (np.max(shear_stress) < material.yield_strength / 2) and (np.any(are_we_buckling) > 0) and (np.max(np.abs(normal_stress)) < material.yield_strength):
             return thickness
         
     raise ValueError("None of the provided material thicknesses satisfy the constraints")
@@ -68,7 +70,9 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
 
 def find_planform_mass_cg(planform:Planform, thickness:float, density_core:float, density_skin:float, number_of_sections:int=20, safety_factor = 1.5)->tuple[float, float]:
     
-    chord_stations, areas_stations, y_stations, dy = planform.sectional_properties(number_of_sections)
+    chord_boundary, chord_stations, y_boundary, dy = planform.sectional_properties(number_of_sections)
+
+    y_stations = .5 * (y_boundary[1:] + y_boundary[:-1])
     
     x_cg_stations = planform.c_root / 2 + np.tan(planform.sweep_half_rad) * y_stations
     crossec_area_stations = np.pi * chord_stations**2 * planform.thickness_to_chord
@@ -112,11 +116,15 @@ if __name__ == "__main__":
                             elastic_modulus=69e9,
                             shear_modulus=5.58e9,
                             poisson_ratio=0.048,
-                            yield_strength=896e6,
+                            yield_strength=600e6,
                             fracture_strength=600e6
         )
     
-    size_planform(planform, thicknesses=np.linspace(0.0004, 0.004, 30), fuselage_diameter=0.33, material_skin=material_skin, density_core=72.)
+    thicknesses = np.linspace(0.0004, 0.004, 30)
+    dfus = 0.33
+    print(find_planform_thickness(planform, thicknesses, dfus, material_skin))
+    
+    size_planform(planform, thicknesses=thicknesses, fuselage_diameter=dfus, material_skin=material_skin, density_core=200.)
     
 
     print(planform.mass_cache, planform.x_cg_cache)
