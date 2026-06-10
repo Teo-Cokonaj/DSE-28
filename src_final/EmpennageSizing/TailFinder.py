@@ -7,10 +7,11 @@ import numpy as np
 from Aircraft.Planform import Planform
 from Aircraft.Fixed import Fixed
 from EmpennageSizing.EmpennageFinder import EmpennageFinder
+from structural_analysis.iterative_planform_sizing import size_planform, Material
 
 class TailFinder(EmpennageFinder):
-    def __init__(self, fixed, AR_h:float=3., taper_h:float=1., taper_v:float=1., SM=0.05, Sv_S=.15):
-        super().__init__(fixed)
+    def __init__(self, fixed, thicknesses, material, core_density, safety_factor, AR_h:float=3., taper_h:float=1., taper_v:float=1., SM=0.05, Sv_S=.15, number_of_sections=30):
+        super().__init__(fixed, thicknesses, material, core_density, safety_factor, number_of_sections)
         self.AR_h = AR_h
         self.taper_h = taper_h
         self.taper_v = taper_v
@@ -73,8 +74,13 @@ class TailFinder(EmpennageFinder):
                 clmax=.35 * self.AR_h**(1/3) / .9 / np.cos(main_wing.sweep_quarter_rad),
                 flap=False
             )
-        horizontal_tail.x_cg_cache = horizontal_tail.x_MAC + horizontal_tail.MAC / 3 #TODO: rough assumption revise
-        horizontal_tail.mass_cache = 0.5 #TODO actually conduct the structural analysishere
+        
+        load_ratio = horizontal_tail.positive_C_L_max / main_wing.positive_C_L_max * Sh_S
+        
+        size_planform(horizontal_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor,
+                      load_factor=load_ratio, load_factor_maneuver=3*load_ratio)
+        # horizontal_tail.x_cg_cache = horizontal_tail.x_MAC + horizontal_tail.MAC / 3 #TODO: rough assumption revise
+        # horizontal_tail.mass_cache = 0.5 #TODO actually conduct the structural analysishere
 
         vertical_surface = 2 * self.Sv_S * main_wing.wing_area #NOTE: 2 as rudder is only 1 sided
         vertical_span = 2 * vertical_surface / (1 + 1/self.taper_v) / horizontal_tail.c_tip #NOTE: to fit the horizontal tail
@@ -87,11 +93,14 @@ class TailFinder(EmpennageFinder):
             cm_quarter_chord=0.,
             wetted_surface_ratio=1.05 / 2, #NOTE: to account for half the drag
             interference_factor=1.04,
-            clmax=0.,
+            clmax=.35 * self.AR_h**(1/3) / .9 / np.cos(main_wing.sweep_quarter_rad),
             flap=False
         )
-        vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
-        vertical_tail.mass_cache = 0.3 #TODO actually conduct the structural analysishere
+        size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor,
+                      load_factor=load_ratio, load_factor_maneuver=3*load_ratio)
+
+        # vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
+        # vertical_tail.mass_cache = 0.3 #TODO actually conduct the structural analysishere
 
         return horizontal_tail, vertical_tail
     
