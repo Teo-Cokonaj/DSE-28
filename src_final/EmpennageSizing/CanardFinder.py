@@ -14,8 +14,8 @@ class CanardFinder(EmpennageFinder):
         self.Sv_S = Sv_S
 
 
-    def find_planforms(self, main_wing:Planform, initial:float=.1, maxiter:int=50, tolerance:float=1e-4) -> list[Planform]:
-        x_ac_mac = self._x_ac(main_wing, self.fixed.x_LE_wing)
+    def find_planforms(self, main_wing:Planform, initial:float=.1, maxiter:int=50, tolerance:float=1e-4, print_=False) -> list[Planform]:
+        x_ac_mac = self._x_ac(main_wing, self.fixed.x_LE_wing, main_wing.MAC)
         ac_term = x_ac_mac  - main_wing.cm_quarter_chord / main_wing.positive_C_L_max
         Sh_S = initial
         
@@ -23,7 +23,8 @@ class CanardFinder(EmpennageFinder):
             canard, vertical_tail = self._canard_rudder(main_wing, Sh_S)
             x_LE_vertical_tail = self.fixed.x_LE_tail - vertical_tail.span / 2 * np.tan(vertical_tail.sweep_LE_rad)
             
-            l_c_mac = x_ac_mac - self._x_ac(canard, self.fixed.x_LE_canard)
+            x_ac_c_mac = self._x_ac(canard, self.fixed.x_LE_canard, main_wing.MAC)
+            l_c_mac = x_ac_mac - x_ac_c_mac
             CL_c = canard.positive_C_L_max
 
             x_cg_mac_min = self._x_cg([main_wing, canard, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail])
@@ -35,6 +36,9 @@ class CanardFinder(EmpennageFinder):
                 Sh_S = (Sh_S + Sh_S_new) / 2
                 break
             Sh_S = Sh_S_new
+
+            if print_:
+                print(f"Iteration {i}: Sh_S={Sh_S}, lh={l_c_mac}, x_ac_h={x_ac_c_mac}, x_cg={x_cg_mac_min}")
 
             if i == maxiter - 1:
                 Warning(f"For planform of AR:{main_wing.aspect_ratio}, and sweep: {np.rad2deg(main_wing.sweep_quarter_rad)} deg, the tail sizing converged within {diff}, above tolerance: {tolerance}.")
