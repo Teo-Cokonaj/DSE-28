@@ -25,6 +25,7 @@ class WingModel:
                  material_1:Material,
                  planform:Planform,
                  load_factor:float,
+                 local_fuselage_diameter: float,
                  #rib_number:float,
                 ):
         self.wing_leng_m = planform.span
@@ -33,12 +34,13 @@ class WingModel:
         self.number_of_nodes = number_of_nodes
         self.planform = planform
         self.load_factor = load_factor
+        self.local_fuselage_diameter=local_fuselage_diameter
         #self.rib_number = rib_number
 
     def planform_data(self,
                       ):
         self.span_poz, self.lift_span = self.planform.estimate_conservative_lift_distribution(
-            diameter_fuselage=0.31,
+            diameter_fuselage=self.local_fuselage_diameter,
             positive_manoeuvring_limit_load_factor=self.load_factor,
             initial_total_aircraft_mass=50.0,
             number_of_stations=self.number_of_nodes
