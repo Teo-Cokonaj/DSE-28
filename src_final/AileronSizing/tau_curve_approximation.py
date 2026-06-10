@@ -16,14 +16,10 @@ def tau_test_curve(x, a, b, c):
 
 params, params_cov = sp.optimize.curve_fit(tau_test_curve, tau_points_x, tau_points_y)
 
-print(params[0])
-print(params[1])
-print(params[2])
+def tau_func(x):
 
-def tau_func(x, params = params):
-
-    a = params[0]
-    b = params[1]
-    c = params[2]
+    a = 0.43943553769511473
+    b = 7.359771100976851
+    c = 0.00024515037357336454
 
     return a * np.log(b*x + 1) + c

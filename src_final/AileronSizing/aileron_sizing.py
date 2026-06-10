@@ -32,6 +32,7 @@ def compute_p(b1, b2, delta_a_max, V, chords_ratio, n_sections, planform:Planfor
     tau = tau_func(chords_ratio)
 
     c_d0 = planform.CD0_cache[cd0_cache_name]
+    #c_d0 = 0
 
     c_stations, _, y_stations, dy = planform.sectional_properties(n_sections)
     y_mid = 0.5 * (y_stations[:-1] + y_stations[1:])
@@ -46,12 +47,21 @@ def compute_p(b1, b2, delta_a_max, V, chords_ratio, n_sections, planform:Planfor
     C_l_alpha_integral = np.sum(c_mid[mask] * y_mid[mask] * dy[mask])
     C_l_delta_a = 2 * C_l_alpha * tau / (S_ref * b) * C_l_alpha_integral
 
+    #C_l_delta_a = 0.19
+
     coefficient_C_l_p = -4 * (C_l_alpha + c_d0) / (S_ref * b ** 2)
     C_l_p_integral = np.sum(y_mid**2 * c_mid * dy)
     C_l_p = coefficient_C_l_p * C_l_p_integral
+    #C_l_p = -0.76
 
     P = -C_l_delta_a / C_l_p * delta_a_max * (2 * V / b)
+
+    print("C_l_delta_a: ", C_l_delta_a)
+    print("C_l_p: ", C_l_p)
+    print("P in degrees: ", np.degrees(P))
     return P
+
+
 
 def size_ailerons(delta_a_max, Vmin, Vmax, chords_ratio, n_sections, planform:Planform, roll_rate_min:float, roll_rate_max:float, y_fus:float)->list[tuple[float, float]]:
     halfspan = planform.span / 2
@@ -115,8 +125,8 @@ planform = Planform(
     clmax=1.44,
     flap=False,
 )
-planform.add_cache_entry("takeoff", mach=0.18, altitude=0.0)
+planform.add_cache_entry("takeoff", mach=0.147, altitude=0.0)
 
 b1 = planform.half_span * 0.375
 b2 = planform.half_span * 0.625
-print("Roll rate (P):", compute_p(b1, b2, np.deg2rad(20.0), 50.0, 0.2, 100, planform))
+print("Roll rate (P):", compute_p(b1, b2, np.deg2rad(20.00), 50.0, 0.2, 1000, planform))
