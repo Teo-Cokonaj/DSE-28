@@ -60,9 +60,9 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
         are_we_buckling = wing_model.wing_stres_per_com()
         normal_stress = wing_model.bending_stresses()
 
-        print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}, material {material.yield_strength}")
+        print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}")
 
-        if (np.max(shear_stress) < material.yield_strength / 2) and (np.any(are_we_buckling) > 0) and (np.max(np.abs(normal_stress)) < material.yield_strength):
+        if (np.max(shear_stress) < material.fracture_strength / 3) and (np.any(are_we_buckling) > 0) and (np.max(np.abs(normal_stress)) < material.fracture_strength / 1.5):
             return thickness
         
     raise ValueError("None of the provided material thicknesses satisfy the constraints")
@@ -87,7 +87,7 @@ def find_planform_mass_cg(planform:Planform, thickness:float, density_core:float
 
     mass_tot = np.sum(masses_tot_stations)
 
-    return mass_tot, np.sum(masses_tot_stations * x_cg_stations) / mass_tot
+    return mass_tot * 2, np.sum(masses_tot_stations * x_cg_stations) / mass_tot #NOTE: 2 accounts for the fact we have a wing on each side of the fuselage
 
 
 def size_planform(planform:Planform, thicknesses:list[float], fuselage_diameter:float, material_skin:Material, density_core:float, number_of_sections = 20, safety_factor = 1.5) -> None:
