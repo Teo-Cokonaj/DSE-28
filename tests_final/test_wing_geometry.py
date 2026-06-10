@@ -1,38 +1,38 @@
-import pytest
-import numpy as np
-import matplotlib.pyplot as plt
-import math
 import os
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..')))
 
-from src_final.structural_analysis import parameters
-from src_final.structural_analysis.parameters import *
-from scipy.interpolate import interp1d
+import numpy as np
+import pytest
 from scipy.integrate import cumulative_trapezoid
+from scipy.interpolate import interp1d
 
-from src_final.structural_analysis.Material import Material
-from src_final.global_parameters import CONSTANTS,Assumptions
-from src_final.structural_analysis.wing_loading import WingModel
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+import src_final.structural_analysis.wing_loading as wing_loading_module
 from src_final.Aircraft.Planform import Planform
+from src_final.structural_analysis.Material import Material
+from src_final.structural_analysis.wing_loading import WingModel
+
 
 @pytest.fixture
 def material():
-    return Material(density=1600.0,
-                            elastic_modulus=70e9,
-                            shear_modulus=5e9,
-                            poisson_ratio=0.3,
-                            yield_strength=600e6,
-                            fracture_strength=600e6
-                            )
+    return Material(
+        density=1600.0,
+        elastic_modulus=70e9,
+        shear_modulus=5e9,
+        poisson_ratio=0.3,
+        yield_strength=600e6,
+        fracture_strength=600e6,
+    )
+
 
 @pytest.fixture
 def planform():
     return Planform(
-        aspect_ratio=20.0,
+        aspect_ratio=10.0,
         span=10.0,
         sweep_quarter_deg=0.0,
-        taper=0.5,
+        taper=1.0,
         thickness_to_chord=0.12,
         cm_quarter_chord=1.0,
         wetted_surface_ratio=1.0,
@@ -43,151 +43,180 @@ def planform():
 
 
 @pytest.fixture
-def wing_model(material,planform):
-    return WingModel(
-        wing_leng_m=5,
-        wing_skin_thickness_m=0.005,
-        number_of_nodes=2,
+def wing_model(material, planform):
+    model = WingModel(
+        wing_skin_thickness_m=0.01,
+        number_of_nodes=4,
         material_1=material,
-        material_2=material,
         planform=planform,
+        load_factor=6,
     )
+
+    chord_stations, _, y_stations, dy = planform.sectional_properties(
+        number_of_sections=model.number_of_nodes
+    )
+    model.chord_stations = np.asarray(chord_stations, dtype=float)
+    model.y_stations_chord = np.asarray(y_stations, dtype=float)
+    model.y_stations = model.y_stations_chord
+    model.dy = np.asarray(dy, dtype=float)
+    model.span_poz = model.y_stations_chord[1:]
+    model.lift_span = np.array([30.0, 20.0, 10.0])
+    model.force_distribution = np.array([8.0, 12.0, 16.0])
+
+    # Some WingModel methods currently read these names as module globals.
+    wing_loading_module.planform = planform
+    wing_loading_module.material_1 = material
+
+    return model
 
 
 class TestWingModel:
+    def test_planform_data_sets_span_lift_chord_and_station_arrays(self, wing_model):
+        span_poz, lift_span, chords, y_stations, dy = wing_model.planform_data()
 
-    def test_perimeter_and_area(self,
-                                wing_model):
-        c_stations  = np.array([2, 0])
-        thickness_to_chord = 0.12
-        perim, area  = wing_model.perimeter_area_of_section(c_stations, thickness_to_chord)
+        assert span_poz.ndim == 1
+        assert span_poz.shape == lift_span.shape
+        assert chords.shape == y_stations.shape == (wing_model.number_of_nodes,)
+        assert dy.shape == (wing_model.number_of_nodes - 1,)
+        assert np.all(np.isfinite(lift_span))
+        assert np.all(np.isfinite(span_poz))
+        np.testing.assert_allclose(wing_model.y_stations, y_stations)
 
-        a = c_stations/2
-        b = a*thickness_to_chord
 
-        expected_area = np.pi*a*b
+
+    def test_perimeter_and_area(self, wing_model):
+        perimeter, area = wing_model.perimeter_area_of_section()
+
+        a = wing_model.chord_stations
+        b = a * wing_model.planform.thickness_to_chord
         h = (a - b) ** 2 / (a + b) ** 2
         expected_perimeter = np.pi * (a + b) * (
-            1 + (3 * h ** 2) / (10 + np.sqrt(4 - 3 * h ** 2))
+            1 + (3 * h) / (10 + np.sqrt(4 - 3 * h))
         )
-        assert area[0] == pytest.approx(expected_area[0])
-        assert perim[0] == pytest.approx(expected_perimeter[0])
-    
-    def test_area_moment_inertia(self,
-                                 wing_model
-                                 ):
-        c_stations  = np.array([2, 0])
-        thickness_to_chord = 0.12
-        Ix,Iy = wing_model.area_moment_inertia(c_stations,thickness_to_chord)
-        a= c_stations/2
-        b = a * thickness_to_chord
-        Ix_expected = 1/4 * a * b**3 * np.pi
-        Iy_expected = 1/4 * a ** 3 * b * np.pi
-        #print (Ix)
-        assert Ix[0] == pytest.approx(Ix_expected[0])
-        assert Iy[0] == pytest.approx(Iy_expected[0])
-    
+        t = wing_model.wing_skin_thickness_m
+        expected_area = np.pi * (a * b - (a - 2 * t) * (b - 2 * t)) / 4
 
+        np.testing.assert_allclose(perimeter, expected_perimeter)
+        np.testing.assert_allclose(area, expected_area)
+
+
+
+    def test_area_moment_inertia(self, wing_model):
+        ix, iy = wing_model.area_moment_inertia()
+
+        a = wing_model.chord_stations
+        b = a * wing_model.planform.thickness_to_chord
+        t = wing_model.wing_skin_thickness_m
+        ix_expected = np.pi * (a * b**3 - ((a - 2 * t) * (b - 2 * t)**3)) / 64
+        iy_expected = np.pi * b * a**3 / 4
+
+        np.testing.assert_allclose(ix, ix_expected)
+        np.testing.assert_allclose(iy, iy_expected)
+
+
+
+    def test_force_per_unit_subtracts_skin_weight_from_lift(self, wing_model, material):
+        force, lift, weight = wing_model.force_per_unit(plot=False)
+
+        perimeter, _ = wing_model.perimeter_area_of_section()
+        expected_weight = (
+            material.density
+            * perimeter[-len(wing_model.lift_span) :]
+            * wing_model.wing_skin_thickness_m
+            * wing_model.dy[-len(wing_model.lift_span) :]
+            * 9.81
+            * wing_model.load_factor
+        )
+        expected_force = wing_model.lift_span - expected_weight
+
+        np.testing.assert_allclose(lift, wing_model.lift_span)
+        np.testing.assert_allclose(weight, expected_weight)
+        np.testing.assert_allclose(force, expected_force)
 
     def test_torsion_determination(self, wing_model):
-        c_stations = np.array([30.0, 20.0, 2.0, 4.0])
+        torsion = wing_model.step_torsion_determination(plot=False)
 
-        reduced_sectional_spanwise_positions = np.array([0.0, 1.0])
-        modified_sectional_lifts_schrenk = np.array([8.0, 12.0])
-
-        y_stations = np.array([0.0, 1.0])
-
-        torsion = wing_model.step_torsion_determination(
-            c_stations=c_stations,
-            y_stations=y_stations,
-            reduced_sectional_spanwise_positions=reduced_sectional_spanwise_positions,
-            modified_sectional_lifts_schrenk=modified_sectional_lifts_schrenk,
-            plot = False
+        c_stations_cop = wing_model.chord_stations[-len(wing_model.span_poz) :]
+        station_torsion = wing_model.lift_span * c_stations_cop / 4
+        expected_torsion = np.cumsum(station_torsion[::-1])[::-1]
+        expected_torsion = np.concatenate(
+            (
+                np.full(
+                    len(wing_model.chord_stations) - len(expected_torsion),
+                    expected_torsion[0],
+                ),
+                expected_torsion,
+            )
         )
 
-        expected_torsion = np.array([16.0, 16.0, 16.0, 12.0])
+        np.testing.assert_allclose(torsion, expected_torsion)
 
-        assert len(torsion) == len(c_stations)
-        assert np.all(np.isfinite(torsion))
-        assert torsion == pytest.approx(expected_torsion)
-        
     def test_wing_rotation(self, wing_model, material):
-        y_poz = np.array([0.0, 1.0, 2.0])
-        chords = np.array([2.0, 2.0, 2.0])
-        torsion = np.array([0.0, 10.0, 20.0])
+        torsion = np.array([0.0, 10.0, 20.0, 30.0])
 
-        thickness_to_chord = 0.12
-
-        rotation = wing_model.step_rotation_of_wing(
-            G1=material.shear_modulus,
-            thicknes_to_chord=0.12,
-            skin_thickness=wing_model.wing_skin_thickness_m,
-            chords=chords,
+        rotation, rotation_deg = wing_model.step_rotation_of_wing(
             torsion=torsion,
-            y_poz=y_poz,
-            plot = False,
-        )[0]
-
-        perimeter, area = wing_model.perimeter_area_of_section(
-            chords,
-            thickness_to_chord
+            plot=False,
         )
 
-        perimeter = np.squeeze(perimeter)
-        area = np.squeeze(area)
-
-        expected_rotation_rate = torsion * perimeter / (
-            4 * area ** 2 * material.shear_modulus * wing_model.wing_skin_thickness_m
+        perimeter, area = wing_model.perimeter_area_of_section()
+        expected_rate = torsion * perimeter / (
+            4 * area**2 * material.shear_modulus * wing_model.wing_skin_thickness_m
         )
-
         expected_rotation = cumulative_trapezoid(
-            expected_rotation_rate,
-            y_poz,
-            initial=0.0
+            expected_rate, wing_model.y_stations_chord, initial=0.0
         )
 
-        assert len(rotation) == len(y_poz)
-        assert np.all(np.isfinite(rotation))
-        assert rotation[0] == pytest.approx(0.0)
         np.testing.assert_allclose(rotation, expected_rotation)
-    
-    # def test_wing_deflection(self,wing_model,material,planform):
-    #     y_poz = np.array([0.0, 1.0, 2.0])
-    #     chords = np.array([2.0, 2.0, 2.0])
-    #     moments = np.array([200.0, 100.0, 0])
-    #     def fake_step_moment(debug=False, plot=False):
-    #         return moments
+        np.testing.assert_allclose(rotation_deg, np.degrees(expected_rotation))
 
-    #     monkeypatch.setattr(wing_model, "step_moment", fake_step_moment)
-    #     monkeypatch.setattr(plt, "show", lambda: None)
+    def test_wing_deflection(self, wing_model, material):
+        moments = np.array([300.0, 200.0, 100.0, 0.0])
 
-    #     theta, deflection = wing_model.step_vertical_defletion(y_poz,material.elastic_modulus,
-    #                                                      chords,planform.thickness_to_chord,False)
-        
-    #     Ix,_ = wing_model.area_moment_inertia(chords,planform.thickness_to_chord)
-    #     Ix = np.squeeze(Ix)
-    #     EI = Ix * material.elastic_modulus
-    #     MEI = moments/EI
-    #     expected_theta =cumulative_trapezoid(
-    #         MEI,
-    #         y_poz,
-    #         initial=0.0
-    #     )
-    #     expected_deflection = cumulative_trapezoid(
-    #         expected_theta,
-    #         y_poz,
-    #         initial=0.0
-    #     )
+        theta, deflection = wing_model.step_vertical_deflection(
+            plot=False,
+            moments=moments,
+        )
 
-    #     assert len(theta) == len(y_poz)
-    #     assert len(displacement) == len(y_poz)
+        ix, _ = wing_model.area_moment_inertia()
+        curvature = -moments / (material.elastic_modulus * ix)
+        expected_theta = cumulative_trapezoid(
+            curvature, wing_model.y_stations_chord, initial=0.0
+        )
+        expected_deflection = cumulative_trapezoid(
+            expected_theta, wing_model.y_stations_chord, initial=0.0
+        )
 
-    #     assert np.all(np.isfinite(theta))
-    #     assert np.all(np.isfinite(deflection))
+        np.testing.assert_allclose(theta, expected_theta)
+        np.testing.assert_allclose(deflection, expected_deflection)
 
-    #     assert theta[0] == pytest.approx(0.0)
-    #     assert deflection[0] == pytest.approx(0.0)
 
-    #     np.testing.assert_allclose(theta, expected_theta)
-    #     np.testing.assert_allclose(deflection, expected_deflection)
-#python -m pytest tests_final/test_wing_geometry.py -v
+    def test_buckling_model(self, wing_model, material):
+        buckling_stress = wing_model.buckling_model()
+
+        expected_stress = (
+            4
+            * np.pi**2
+            * material.elastic_modulus
+            / (12 * (1 - material.poisson_ratio) ** 2)
+            * (wing_model.wing_skin_thickness_m / wing_model.chord_stations)
+        )
+
+        np.testing.assert_allclose(buckling_stress, expected_stress)
+
+    def test_wing_stress_per_com_compares_buckling_to_bending(self, wing_model):
+        wing_model.step_shear_forces(debug=False, plot=False)
+
+        stress_margin = wing_model.wing_stres_per_com()
+
+        buckling_stress = wing_model.buckling_model()
+        moments = wing_model.step_moment(False, False)
+        ix, _ = wing_model.area_moment_inertia()
+        y_max = wing_model.planform.thickness_to_chord * wing_model.chord_stations
+        bending_stress = moments * y_max / ix
+        expected_margin = buckling_stress - bending_stress
+
+        np.testing.assert_allclose(stress_margin, expected_margin)
+
+
+# python -m pytest tests_final/test_wing_geometry.py -v

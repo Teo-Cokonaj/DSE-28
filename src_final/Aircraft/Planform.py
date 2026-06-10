@@ -39,6 +39,7 @@ class Planform(Component):
         self.chord_fraction_maximum_thickness = chord_fraction_maximum_thickness
         self.pos_max_camber = pos_max_camber
         self.mass_cache:float = None
+        self.x_cg_cache:float = None
 
         #self.oswald = 4.61*(1 - 0.045 * self.aspect_ratio**.68)*np.cos(self.sweep_LE_rad)**0.15 - 3.1
 
@@ -92,10 +93,6 @@ class Planform(Component):
     def x_MAC(self)->float:
         return self.y_MAC*np.tan(self.sweep_LE_rad)
     
-    @property 
-    def inviscid_ratio(self)->float:
-        return np.pi*self.aspect_ratio*self.oswald 
-    
     @property
     def sweep_half_rad(self)->float:
         return np.arctan(np.tan(self.sweep_LE_rad) - 0.5 * (2*self.c_root/self.span) * (1-self.taper))
@@ -103,6 +100,26 @@ class Planform(Component):
     @property
     def oswald(self)->float:
         return 2/(2 - self.aspect_ratio + np.sqrt(4 + self.aspect_ratio**2 * (1 + np.tan(self.sweep_half_rad)**2)))
+    
+    @property 
+    def inviscid_ratio(self)->float:
+        return np.pi*self.aspect_ratio*self.oswald
+    
+    
+    @property
+    def CL_alpha(self) -> float:
+        """3-D lift-curve slope via Helmbold–DATCOM [1/rad]."""
+        a0  = self.airfoil_lift_slope
+        AR  = self.aspect_ratio
+        kap = a0 / (2 * np.pi)
+        Lam = self.sweep_half_rad
+        return a0 * AR / (2 + np.sqrt(4 + (AR / kap) ** 2 * (1 + np.tan(Lam) ** 2)))
+
+
+    @property
+    def downwash(self) -> float:
+        """Simplified downwash gradient dε/dα."""
+        return 4 / (2 + self.aspect_ratio)
     
     
     def sectional_properties(self,
