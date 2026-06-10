@@ -25,6 +25,7 @@ class WingModel:
                  material_1:Material,
                  planform:Planform,
                  load_factor:float,
+                 load_factor_maneuver:float,
                  local_fuselage_diameter: float,
                  #rib_number:float,
                 ):
@@ -35,6 +36,7 @@ class WingModel:
         self.planform = planform
         self.load_factor = load_factor
         self.local_fuselage_diameter=local_fuselage_diameter
+        self.load_factor_m = load_factor_maneuver
         #self.rib_number = rib_number
 
     def planform_data(self, diameter_fuselage:float=0.31
@@ -53,7 +55,7 @@ class WingModel:
         self.y_stations = self.y_stations_chord
 
         self.span_poz = np.asarray(self.span_poz, dtype=float)
-        self.lift_span = np.asarray(self.lift_span, dtype=float)
+        self.lift_span = np.asarray(self.lift_span, dtype=float) * self.load_factor_m
         self.chord_stations = np.asarray(self.chord_stations, dtype=float)
         print(np.sum(self.lift_span)/9.81)
         return self.span_poz, self.lift_span, self.chord_stations, self.y_stations_chord, self.dy
@@ -578,11 +580,13 @@ if __name__=='__main__':
         )
 
         wing_model= WingModel(
-                 wing_skin_thickness_m =0.002,
+                 wing_skin_thickness_m =0.004,
                  number_of_nodes=100,
                  material_1 = material_1,
                  planform = planform,
                  load_factor = 1,
+                 load_factor_maneuver=1,
+                 local_fuselage_diameter=0.31
                  )
         wing_model.planform_data()
         plot_1 = False
@@ -628,7 +632,7 @@ if __name__=='__main__':
         #print(f"Max crushing pressure:    {np.max(np.abs(crushing_pressure)) / 1e6:.3f} MPa")
         print(f"Max buckling stress is    {np.max(buckling_stress)/1e6 :.3f} MPa")
         print(f"Are we buckling with this? {np.any(  are_we_buckling> 0)}")
-        print(np.max(are_we_buckling))
+        #print(np.max(are_we_buckling))
         
 
 
