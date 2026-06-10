@@ -12,8 +12,9 @@ class EmpennageFinder():
         self.fixed = fixed
 
   
-    def _x_ac(self, main_wing:Planform, x_LE:float, number_of_sections:int=20):
-        return (x_LE + main_wing.aerodynamic_center(number_of_sections) - self.fixed.x_LE_wing) / main_wing.MAC
+    def _x_ac(self, planform:Planform, x_LE:float, MAC:float, number_of_sections:int=20):
+        local_ac = planform.aerodynamic_center(number_of_sections=number_of_sections)
+        return (x_LE + local_ac - self.fixed.x_LE_wing) / MAC
     
 
     def _x_cg(self, planforms:list[Planform], x_LEs:list[float], fore:bool=True):
