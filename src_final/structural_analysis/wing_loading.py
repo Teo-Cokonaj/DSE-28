@@ -2,7 +2,7 @@ import aerosandbox.numpy as np
 import matplotlib.pyplot as plt
 import math
 from scipy.optimize import root_scalar
-from scipy.integrate import cumulative_trapezoid
+from scipy.integrate import cumulative_trapezoid, trapezoid
 from scipy.interpolate import interp1d
 import os
 import sys
@@ -438,6 +438,62 @@ class WingModel:
             plt.show()
         
         return self.shear_force_each_node
+    
+    def step_shear_stress_V(self,
+                            debug: bool,
+                            plot: bool):
+    # Shear stress due to shear force:      t = VQ/(It) + q0,  Q = int(ydA)
+        shear_forces = self.shear_force_each_node
+        thickness_skin = self.wing_skin_thickness_m
+
+    # Ellipse properties
+        _, c_stations, self.y_stations, dy = self.planform.sectional_properties(number_of_sections=self.number_of_nodes)
+        thickness_to_chord = self.planform.thickness_to_chord
+        a = 0.5 * c_stations
+        b = 0.5 * c_stations * thickness_to_chord
+        perimeter = self.perimeter_area_of_section(c_stations, thickness_to_chord)
+        
+    # Get the first moment of area Q
+        discretisation_steps = 1000
+        diff_angle = np.linspace(0, 2*np.pi, discretisation_steps)
+        x_coord = a * np.cos(diff_angle)
+        y_coord = b * np.sin(diff_angle)
+        arc_diff = np.sqrt(x_coord**2 + y_coord**2)                                                   # dA = t * arc_diff
+        moment_of_inertia = self.wing_skin_thickness_m * trapezoid(y_coord**2,arc_diff, diff_angle )  # Ixx = int(y^2 dA)
+
+        first_area_moment = cumulative_trapezoid(y_coord * arc_diff * self.wing_skin_thickness_m, diff_angle, 0.0)  # Q = int(y*dA)
+
+        shear_stress_partial = shear_forces * first_area_moment / (moment_of_inertia * self.wing_skin_thickness_m)
+
+    # Get q0            q0 = int(Qt * arc_diff)/int(arc_diff)   -->     q0 = int(Qt * arc_diff)/perimeter
+        q0 = -trapezoid(shear_stress_partial * self.wing_skin_thickness_m, arc_diff, diff_angle)
+        tau0 = np.ones_like(shear_stress_partial) * q0/self.wing_skin_thickness_m
+
+    # Get the total shear stress
+        self.shear_stress_V = shear_stress_partial + tau0
+
+    # Debug (optional)
+        if debug:
+            print(f'Number of discretised sections [-]: {discretisation_steps}')
+            print(f'Skin thickness [m]: {thickness_skin}')
+            print(f'Ixx [m4]: {moment_of_inertia}')
+            print(f'Q [m3]: {first_area_moment}')
+            print(f'Perimeter [m]: {perimeter}')
+            print(f'q0 [N/m]: {q0}')
+            print(f'tau0 [Pa]: {tau0}')
+            print(f'Total shear stress due to shear [Pa]: {self.shear_stress_V}')
+
+    # Plot(optional)
+        if plot:
+            fig = plt.figure()
+            plt.plot(self.y_stations, self.shear_stress_V)
+            plt.xlabel('Spanwise Position [m]')
+            plt.ylabel("Shear Stress [Pa]")
+            plt.title("Shear Stress due to Shear")
+            fig.savefig('shear_stress_due_to_shear.png')
+            plt.show()
+        
+        return self.shear_stress_V
 
     def step_moment(self,
                     debug: bool,
