@@ -35,20 +35,20 @@ class StructuralMatrices:
         self.skin_thicknesses=np.ones_like(self.wing_thicknesses)*self.skin_thickness
 
 
-    def kinetic_energy_b():
+    def kinetic_energy_b(self):
 
         # m * (doubleintegral 0-s and 0-c)((y/s)^4*q_dot_b+(y/s)^3*(x-x_f)*q_dot_t)dx*dy
 
         return
 
-    def kinetic_energy_t():
+    def kinetic_energy_t(self):
 
         # m * (doubleintegral 0-s and 0-c)((y/s)^3*(x-x_f)*q_dot_b+(y/s)^2*(x-x_f)^2*q_dot_t)dx*dy
 
         return
 
 
-    def A_matrix():
+    def A_matrix(self):
 
         a_bb = m*(   (n/6)*(s**2) + (rc/5)*s    )
         a_bt = m*(    (n/5)*(s**2) + (rc/4)*s    )
@@ -58,7 +58,7 @@ class StructuralMatrices:
 
 
 
-    def elastic_energy_b():
+    def elastic_energy_b(self):
 
         # integral 
 
