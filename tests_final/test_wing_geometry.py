@@ -45,7 +45,6 @@ def planform():
 @pytest.fixture
 def wing_model(material, planform):
     model = WingModel(
-        wing_leng_m=5.0,
         wing_skin_thickness_m=0.01,
         number_of_nodes=4,
         material_1=material,
@@ -88,13 +87,14 @@ class TestWingModel:
     def test_perimeter_and_area(self, wing_model):
         perimeter, area = wing_model.perimeter_area_of_section()
 
-        a = wing_model.chord_stations / 2
+        a = wing_model.chord_stations
         b = a * wing_model.planform.thickness_to_chord
         h = (a - b) ** 2 / (a + b) ** 2
         expected_perimeter = np.pi * (a + b) * (
             1 + (3 * h) / (10 + np.sqrt(4 - 3 * h))
         )
-        expected_area = np.pi * a * b
+        t = wing_model.wing_skin_thickness_m
+        expected_area = np.pi * (a * b - (a - 2 * t) * (b - 2 * t)) / 4
 
         np.testing.assert_allclose(perimeter, expected_perimeter)
         np.testing.assert_allclose(area, expected_area)
@@ -104,9 +104,10 @@ class TestWingModel:
     def test_area_moment_inertia(self, wing_model):
         ix, iy = wing_model.area_moment_inertia()
 
-        a = wing_model.chord_stations / 2
+        a = wing_model.chord_stations
         b = a * wing_model.planform.thickness_to_chord
-        ix_expected = np.pi * a * b**3 / 4
+        t = wing_model.wing_skin_thickness_m
+        ix_expected = np.pi * (a * b**3 - ((a - 2 * t) * (b - 2 * t)**3)) / 64
         iy_expected = np.pi * b * a**3 / 4
 
         np.testing.assert_allclose(ix, ix_expected)

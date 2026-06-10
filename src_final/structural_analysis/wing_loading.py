@@ -25,6 +25,7 @@ class WingModel:
                  material_1:Material,
                  planform:Planform,
                  load_factor:float,
+                 #rib_number:float,
                 ):
         self.wing_leng_m = planform.span
         self.wing_skin_thickness_m = wing_skin_thickness_m
@@ -32,6 +33,7 @@ class WingModel:
         self.number_of_nodes = number_of_nodes
         self.planform = planform
         self.load_factor = load_factor
+        #self.rib_number = rib_number
 
     def planform_data(self,
                       ):
@@ -74,8 +76,8 @@ class WingModel:
             b = a* planform.thickness_to_chord
             area_momement_x = np.pi * (a *b**3 - ((a-self.wing_skin_thickness_m*2) * (b-self.wing_skin_thickness_m*2)**3)) /64
             area_momement_y = np.pi * b*a**3 /4
-            print(a,"\n")
-            print(b,"\n")
+            #print(a,"\n")
+            #print(b,"\n")
             return np.squeeze(area_momement_x),np.squeeze(area_momement_y)
     
     # def wing_weight_distribution(self):
@@ -252,6 +254,7 @@ class WingModel:
 
     def buckling_model(self):
         C = 4 #from SAD
+        #b = planform.span/(2*self.rib_number)
         crit_stress = C * np.pi**2 * self.material_1.elastic_modulus/(12*(1-self.material_1.poisson_ratio)**2)*(self.wing_skin_thickness_m/self.chord_stations)
         return crit_stress
 
@@ -488,8 +491,8 @@ if __name__=='__main__':
         print(f"Tip vertical deflection:  {deflection_m[-1]:.6f} m")
         print(f"Max shear stress:         {np.max(np.abs(shear_stress)) / 1e6:.3f} MPa")
         #print(f"Max crushing pressure:    {np.max(np.abs(crushing_pressure)) / 1e6:.3f} MPa")
-        print(f"Max buckling stress is    {np.max(buckling_stress)} MPa")
-        print(f"Are we buckling with this? {np.any(  are_we_buckling< 0)}")
+        print(f"Max buckling stress is    {np.max(buckling_stress)/1e6 :.3f} MPa")
+        print(f"Are we buckling with this? {np.any(  are_we_buckling> 0)}")
         
 
 
