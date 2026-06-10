@@ -7,7 +7,7 @@ import numpy as np
 from Aircraft.Planform import Planform
 from Aircraft.Fixed import Fixed
 from EmpennageSizing.EmpennageFinder import EmpennageFinder
-from structural_analysis.iterative_planform_sizing import size_planform, Material
+from structural_analysis.iterative_planform_sizing import size_planform
 
 class TailFinder(EmpennageFinder):
     def __init__(self, fixed, thicknesses, material, core_density, safety_factor, AR_h:float=3., taper_h:float=1., taper_v:float=1., SM=0.05, Sv_S=.15, number_of_sections=30):
@@ -97,7 +97,7 @@ class TailFinder(EmpennageFinder):
             flap=False
         )
         size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor,
-                      load_factor=load_ratio, load_factor_maneuver=3*load_ratio)
+                      load_factor=load_ratio, load_factor_maneuver=3*load_ratio) #as rudder needs to carry the main wing as well
 
         # vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
         # vertical_tail.mass_cache = 0.3 #TODO actually conduct the structural analysishere
