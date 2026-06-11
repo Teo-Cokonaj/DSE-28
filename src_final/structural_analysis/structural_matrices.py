@@ -18,7 +18,8 @@ class StructuralMatrices:
                  material: Material,
                  skin_thickness: float,
                  number_of_sections: int,
-                 elastic_axis_fractional_position: float = 0.5
+                 elastic_axis_fractional_position: float = 0.5,
+                 csv_path: str = 'src_final/structural_analysis/onshape_mass_distribution.csv'
                  ):
         self.root_chord = planform.c_root
         self.wing_span = planform.span
@@ -34,11 +35,11 @@ class StructuralMatrices:
         self.wing_thicknesses=self.thickness_to_chord*self.chords
         self.skin_thicknesses=np.ones_like(self.wing_thicknesses)*self.skin_thickness
         self.xf = elastic_axis_fractional_position * self.chords
+        self.csv_path=csv_path
 
-    def _mass_per_unit_area(self,
-                        csv_path: str) -> float:
+    def _mass_per_unit_area(self):
         
-        df = pd.read_csv(csv_path)
+        df = pd.read_csv(self.csv_path)
 
         def get_mass(name_prefix: str):
             mask = df["Component Name"].str.startswith(name_prefix)
@@ -51,26 +52,30 @@ class StructuralMatrices:
 
 
     def _a11(self) -> float:
-        multiplier = self._mass_per_unit_area() #mass per unit area of the wing
-        integrand = ((self.y_stations/self.half_span)**4 * (self.chords))
+        self._mass_per_unit_area()
+        multiplier = self.mass_per_unit_area #mass per unit area of the wing
+        integrand = ((self.y_stations/self.semi_span)**4 * (self.chords))
         return multiplier*integrate.trapezoid(integrand,
                                               self.y_stations)
 
     def _a12(self) -> float:
-        multiplier = self._mass_per_unit_area() #mass per unit area of the wing
-        integrand = ((self.y_stations/self.half_span)**3 * ((self.chords**2)/2)) - ((self.y_stations/self.half_span)**3 * (self.xf) * (self.chords))
+        self._mass_per_unit_area()
+        multiplier = self.mass_per_unit_area #mass per unit area of the wing
+        integrand = ((self.y_stations/self.semi_span)**3 * ((self.chords**2)/2)) - ((self.y_stations/self.semi_span)**3 * (self.xf) * (self.chords))
         return multiplier*integrate.trapezoid(integrand,
                                               self.y_stations)
     
     def _a21(self) -> float:
-        multiplier = self._mass_per_unit_area() #mass per unit area of the wing
-        integrand = ((self.y_stations/self.half_span)**3 * ((self.chords**2)/2)) - ((self.y_stations/self.half_span)**3 * (self.xf) * (self.chords))
+        self._mass_per_unit_area()
+        multiplier = self.mass_per_unit_area #mass per unit area of the wing
+        integrand = ((self.y_stations/self.semi_span)**3 * ((self.chords**2)/2)) - ((self.y_stations/self.semi_span)**3 * (self.xf) * (self.chords))
         return multiplier*integrate.trapezoid(integrand,
                                               self.y_stations)
     
     def _a22(self) -> float:
-        multiplier = self._mass_per_unit_area() #mass per unit area of the wing
-        integrand = ((self.y_stations/self.half_span)**2 * ((self.chords**3)/3)) - ((self.y_stations/self.half_span)**2 * ((self.chords**2) * (self.xf))) + ((self.y_stations/self.half_span)**2 * (self.xf)**2 * (self.chords))
+        self._mass_per_unit_area()
+        multiplier = self.mass_per_unit_area #mass per unit area of the wing
+        integrand = ((self.y_stations/self.semi_span)**2 * ((self.chords**3)/3)) - ((self.y_stations/self.semi_span)**2 * ((self.chords**2) * (self.xf))) + ((self.y_stations/self.semi_span)**2 * (self.xf)**2 * (self.chords))
         return multiplier*integrate.trapezoid(integrand,
                                               self.y_stations)
 
@@ -83,7 +88,7 @@ class StructuralMatrices:
         return matrix
 
     
-    def _I(self) -> float:
+    def _I(self) -> np.ndarray:
         a = self.chords/2
         b = self.thickness_to_chord * self.chords/2
         t = self.skin_thickness
@@ -95,7 +100,7 @@ class StructuralMatrices:
         return I
     
 
-    def _J(self) -> float:
+    def _J(self) -> np.ndarray:
         a = self.chords/2
         b = self.thickness_to_chord * self.chords/2
         t = self.skin_thickness
@@ -106,17 +111,47 @@ class StructuralMatrices:
         return J
 
     def _e11(self) -> float:
-        integrand = (4*self.E*self._I())/(self.half_span**3)
+        integrand = (4*self.E*self._I())/(self.semi_span**3)
         return integrate.trapezoid(integrand,
                                               self.y_stations)
 
     def _e22(self) -> float:
-        integrand = (self.G*self._J())/(self.half_span)
+        integrand = (self.G*self._J())/(self.semi_span)
         return integrate.trapezoid(integrand,
                                               self.y_stations)
+    
+    def eigenvalues(self,
+                    matrix):
+        eigenvalues = la.eigvals(matrix)
+        print('eigenvalues: ',eigenvalues)
+        
+        #complex conjugate pairs so we keep only one per pair
+        eigenvalues = eigenvalues[eigenvalues.imag > 0] 
+        print('eigenvalues: ',eigenvalues)
+
+        # Sort by ascending frequency for consistent mode ordering
+        eigenvalues = eigenvalues[np.argsort(eigenvalues.imag)]
+        print('eigenvalues: ',eigenvalues)
+
+        omega = np.abs(eigenvalues)           # natural frequency [rad/s]
+        print('omega: ',omega)
+        zeta  = -eigenvalues.real / omega     # damping ratio [-]
+        print('zeta: ',zeta)
+
+        return omega, zeta
     
     def E_matrix(self) -> np.matrix:
         matrix = np.matrix([[self._e11(), 0],
                             [0, self._e22()]])
         
         return matrix
+    
+    def D_matrix(self) -> np.matrix:
+        print('Matrix A: ',self.A_matrix())
+        omega_A, zeta_A =self.eigenvalues(self.A_matrix())
+        print('omega_A: ',omega_A)
+        omega_E, zeta_E=self.eigenvalues(self.E_matrix())
+        alpha = 2*omega_A*omega_E*(zeta_E*omega_A-zeta_A*omega_E)/(omega_A**2-omega_E**2)
+        beta = 2*(omega_A*zeta_A-omega_E*zeta_E)/(omega_A**2-omega_E**2)
+
+        return alpha*self.A_matrix()+beta*self.E_matrix

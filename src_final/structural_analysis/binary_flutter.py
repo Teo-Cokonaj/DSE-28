@@ -53,7 +53,7 @@ def flutter_sweep(airspeeds: np.ndarray,
                   material: Material,
                   skin_thickness: float,
                   number_of_sections: int,
-                  elastic_axis_fractional_position: float = 0.5
+                  elastic_axis_fractional_position: float = 0.25
                   ) -> dict:
   
   omegas = []   # shape (n_speeds, n_modes)
@@ -70,7 +70,7 @@ def flutter_sweep(airspeeds: np.ndarray,
                                                  number_of_sections=number_of_sections,
                                                  airspeed=V,
                                                  altitude_m=altitude_m,
-                                                 elastic_axis_fractional_position=elastic_axis_fractional_position)
+                                                 )
       solver = FlutterSolver(structural_matrices,
                              aerodynamic_matrices)
       
@@ -163,7 +163,7 @@ if __name__=='__main__':
                   altitude_m=altitude_m,
                   planform=planform_wing,
                   material=material,
-                  skin_thickness=1.0,
+                  skin_thickness=0.004,
                   number_of_sections=100,
                   elastic_axis_fractional_position = 0.25
                   )

@@ -39,7 +39,6 @@ class AerodynamicMatrices:
         self.half_span = planform.half_span
         self.e = fractional_distance_e
         self.M_thetadot = -1.2 #do not change this
-        print('y_stations: ',self.y_stations)
 
 
     def _b11(self) -> float:
@@ -83,7 +82,7 @@ class AerodynamicMatrices:
                                               self.y_stations)
     
     def _c22(self) -> float:
-        multiplier = -0.5*self.atmosphere.density()*self.airspeed**2*self.e*self.wing_lift_slope*
+        multiplier = -0.5*self.atmosphere.density()*self.airspeed**2*self.e*self.wing_lift_slope
         integrand =  (self.y_stations/self.half_span)**2*self.chords**2
 
         return multiplier*integrate.trapezoid(integrand,
