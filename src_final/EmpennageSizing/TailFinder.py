@@ -78,7 +78,7 @@ class TailFinder(EmpennageFinder):
         load_ratio = horizontal_tail.positive_C_L_max / main_wing.positive_C_L_max * Sh_S
         
         size_planform(horizontal_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor,
-                      load_factor=load_ratio, load_factor_maneuver=3*load_ratio)
+                      load_factor=6*load_ratio, load_factor_maneuver=1.)
         # horizontal_tail.x_cg_cache = horizontal_tail.x_MAC + horizontal_tail.MAC / 3 #TODO: rough assumption revise
         # horizontal_tail.mass_cache = 0.5 #TODO actually conduct the structural analysishere
 
@@ -97,7 +97,7 @@ class TailFinder(EmpennageFinder):
             flap=False
         )
         size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor,
-                      load_factor=load_ratio, load_factor_maneuver=3*load_ratio) #as rudder needs to carry the main wing as well
+                      load_factor=6*load_ratio) #as rudder needs to carry the main wing as well
 
         # vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
         # vertical_tail.mass_cache = 0.3 #TODO actually conduct the structural analysishere

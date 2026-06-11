@@ -48,7 +48,7 @@ class Assumptions():
         self.cfrp_yield_strength = 600e6 # [Pa]  
         self.cfrp_Young_modulus = 80e9 # [Pa]
         self.cfrp_poisson = 0.048
-        self.allowable_thicknesses = np.linspace(0.0004, 0.01) # [m]
+        self.allowable_thicknesses = np.linspace(0.0004, 0.02) # [m]
         self.foam_denisty = 100 #TODO verify # [kg/m3]
 
         #Engine parameters
