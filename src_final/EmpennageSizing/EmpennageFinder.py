@@ -6,14 +6,22 @@ import numpy as np
 from Aircraft.Planform import Planform
 from Aircraft.Fixed import Fixed
 
+from structural_analysis.iterative_planform_sizing import Material
+
 
 class EmpennageFinder():
-    def __init__(self, fixed:Fixed):
+    def __init__(self, fixed, thicknesses, material, core_density, safety_factor, number_of_sections=30):
         self.fixed = fixed
+        self.thicknesses = thicknesses
+        self.material = material
+        self.core_density = core_density
+        self.safety_factor = safety_factor
+        self.number_of_sections = number_of_sections
 
   
-    def _x_ac(self, main_wing:Planform, x_LE:float, number_of_sections:int=20):
-        return (x_LE + main_wing.aerodynamic_center(number_of_sections) - self.fixed.x_LE_wing) / main_wing.MAC
+    def _x_ac(self, planform:Planform, x_LE:float, MAC:float, number_of_sections:int=20):
+        local_ac = planform.aerodynamic_center(number_of_sections=number_of_sections)
+        return (x_LE + local_ac - self.fixed.x_LE_wing) / MAC
     
 
     def _x_cg(self, planforms:list[Planform], x_LEs:list[float], fore:bool=True):
@@ -34,6 +42,6 @@ class EmpennageFinder():
         return (np.sum(x_cgs * ms) / ms.sum() - self.fixed.x_LE_wing) / planforms[0].MAC
 
 
-    def find_planforms(self, main_wing:Planform, initial:float=.1, maxiter:int=50) -> list[Planform]:
+    def find_planforms(self, main_wing:Planform, material:Material, thicknesses_allowable:list[float], fuselage_diameter:float, initial:float=.1, maxiter:int=50) -> list[Planform]:
         '''Return the tail and/or canard planforms for a provided main wing'''
         raise NotImplementedError
