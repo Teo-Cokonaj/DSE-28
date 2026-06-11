@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.linalg as la
+import matplotlib.pyplot as plt
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..')))
@@ -80,5 +81,93 @@ def flutter_sweep(airspeeds: np.ndarray,
   return {"omega": np.array(omegas), "zeta": np.array(zetas)}
 
 
+def plot_flutter_diagram(airspeeds: np.ndarray,
+                         results: dict,
+                         save_path: str = "flutter_diagram.png") -> None:
+
+    omegas = results["omega"]   # (n_speeds, n_modes)
+    zetas  = results["zeta"]    # (n_speeds, n_modes)
+    n_modes = omegas.shape[1]
+    mode_labels = ["Bending mode", "Torsion mode"]
+    colors = ["steelblue", "tomato"]
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 7), sharex=True)
+
+    # --- V-omega plot ---
+    for i in range(n_modes):
+        ax1.plot(airspeeds, omegas[:, i] / (2 * np.pi),
+                 color=colors[i], label=mode_labels[i])
+
+    ax1.set_ylabel("Frequency [Hz]")
+    ax1.set_ylim(bottom=0)
+    ax1.legend()
+    ax1.grid(True, linestyle="--", alpha=0.5)
+    ax1.set_title("Flutter Diagram")
+
+    # --- V-zeta plot ---
+    for i in range(n_modes):
+        ax2.plot(airspeeds, zetas[:, i],
+                 color=colors[i], label=mode_labels[i])
+
+        # Mark flutter speed: first zero crossing from negative to positive
+        sign_changes = np.where(np.diff(np.sign(zetas[:, i])))[0]
+        for idx in sign_changes:
+            if zetas[idx, i] < 0 and zetas[idx + 1, i] > 0:
+                # Linear interpolation for accuracy
+                V_flutter = np.interp(0,
+                                      [zetas[idx, i], zetas[idx + 1, i]],
+                                      [airspeeds[idx], airspeeds[idx + 1]])
+                ax2.axvline(V_flutter, color=colors[i],
+                            linestyle="--", alpha=0.7,
+                            label=f"V_flutter ({mode_labels[i]}): {V_flutter:.1f} m/s")
+
+    ax2.axhline(0, color="black", linewidth=0.8, linestyle="-")
+    ax2.set_ylabel("Damping ratio ζ [-]")
+    ax2.set_xlabel("Airspeed [m/s]")
+    ax2.legend()
+    ax2.grid(True, linestyle="--", alpha=0.5)
+
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, dpi=450, bbox_inches="tight")
+
+    plt.show()
+
+
 if __name__=='__main__':
-    print(1)
+    
+    airspeeds = np.arange(0.0,200.0,0.5)
+    altitude_m = 6000.0
+    material = Material(density=1600,
+                            elastic_modulus=50e9,
+                            shear_modulus=5e9,
+                            poisson_ratio=0.3,
+                            yield_strength=600e6,
+                            fracture_strength=600e6
+                            )
+    planform_wing=Planform(
+            aspect_ratio=27.0,
+            span=2.67,
+            sweep_quarter_deg=15.0,
+            taper=0.5,
+            thickness_to_chord=0.12,
+            cm_quarter_chord=1.0,
+            wetted_surface_ratio=1.0,
+            interference_factor=1.0,
+            clmax=1.5,
+            flap=False,
+        )
+
+    results = flutter_sweep(airspeeds,
+                  altitude_m=altitude_m,
+                  planform=planform_wing,
+                  material=material,
+                  skin_thickness=1.0,
+                  number_of_sections=100,
+                  elastic_axis_fractional_position = 0.25
+                  )
+    
+    plot_flutter_diagram(airspeeds=airspeeds,
+                         results=results,
+                         save_path="flutter_diagram.png")
