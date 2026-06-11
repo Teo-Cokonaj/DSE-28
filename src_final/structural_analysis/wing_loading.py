@@ -27,7 +27,7 @@ class WingModel:
                  local_fuselage_diameter: float,
                  inertial_load:float,
                  cm:float,
-                 V = float,
+                 V :float=200.0,
                  #rib_number:float,
                 ):
         self.wing_leng_m = planform.span
