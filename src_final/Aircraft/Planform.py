@@ -93,10 +93,6 @@ class Planform(Component):
     def x_MAC(self)->float:
         return self.y_MAC*np.tan(self.sweep_LE_rad)
     
-    @property 
-    def inviscid_ratio(self)->float:
-        return np.pi*self.aspect_ratio*self.oswald 
-    
     @property
     def sweep_half_rad(self)->float:
         return np.arctan(np.tan(self.sweep_LE_rad) - 0.5 * (2*self.c_root/self.span) * (1-self.taper))
@@ -104,6 +100,10 @@ class Planform(Component):
     @property
     def oswald(self)->float:
         return 2/(2 - self.aspect_ratio + np.sqrt(4 + self.aspect_ratio**2 * (1 + np.tan(self.sweep_half_rad)**2)))
+    
+    @property 
+    def inviscid_ratio(self)->float:
+        return np.pi*self.aspect_ratio*self.oswald
     
     
     @property
@@ -121,19 +121,27 @@ class Planform(Component):
         """Simplified downwash gradient dε/dα."""
         return 4 / (2 + self.aspect_ratio)
     
+    @property
+    def sweep_half_rad(self)->float:
+        return np.arctan(np.tan(self.sweep_LE_rad) - 0.5 * (2*self.c_root/self.span) * (1-self.taper))
+        
+    @property
+    def oswald(self)->float:
+        return 2/(2 - self.aspect_ratio + np.sqrt(4 + self.aspect_ratio**2 * (1 + np.tan(self.sweep_half_rad)**2)))
+    
     
     def sectional_properties(self,
                         number_of_sections)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
         
         y_stations = np.linspace(0, self.half_span, number_of_sections)
     
-        c_stations = self.c_root + (self.c_tip - self.c_root) * y_stations / self.half_span
+        chord_stations = self.c_root + (self.c_tip - self.c_root) * y_stations / self.half_span
         
         dy = np.diff(y_stations)
-        c_inner = c_stations[:-1]
-        c_outer = c_stations[1:]
+        c_inner = chord_stations[:-1]
+        c_outer = chord_stations[1:]
         
-        return c_stations, 0.5 * (c_inner + c_outer) * dy, y_stations,dy
+        return chord_stations, 0.5 * (c_inner + c_outer) * dy, y_stations,dy
     
     def aerodynamic_center(self,
                        number_of_sections: int,
@@ -207,20 +215,20 @@ class Planform(Component):
         index_closest_to_fuselage=np.argmin(np.abs(sectional_spanwise_positions - diameter_fuselage/2))
 
         easa_chord = 0.5*(sectional_chords+4/np.pi*self.MAC*np.sqrt(1-((sectional_spanwise_positions-diameter_fuselage/2)/(sectional_spanwise_positions[-1]-diameter_fuselage/2))**2))
-        print('Estimated chord (EASA): ',easa_chord)
-        print('Length of EASA chord: ',len(list(easa_chord)))
+        #print('Estimated chord (EASA): ',easa_chord)
+        #print('Length of EASA chord: ',len(list(easa_chord)))
 
         full_sectional_lifts_schenk = 0.5*CONSTANTS.AIR_DENSITY_SEA_LEVEL*stall_speed_at_max_positive_manoeuvre_load**2*self.positive_C_L_max*easa_chord*full_dy
         reduced_sectional_lifts_schrenk = full_sectional_lifts_schenk[index_closest_to_fuselage:]
         reduced_sectional_spanwise_positions=sectional_spanwise_positions[index_closest_to_fuselage:]
 
-        print('Schrenk sectional lifts: ',reduced_sectional_lifts_schrenk)
-        print('Schrenk total lift: ',2*np.sum(reduced_sectional_lifts_schrenk))
-        print('Load factor: ',2*np.sum(reduced_sectional_lifts_schrenk)/(9.81*initial_total_aircraft_mass))
+        #print('Schrenk sectional lifts: ',reduced_sectional_lifts_schrenk)
+        #print('Schrenk total lift: ',2*np.sum(reduced_sectional_lifts_schrenk))
+        #print('Load factor: ',2*np.sum(reduced_sectional_lifts_schrenk)/(9.81*initial_total_aircraft_mass))
         
         modified_sectional_lifts_schrenk=(np.sum(full_sectional_lifts_schenk)/np.sum(reduced_sectional_lifts_schrenk))*reduced_sectional_lifts_schrenk
-        print('Total aircraft lift (modified Schenk): ',2*np.sum(modified_sectional_lifts_schrenk))
-        print('Load factor (modified): ',2*np.sum(reduced_sectional_lifts_schrenk)/(9.81*initial_total_aircraft_mass))
+        #print('Total aircraft lift (modified Schenk): ',2*np.sum(modified_sectional_lifts_schrenk))
+        #print('Load factor (modified): ',2*np.sum(reduced_sectional_lifts_schrenk)/(9.81*initial_total_aircraft_mass))
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
@@ -233,7 +241,7 @@ class Planform(Component):
         ax2.grid(True)
 
         plt.tight_layout()
-        plt.show()
+        #plt.show()
         plt.close()
 
         return reduced_sectional_spanwise_positions, modified_sectional_lifts_schrenk
@@ -263,7 +271,7 @@ if __name__=='__main__':
     clmax=1.5,
     flap=False,)
 
-    planform.estimate_conservative_lift_distribution(diameter_fuselage=0.4,
+    planform.estimate_conservative_lift_distribution(diameter_fuselage=0.31,
                                                      positive_manoeuvring_limit_load_factor=6.0,
                                                      initial_total_aircraft_mass=50.0,
                                                      number_of_stations=100)
