@@ -48,6 +48,8 @@ def wing_model(planform, material):
             material_1 = material,
             planform = planform,
             load_factor=10.0,
+            load_factor_maneuver=1,
+            local_fuselage_diameter=0.31
             )
 
     wing_loading_module.planform = planform
