@@ -54,20 +54,20 @@ class LGReq(Requirement):
         phi_pass = phi_degrees > 8 
 
 
-        if theta_pass:
-            if beta_pass:
-                if psi_pass:
-                    if phi_pass:
-                        print('all constraints satisfied')
+        # if theta_pass:
+        #     if beta_pass:
+        #         if psi_pass:
+        #             if phi_pass:
+        #                 print('all constraints satisfied')
             
-                    else:
-                        print('phi fails')
-                else:
-                    print('psi fails')
-            else:
-                print('beta fails')
-        else:
-            print('theta fails')
+        #             else:
+        #                 print('phi fails')
+        #         else:
+        #             print('psi fails')
+        #     else:
+        #         print('beta fails')
+        # else:
+        #     print('theta fails')
 
         return theta_pass and beta_pass and psi_pass and phi_pass
 
