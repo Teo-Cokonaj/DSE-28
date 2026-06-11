@@ -14,7 +14,7 @@ class Fixed:
     # NOTE: y_main_gear is the distance between the 2 wheels
     def __init__(self, mass:float, fuel_mass:float, x_cg_min:float, x_cg_max:float, x_tail_cone:float, z_cg:float, z_tail_cone:float, z_wing:float, x_LE_canard:float, x_LE_wing:float, x_LE_tail:float, x_nose_gear:float, 
                  x_main_gear:float, y_main_gear:float, fuselage:Fuselage, nose_gear:LandingGear, main_gear:LandingGear, 
-                 gear_bay:Bay, engine_bay:Bay):
+                 engine_bay:Bay):
     
         self.mass = mass
         self.fuel_mass = fuel_mass
@@ -37,12 +37,11 @@ class Fixed:
         self.fuselage = fuselage
         self.nose_gear = nose_gear
         self.main_gear = main_gear
-        self.gear_bay = gear_bay
         self.engine_bay = engine_bay
 
 
     def drag_components(self, gear_down:bool) -> list[Component]:
         if gear_down:
-            return [self.fuselage, self.nose_gear, self.main_gear, self.main_gear, self.gear_bay, self.gear_bay, self.engine_bay, self.engine_bay]
+            return [self.fuselage, self.nose_gear, self.main_gear, self.main_gear, self.engine_bay, self.engine_bay]
         else:
-            return [self.fuselage, self.gear_bay, self.gear_bay, self.engine_bay, self.engine_bay]
+            return [self.fuselage, self.engine_bay, self.engine_bay]

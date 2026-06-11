@@ -145,6 +145,7 @@ c_tip_FLEXOP = 0.2357  # m
 
 lambda_FLEXOP = c_tip_FLEXOP / c_root_FLEXOP
 S_FLEXOP = b_FLEXOP * (c_root_FLEXOP + c_tip_FLEXOP) / 2.0
+print('flexop surface area: ',S_FLEXOP)
 AR_FLEXOP = b_FLEXOP**2 / S_FLEXOP
 
 Lambda_LE_FLEXOP = 20.0  # deg

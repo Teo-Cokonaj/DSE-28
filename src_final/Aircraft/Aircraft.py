@@ -39,12 +39,14 @@ class Aircraft:
         return Assumptions().thrust_available / (self.total_mass() * CONSTANTS.G0)
     
     def mach_go_around(self, assumptions:Assumptions):
+
+        #TODO: Test the code
  
         #Define atmosphere for go-around
         atmosphere_go_around = asb.Atmosphere(assumptions.altitude_go_round)         
         density_go_around = atmosphere_go_around.density()     
         Temperature_go_around = atmosphere_go_around.temperature()
-        speed_of_sound_go_around = atmosphere_go_around.speed_of_sound()              
+        speed_of_sound_go_around = atmosphere_go_around.speed_of_sound()             
 
         wing_loading = self.total_mass() * CONSTANTS.G0 / self.planforms[0].wing_area
         inviscid_ratio = np.pi*self.planforms[0].aspect_ratio*self.planforms[0].oswald
@@ -63,11 +65,10 @@ class Aircraft:
     
     def glide_ratio(self, mach:float, altitude:float, CD0:float) -> float:
 
-        #TODO: Fix CD0 and Component imports (Marek)
+        #TODO: Test the code
         
         atmosphere_at_altitude = asb.Atmosphere(altitude)
         density_at_altitude = atmosphere_at_altitude.density()
-        Temperature_at_altitude = atmosphere_at_altitude.temperature()
         speed_of_sound_at_altitude = atmosphere_at_altitude.speed_of_sound()                                                                                                  
         airspeed_at_altitude = speed_of_sound_at_altitude*mach
         total_weight = self.total_mass() * CONSTANTS.G0

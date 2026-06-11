@@ -2,8 +2,10 @@ import aerosandbox.numpy as np
 import matplotlib.pyplot as plt
 import math
 from scipy.optimize import root_scalar
-#import parameters
-#from parameters import *
+from scipy.integrate import cumulative_trapezoid
+import parameters
+from parameters import *
+import win32com.client
 
 def x_range(fuselage_length, resolution):
     x = np.linspace(0, fuselage_length, resolution)
@@ -32,9 +34,8 @@ def calculate_flight_case(x, W, canard_lift_fraction, main_wing_loc, empennage_l
         idx = (np.abs(x - loc)).argmin()
         loads[idx] += val
     
-    title = f"In-Flight"
 
-    return {"loads": loads, "title": title, "L_main": L_main, "L_empennage": L_empennage, "L_canard": L_canard}
+    return {"loads": loads, "L_main": L_main, "L_empennage": L_empennage, "L_canard": L_canard}
 
 def plot_loads(x, loads, title):
     plt.figure(figsize=(10, 4))
@@ -50,14 +51,23 @@ def plot_loads(x, loads, title):
 def cumulative_shear_and_moment(dx, loads, **kwargs):
     # Shear is the integral of load
     shear = np.cumsum(loads)
+    print('shear:', shear)
+    print('x:', x)
+    print('dx:', dx)
     # Moment is the integral of shear
+    trapezoid_moment = cumulative_trapezoid(y=shear, x=x, initial=0)
+    print('Trapezoidal rule:', trapezoid_moment)
+
     moment = np.cumsum(shear) * dx
+    print('Old:', moment)
 
-    return {"shear": shear, "moment": moment}
+    return {"shear": shear, "moment": moment, "trapezoid_moment": trapezoid_moment}
 
 
-def plot_shear_and_moment_diagrams(x, shear, moment):
+def plot_shear_and_moment_diagrams(x, shear, moment, title):
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+
+    
     
     ax1.plot(x, shear, label='Shear Force (N)', color='blue')
     ax1.set_title('Shear Force Diagram')
@@ -66,6 +76,7 @@ def plot_shear_and_moment_diagrams(x, shear, moment):
     ax1.grid()
     ax1.legend()
     
+
     ax2.plot(x, moment, label='Bending Moment (Nm)', color='red')
     ax2.set_title('Bending Moment Diagram')
     ax2.set_xlabel('Position along Fuselage (m)')
@@ -73,6 +84,7 @@ def plot_shear_and_moment_diagrams(x, shear, moment):
     ax2.grid()
     ax2.legend()
     
+    plt.suptitle(title)
     plt.tight_layout()
     plt.show()
 
@@ -211,7 +223,7 @@ def variable_port_iteration(x, wing_location, chord, canard_lift_fraction, empen
     #ax1.set_title('Fuselage Loading Envelopes Across Varied Wing Locations', fontsize=12, fontweight='bold')
     #ax1.set_ylabel('Shear Force [N]')
     #ax1.grid(True, linestyle=':', alpha=0.6)
-    #ax1.legend(loc='upper right')
+    #ax1.legend(loc='upper right')  
     
     #ax2.set_ylabel('Bending Moment [Nm]')
     #ax2.set_xlabel('Fuselage Station x [m]')
@@ -235,62 +247,306 @@ def fuselage_skin_mass(x, dx, t_skin, fuselage_radius, material_density):
 
     return fuselage_mass
 
-def plotReqThickness(x, t_skin):
+
+def plot_3d_fuselage(x_array, thicknesses, R_outer):
+    import trimesh
+    import numpy as np
+    np.infty = np.inf  # Inject the missing attribute back into NumPy
+    import pyrender
+    
+
+    # --- VISUAL SCALING KNOBS ---
+    # Adjust these to make the variations pop in your viewer
+    THICKNESS_MULTIPLIER = 10.0  # Blows up the thickness (e.g., 2mm becomes 100mm)
+    LENGTH_COMPRESSION = 0.3    # Squashes the length to 30% of actual size
+    # ----------------------------
+
+    num_angles = 50
+    num_stations = len(x_array)
+    
+    vertices = []
+    faces = []
+    face_colors = []
+
+    color_outer = [200, 200, 200, 255]  
+    color_inner = [160, 160, 160, 255]  
+    color_cut = [255, 69, 0, 255]       
+
+    # 1. Generate Vertices with Scaling applied
+    for x_val, t in zip(x_array, thicknesses):
+        theta = np.linspace(0, np.pi, num_angles)  
+        
+        # Apply exaggeration to the thickness value
+        exaggerated_t = t * THICKNESS_MULTIPLIER
+        
+        # Apply compression to the longitudinal distance
+        scaled_x = x_val * LENGTH_COMPRESSION
+        
+        # Outer arc vertices
+        for th in theta:
+            vertices.append([scaled_x, R_outer * np.cos(th), R_outer * np.sin(th)])
+        # Inner arc vertices
+        for th in theta:
+            vertices.append([scaled_x, (R_outer - exaggerated_t) * np.cos(th), (R_outer - exaggerated_t) * np.sin(th)])
+
+    vertices = np.array(vertices)
+    verts_per_station = 2 * num_angles  
+
+    # 2. Generate Faces (Stitching logic remains unchanged)
+    for i in range(num_stations - 1):
+        st1 = i * verts_per_station       
+        st2 = (i + 1) * verts_per_station 
+        
+        for j in range(num_angles - 1):
+            o1, o2 = st1 + j, st1 + j + 1
+            o3, o4 = st2 + j, st2 + j + 1
+            faces.append([o1, o2, o4])
+            faces.append([o1, o4, o3])
+            face_colors.append(color_outer)
+            face_colors.append(color_outer)
+            
+            i1, i2 = st1 + num_angles + j, st1 + num_angles + j + 1
+            i3, i4 = st2 + num_angles + j, st2 + num_angles + j + 1
+            faces.append([i1, i4, i2]) 
+            faces.append([i1, i3, i4])
+            face_colors.append(color_inner)
+            face_colors.append(color_inner)
+
+        # Side Cut-Out Flat Edges
+        faces.append([st1, st2, st2 + num_angles])
+        faces.append([st1, st2 + num_angles, st1 + num_angles])
+        face_colors.append(color_cut)
+        face_colors.append(color_cut)
+        
+        to1 = st1 + num_angles - 1
+        to2 = st2 + num_angles - 1
+        ti1 = st1 + (2 * num_angles) - 1
+        ti2 = st2 + (2 * num_angles) - 1
+        
+        faces.append([to1, ti2, to2])
+        faces.append([to1, ti1, ti2])
+        face_colors.append(color_cut)
+        face_colors.append(color_cut)
+
+    # 3. Flat End Caps
+    for start_idx in [0, (num_stations - 1) * verts_per_station]:
+        for j in range(num_angles - 1):
+            o1, o2 = start_idx + j, start_idx + j + 1
+            i1, i2 = start_idx + num_angles + j, start_idx + num_angles + j + 1
+            if start_idx == 0:
+                faces.append([o1, i2, o2])
+                faces.append([o1, i1, i2])
+            else: 
+                faces.append([o1, o2, i2])
+                faces.append([o1, i2, i1])
+            face_colors.append(color_cut)
+            face_colors.append(color_cut)
+
+    faces = np.array(faces)
+    face_colors = np.array(face_colors)
+    
+    mesh = trimesh.Trimesh(vertices=vertices, faces=faces, face_colors=face_colors)
+
+
+    # Convert the trimesh geometry to a pyrender mesh
+    pr_mesh = pyrender.Mesh.from_trimesh(mesh, smooth=False)
+
+    # Create a scene and add the mesh
+    scene = pyrender.Scene(ambient_light=[0.3, 0.3, 0.3])
+    scene.add(pr_mesh)
+
+    # Launch the high-fidelity interactive viewer
+    # use_raymond_lighting adds a professional 3-point light setup automatically
+    pyrender.Viewer(scene, use_raymond_lighting=True, viewport_size=(1920, 1080))
+    return
+
+
+def plotReqThickness(x, t_skin, title):
     plt.figure(figsize=(10, 4))
-    plt.plot(x, t_skin * 1000)
+    plt.plot(x, t_skin * 1000, marker = 'x')
     plt.xlabel("Position along fuselage x [m]")
     plt.ylabel("Required skin thickness [mm]")
-    plt.title("Required Fuselage Skin Thickness")
+    plt.title(title)
     plt.grid()
     plt.show()
 
-# if __name__ == "__main__":
-    # canard_lift_fraction = 0
-
-    # #clean
-    # x, dx = x_range(fuselage_length = fuselage_length, resolution = resolution)
-
-    # loads, title, L_main, L_empennage, L_canard = calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=main_wing_loc, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc).values()
-
-    # shear, moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
-
-    # t_skin_no_canard_static, critical_mode = thickness_for_combined_failure(shear=shear, moment=moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
-
-    # fuselage_mass_no_canard_static = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_no_canard_static, fuselage_radius=fuselage_radius)
-
-    # #plot_loads(x, loads, title)
-    # #plot_shear_and_moment_diagrams(x, shear, moment)
-    # #plotReqThickness(x, t_skin_no_canard_static)
-    # #print(f"Static Port, No Canard Fuselage Mass: {fuselage_mass_no_canard_static} kg")
-
-    # #don't use
-    # max_shear, max_moment = variable_port_iteration(x=x, wing_location=main_wing_loc, chord=chord_length, canard_lift_fraction=canard_lift_fraction)
-    # t_skin_no_canard_variable, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
-    # fuselage_mass_no_canard_variable = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_no_canard_variable, fuselage_radius=fuselage_radius)
-    # #plot_shear_and_moment_diagrams(x, max_shear, max_moment)
-    # #plotReqThickness(x, t_skin_no_canard_variable)
-
-    # #print(f"Variable-Port, No Canard Fuselage Mass: {fuselage_mass_no_canard_variable} kg")
 
 
 
-    # canard_lift_fraction = parameters.canard_lift_fraction
 
-    # #Canard
-    # loads= calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=main_wing_loc, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc)["loads"]
-    # shear, moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
-    # t_skin_canard_static, critical_mode = thickness_for_combined_failure(shear=shear, moment=moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
-    # t_skin_fuselage = np.maximum(t_skin_no_canard_static, t_skin_canard_static)
-    # fuselage_mass_canard_static = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_fuselage, fuselage_radius=fuselage_radius)
 
-    # #plot_loads(x, loads, title)
-    # #plot_shear_and_moment_diagrams(x, shear, moment)
-    # #plotReqThickness(x, t_skin_canard_static)
-    # #print(f"Static Port, Canard Fuselage Mass: {fuselage_mass_canard_static} kg")
 
-    # #Both
-    # max_shear, max_moment = variable_port_iteration(x=x, wing_location=main_wing_loc, chord=chord_length, canard_lift_fraction=canard_lift_fraction)
-    # t_skin_canard_variable, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
-    # t_skin_fuselage = np.maximum(t_skin_no_canard_variable, t_skin_canard_variable)
-    # fuselage_mass_canard_variable = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_fuselage, fuselage_radius=fuselage_radius)
-    # #print(f"Variable Port, Canard Fuselage Mass: {fuselage_mass_canard_variable} kg")
+
+
+
+
+
+### Running ###
+
+canard_lift_fraction = 0
+
+# Static wing port, no canard
+x, dx = x_range(fuselage_length = fuselage_length, resolution = resolution)
+loads, L_main, L_empennage, L_canard = calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=main_wing_loc, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc).values()
+shear, moment, trapezodial_moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
+t_skin_no_canard_static, critical_mode = thickness_for_combined_failure(shear=shear, moment=moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+fuselage_mass_no_canard_static = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_no_canard_static, fuselage_radius=fuselage_radius, material_density=skin_density)
+
+
+#plot_loads(x=x, loads=loads, title="Airframe Loads: Static Wing Port, No Canard")
+plot_shear_and_moment_diagrams(x=x, shear=shear, moment=moment, title="Shear and Old Moment Diagrams: Static Wing Port, No Canard")
+plot_shear_and_moment_diagrams(x=x, shear=shear, moment=trapezodial_moment, title="Shear and New Moment Diagrams: Static Wing Port, No Canard")
+#plotReqThickness(x=x, t_skin=t_skin_no_canard_static, title="Required Skin Thickness: Static Wing Port, No Canard")
+plot_3d_fuselage(x, t_skin_no_canard_static, fuselage_radius)
+#print(f"Static Port, No Canard Fuselage Mass: {fuselage_mass_no_canard_static} kg")
+
+
+##############################
+#### THIS IS NOT ONE OF OUR CONFIGURATIONS, DO NOT PLOT IT ####
+# We do need the values obtained for a configuration where the client does not fly a canard, so DO NOT comment this section
+
+# Variable wing port, no canard
+#max_shear, max_moment = variable_port_iteration(x=x, wing_location=main_wing_loc, chord=chord_length, canard_lift_fraction=canard_lift_fraction, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc, W=W, dx=dx)
+#t_skin_no_canard_variable, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+#fuselage_mass_no_canard_variable = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_no_canard_variable, fuselage_radius=fuselage_radius, material_density=skin_density)
+
+#plot_loads(x=x, loads=loads, title= "Airframe Loads: Variable Wing Port, No Canard")
+#plot_shear_and_moment_diagrams(x=x, shear=max_shear, moment=max_moment, title="Shear and Moment Diagrams: Variable Wing Port, No Canard")
+#plotReqThickness(x=x, t_skin=t_skin_no_canard_variable, title="Required Skin Thickness: Variable Wing Port, No Canard")
+#plot_3d_fuselage(x, t_skin_no_canard_variable, fuselage_radius)
+#print(f"Variable-Port, No Canard Fuselage Mass: {fuselage_mass_no_canard_variable} kg")
+
+###############################
+
+
+
+### CANARD ON ###
+
+#canard_lift_fraction = parameters.canard_lift_fraction
+
+# Canard port, static port
+#loads = calculate_flight_case(x=x, W=W, canard_lift_fraction=canard_lift_fraction, main_wing_loc=main_wing_loc, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc)["loads"]
+#shear, moment = cumulative_shear_and_moment(dx=dx, loads=loads).values()
+#t_skin_canard_static, critical_mode = thickness_for_combined_failure(shear=shear, moment=moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+#t_skin_fuselage_static = np.maximum(t_skin_no_canard_static, t_skin_canard_static)
+#fuselage_mass_canard_static = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_fuselage_static, fuselage_radius=fuselage_radius, material_density=skin_density)
+
+#plot_loads(x=x, loads=loads, title="Airframe Loads: Static Wing Port, Canard Port")
+#plot_shear_and_moment_diagrams(x=x, shear=shear, moment=moment, title="Shear and Moment Diagrams: Static Wing Port, Canard Port")
+#plotReqThickness(x=x, t_skin=t_skin_canard_static, title="Required Skin Thickness: Static Wing Port, Canard Port")
+#plot_3d_fuselage(x, t_skin_fuselage_static, fuselage_radius)
+#print(f"Static Port, Canard Fuselage Mass: {fuselage_mass_canard_static} kg")
+
+#############################
+
+# Canard port, variable port
+
+# max_shear, max_moment = variable_port_iteration(x=x, wing_location=main_wing_loc, chord=chord_length, canard_lift_fraction=canard_lift_fraction, empennage_loc=empennage_loc, cg_loc=cg_loc, canard_loc=canard_loc, W=W, dx=dx)
+# t_skin_canard_variable, critical_mode = thickness_for_combined_failure(shear=max_shear, moment=max_moment, x=x, yield_strength=CFRP[1], E = CFRP[2], fuselage_radius=fuselage_radius, t_min=minimum_thickness)
+# t_skin_fuselage_variable = np.maximum(t_skin_no_canard_variable, t_skin_canard_variable)
+# fuselage_mass_canard_variable = fuselage_skin_mass(x=x, dx=dx, t_skin=t_skin_fuselage_variable, fuselage_radius=fuselage_radius, material_density=skin_density)
+
+#plot_loads(x=x, loads=loads, title="Airframe Loads: Variable Wing Port, Canard Port")
+#plot_shear_and_moment_diagrams(x=x, shear=max_shear, moment=max_moment, title="Shear and Moment Diagrams: Variable Wing Port, Canard Port")
+#plotReqThickness(x=x, t_skin=t_skin_canard_variable, title="Required Skin Thickness: Variable Wing Port, Canard Port")
+#plot_3d_fuselage(x, t_skin_fuselage_variable, fuselage_radius)
+#print(f"Variable Port, Canard Fuselage Mass: {fuselage_mass_canard_variable} kg")
+
+###############################################
+
+
+
+print(L_main/(chord_length*wingspan))
+
+
+
+### SolidWorks Integration ###
+
+# Chosen config
+#t_skin_fuselage = t_skin_fuselage_static
+t_skin_fuselage = t_skin_fuselage_variable
+
+'''
+
+# Fuselage splitting
+dt = np.diff(t_skin_fuselage)
+threshold = 0.000000001  # Adjust based on your data's noise
+# Identify index locations of sudden steps
+step_indices = np.nonzero(np.abs(dt) > threshold)[0]
+
+if len(step_indices) > 0:
+    # Keep the first and last index of any consecutive run, plus any isolated step.
+    step_diffs = np.diff(step_indices)
+    mask = (
+        np.concatenate(([True], step_diffs != 1)) |
+        np.concatenate((step_diffs != 1, [True]))
+    )
+
+    cleaned_indices = step_indices[mask] + 1
+else:
+    cleaned_indices = step_indices
+
+
+split_positions = []
+thickness_values = []
+
+for idx in cleaned_indices:
+    split_positions.append(x[idx])
+    thickness_values.append(t_skin_fuselage[idx]*1000)
+
+
+print(thickness_values)
+
+
+
+print("Connecting to SOLIDWORKS...")
+try:
+    swApp = win32com.client.GetActiveObject("SldWorks.Application")
+except:
+    swApp = win32com.client.Dispatch("SldWorks.Application")
+
+Model = swApp.ActiveDoc
+
+if Model is None:
+    print("Error: No active document found. Please open your fuselage part file in SOLIDWORKS.")
+    exit()
+
+# Verify the open document type is a Part (1 = swDocPART)
+if Model.GetType != 1:
+    print("Error: Active document must be a Part file (.sldprt).")
+    exit()
+
+FeatureMgr = Model.FeatureManager
+
+
+# ==============================================================================
+# 3. PROGRAMMATICALLY GENERATE THE SLICING PLANES
+# ==============================================================================
+print("Generating slicing planes along the fuselage...")
+for idx, pos in enumerate(split_positions):
+    
+    # Clear selections to ensure a completely clean execution state
+    Model.ClearSelection2(True)
+    
+    # Select the base plane (Change "Front Plane" if your coordinate origin plane is named differently)
+    is_selected = Model.SelectByID("Front Plane", "PLANE", 0, 0, 0)
+    
+    if not is_selected:
+        print("Error: Could not select 'Front Plane'. Verify the plane name in your Feature Tree.")
+        break
+
+    # Insert a distance-offset reference plane 
+    # 8 = swRefPlaneReferenceConstraint_Distance
+    new_plane_feature = FeatureMgr.InsertRefPlane(264, pos, 0, 0, 0, 0)
+    
+    if new_plane_feature:
+        new_plane_feature.Name = f"Split_Plane_{idx+1}"
+        print(f" -> Created 'Split_Plane_{idx+1}' at X = {pos}m")
+    else:
+        print(f" -> Failed to create plane at X = {pos}m")
+
+print("\n--- CAD INTERACTION COMPLETE ---")
+print("All slicing reference planes have been successfully built in your SOLIDWORKS Feature Tree.")
+print("You can now proceed to slice the faces and apply the multi-thickness shell values.")
+
+'''

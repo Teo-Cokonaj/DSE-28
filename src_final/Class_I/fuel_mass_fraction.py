@@ -14,7 +14,7 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude
                        wing_loading:float, efficiency_cruise:float, energy_density_saf:float, 
                        mach_cruise:float, mach_max:float, time_cruise:float, time_mach_max:float,
                        debug=False,
-                       efficiency_go_around:float=None, efficiency_mach_max:float=None, ) -> float: 
+                       efficiency_go_around:float=None, efficiency_mach_max:float=None, return_intermediate=False) -> float: 
     if efficiency_go_around is None:
         efficiency_go_around = efficiency_cruise
     if efficiency_mach_max is None:
@@ -43,7 +43,7 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude
     segment_go_around.equivalent_range *= CONSTANTS.N_LANDING_ATTEMPTS 
 
     fuel_frac_cruise = segment_cruise.fuel_fraction(efficiency_cruise, energy_density_saf)
-
+    
     fuel_frac_mach_max_local = segment_mach_max.fuel_fraction(efficiency_mach_max, energy_density_saf)
     fuel_frac_mach_max = fuel_frac_mach_max_local*(1-fuel_frac_cruise)
 
@@ -58,5 +58,46 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude
         print(f"Fuel_fractions local {fuel_frac_mach_max_local} for mach max, {fuel_frac_go_around_local} for go around")
         print(f"Equivalent ranges: {segment_cruise.equivalent_range} for cruise, {segment_mach_max.equivalent_range} for mach max, {segment_go_around.equivalent_range} for go_around")
 
+    if return_intermediate:
+        return fuel_frac_cruise, fuel_frac_mach_max, fuel_frac_go_around
+    
     return fuel_frac_cruise + fuel_frac_mach_max + fuel_frac_go_around
 
+
+if __name__ == "__main__":
+    from global_parameters import Assumptions
+
+    assumptions = Assumptions()
+
+    efficiency_cruise = assumptions.mach_cruise * asb.Atmosphere(assumptions.altitude_cruise).speed_of_sound() / assumptions.sfc / assumptions.energy_density_saf
+    #TODO: introduce a pickled standard aircraft object here and replace the mach go around with aircraft.mach_go_around
+    efficiency_go_around = 0.2 * asb.Atmosphere(assumptions.altitude_go_round).speed_of_sound() / assumptions.sfc / assumptions.energy_density_saf
+    efficiency_mach_max = assumptions.mach_max * asb.Atmosphere(assumptions.altitude_mach_max).speed_of_sound() / assumptions.sfc / assumptions.energy_density_saf
+
+    frac_cr, frac_mm, frac_ga = fuel_mass_fraction(
+        altitude_go_around=assumptions.altitude_go_round,
+        altitude_cruise=assumptions.altitude_cruise,
+        altitude_mach_max=assumptions.altitude_mach_max,
+        CL_max_glide_ratio_go_around=0.6, #TODO: callibrte with the standard wing later on
+        glide_ratio_go_around=10.,
+        glide_ratio_mach_max=8.,
+        glide_ratio_cruise=13.,
+        airspeed_approach=55., #TODO callibrate with the standard win
+        time_half_turn=60.,
+        wing_loading=1200.,
+        efficiency_cruise=efficiency_cruise,
+        efficiency_mach_max=efficiency_mach_max,
+        efficiency_go_around=efficiency_go_around,
+        energy_density_saf=assumptions.energy_density_saf,
+        time_cruise=assumptions.time_cruise,
+        time_mach_max=assumptions.time_mach_max,
+        mach_cruise=assumptions.mach_cruise,
+        mach_max=assumptions.mach_max,
+        return_intermediate=True
+    )
+
+    MTOM=50. #TODO: replace with the test aircraft actual
+
+    print(f"Fuel mass at cruise ({assumptions.altitude_cruise} m, {assumptions.time_cruise} s) = {frac_cr*MTOM} kg")
+    print(f"Fuel mass at mach max ({assumptions.altitude_mach_max} m, {assumptions.time_mach_max} s) = {frac_mm*MTOM} kg")
+    print(f"Fuel mass at go-around ({assumptions.altitude_go_round} m, {assumptions.time_half_circle*2*CONSTANTS.N_LANDING_ATTEMPTS} s) = {frac_ga*MTOM} kg")
