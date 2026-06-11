@@ -35,31 +35,31 @@ class StructuralMatrices:
         self.skin_thicknesses=np.ones_like(self.wing_thicknesses)*self.skin_thickness
 
 
-    def kinetic_energy_b(self):
+    def a11(self) -> float:
+        multiplier =1.0  #dummy
+        integrand = self.chords #dummy
+        raise NotImplementedError("not yet implemented")
+        return multiplier*integrate.trapezoid(integrand,
+                                              self.y_stations)
 
-        # m * (doubleintegral 0-s and 0-c)((y/s)^4*q_dot_b+(y/s)^3*(x-x_f)*q_dot_t)dx*dy
-
-        return
-
-    def kinetic_energy_t(self):
-
-        # m * (doubleintegral 0-s and 0-c)((y/s)^3*(x-x_f)*q_dot_b+(y/s)^2*(x-x_f)^2*q_dot_t)dx*dy
-
-        return
-
-
-    def A_matrix(self):
-
-        a_bb = m*(   (n/6)*(s**2) + (rc/5)*s    )
-        a_bt = m*(    (n/5)*(s**2) + (rc/4)*s    )
-
-
-        return a_bb, a_bt, a_tb, a_tt
-
+    def a12(self) -> float:
+        raise NotImplementedError("not yet implemented")
+        return 0.0
+    
+    def a21(self) -> float:
+        raise NotImplementedError("not yet implemented")
+        return 0.0
+    
+    def a22(self) -> float:
+        
+        raise NotImplementedError("not yet implemented")
+        return 0.0
 
 
-    def elastic_energy_b(self):
-
-        # integral 
-
-        return
+    def A_matrix(self) -> np.matrix:
+        matrix = np.matrix([[self.a11(), self.a12()],
+                            [self.a21(), self.a22()]])
+        
+        raise NotImplementedError("not yet implemented")
+        
+        return matrix
