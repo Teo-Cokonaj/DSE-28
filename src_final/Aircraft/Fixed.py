@@ -11,6 +11,7 @@ from Drag.Component import Component
 
 # to do: add tail cone x location. (default tail upsweep is 15 degrees)
 class Fixed:
+    # NOTE: y_main_gear is the distance between the 2 wheels
     def __init__(self, mass:float, fuel_mass:float, x_cg_min:float, x_cg_max:float, x_tail_cone:float, z_cg:float, z_tail_cone:float, z_wing:float, x_LE_canard:float, x_LE_wing:float, x_LE_tail:float, x_nose_gear:float, 
                  x_main_gear:float, y_main_gear:float, fuselage:Fuselage, nose_gear:LandingGear, main_gear:LandingGear, 
                  engine_bay:Bay):

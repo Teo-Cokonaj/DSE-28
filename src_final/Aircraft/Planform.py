@@ -121,6 +121,14 @@ class Planform(Component):
         """Simplified downwash gradient dε/dα."""
         return 4 / (2 + self.aspect_ratio)
     
+    @property
+    def sweep_half_rad(self)->float:
+        return np.arctan(np.tan(self.sweep_LE_rad) - 0.5 * (2*self.c_root/self.span) * (1-self.taper))
+        
+    @property
+    def oswald(self)->float:
+        return 2/(2 - self.aspect_ratio + np.sqrt(4 + self.aspect_ratio**2 * (1 + np.tan(self.sweep_half_rad)**2)))
+    
     
     def sectional_properties(self,
                         number_of_sections)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
