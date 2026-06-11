@@ -39,7 +39,7 @@ class Assumptions():
         self.altitude_go_round = 1500 * .3048 # [m]
         self.time_half_circle = 60.0 # [s]
         self.omega_go_round = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
-        self.airfield_length = 1275. #m #TODO check with the actual airport
+        self.airfield_length = 1275. #m
         self.positive_manoeuvring_limit_load_factor=6.0 #CS-23 aerobatic
 
         #Structural properties
