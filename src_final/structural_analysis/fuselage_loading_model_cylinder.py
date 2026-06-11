@@ -124,8 +124,6 @@ class FuselageModel:
     def calculate_loads_flight(self,
                                load_factor: float,
                                ):
-        self.wing_torque*=load_factor
-        self.canard_torque*=load_factor
         self.total_aircraft_mass=np.sum(self.masses)
         self.L_canard=self.canard_lift_fraction*load_factor*self.total_aircraft_mass*CONSTANTS.G0
         self.center_of_mass_position=np.sum(self.nodes*self.masses*CONSTANTS.G0)/np.sum(self.masses*CONSTANTS.G0)
@@ -160,6 +158,7 @@ class FuselageModel:
         for loc, val in zip(locs, vals):
             self.external_moments[np.argmin(np.abs(self.nodes-loc))] += val
     
+        self.condition='flight'
         self.empennage_torque=self.calculate_empennage_torque()
 
         self.calculate_internal_loads()
@@ -208,17 +207,25 @@ class FuselageModel:
         self.rotational_acceleration = self.external_moment_sum_about_cg/self.MMOI_cg
         self.accelerations=abs(landing_deceleration_in_terms_of_g)*CONSTANTS.G0+self.rotational_acceleration*(self.nodes-self.center_of_mass_position)
 
+        self.condition='landing'
         self.empennage_torque=self.calculate_empennage_torque()
 
         self.calculate_internal_loads()
 
 
-    def calculate_empennage_torque(self) -> float:
+    def calculate_empennage_torque(self,
+                                   ) -> float:
         
-        atmosphere=Atmosphere(altitude=8230.0) #altitude of Mach max
         assumptions=Assumptions()
+        
+        if self.condition=='flight':
+            atmosphere=Atmosphere(altitude=8230.0) #altitude of Mach max
+            airspeed=float(assumptions.mach_max*atmosphere.speed_of_sound())
 
-        airspeed=float(assumptions.mach_max*atmosphere.speed_of_sound())
+        elif self.condition=='landing':
+            atmosphere=Atmosphere(0.0)
+            airspeed = 50.0
+
         dynamic_pressure=float(0.5*atmosphere.density()*airspeed**2)
         C_L_max=0.9*assumptions.VT_clmax #no sweep of VT, conservative
 
@@ -352,8 +359,9 @@ class FuselageModel:
         
         #plt.suptitle('suptitle')
         plt.tight_layout()
+        plt.savefig('internal_loads_'+self.condition+'.png')
         plt.show()
-
+        
 
     def plot_required_thickness(self):
         plt.figure(figsize=(10, 4))
@@ -362,7 +370,10 @@ class FuselageModel:
         plt.ylabel("Required skin thickness [mm]")
         #plt.title('title')
         plt.grid()
+        plt.savefig('thickness_'+self.condition+'.png')
         plt.show()
+        
+        
 
 
 if __name__=='__main__': 
@@ -400,50 +411,82 @@ if __name__=='__main__':
             flap=False,
         )
 
-        wing_model= WingModel(
-                 wing_skin_thickness_m =0.01,
+        wing_model_flight= WingModel(
+                 wing_skin_thickness_m =0.001,
                  number_of_nodes=100,
                  material_1 = material,
                  planform = planform_wing,
                  load_factor=9.0,
-                 local_fuselage_diameter=0.30
+                 local_fuselage_diameter=0.30,
+                 load_factor_maneuver=1.0
                  )
         
-        canard_model= WingModel(
-                 wing_skin_thickness_m =0.01,
+        canard_model_flight= WingModel(
+                 wing_skin_thickness_m =0.001,
                  number_of_nodes=100,
                  material_1 = material,
                  planform = planform_canard,
                  load_factor=9.0,
-                 local_fuselage_diameter=0.1
+                 local_fuselage_diameter=0.1,
+                 load_factor_maneuver=1.0
                  )
         
-        fuselage_model= FuselageModel(
+        fuselage_model_flight= FuselageModel(
                  minimum_fuselage_thickness_mm=0.1,
                  material=material,
+                 number_of_nodes=1000,
+                 canard_lift_fraction=0.2, 
+                 wing_model=wing_model_flight,
+                 canard_model=canard_model_flight            
+                 )
+        
+        wing_model_landing= WingModel(
+                 wing_skin_thickness_m =0.001,
                  number_of_nodes=100,
-                 canard_lift_fraction=0.1, 
-                 wing_model=wing_model,
-                 canard_model=canard_model            
+                 material_1 = material,
+                 planform = planform_wing,
+                 load_factor=4.0,
+                 local_fuselage_diameter=0.30,
+                 load_factor_maneuver=1.0
+                 )
+        
+        canard_model_landing= WingModel(
+                 wing_skin_thickness_m =0.001,
+                 number_of_nodes=100,
+                 material_1 = material,
+                 planform = planform_canard,
+                 load_factor=4.0,
+                 local_fuselage_diameter=0.1,
+                 load_factor_maneuver=1.0
+                 )
+        
+        fuselage_model_landing= FuselageModel(
+                 minimum_fuselage_thickness_mm=0.1,
+                 material=material,
+                 number_of_nodes=1000,
+                 canard_lift_fraction=0.2, 
+                 wing_model=wing_model_landing,
+                 canard_model=canard_model_landing            
                  )
         
         from pathlib import Path
         csv_path = Path(__file__).parent / "onshape_mass_distribution.csv"
-        fuselage_model.load_components_from_csv(str(csv_path))
-        fuselage_model.plot_mass_distribution()
-
-        fuselage_model.calculate_loads_flight(1.0)
-        fuselage_model.plot_applied_loads()
-        fuselage_model.plot_applied_moments()
-        fuselage_model.plot_shear_and_moment_diagrams()
-        fuselage_model.evaluate_thickness(maximum_allowed_thickness_mm=1.0,
+        fuselage_model_flight.load_components_from_csv(str(csv_path))
+        fuselage_model_flight.plot_mass_distribution()
+        fuselage_model_flight.calculate_loads_flight(9.0)
+        fuselage_model_flight.plot_applied_loads()
+        fuselage_model_flight.plot_applied_moments()
+        fuselage_model_flight.plot_shear_and_moment_diagrams()
+        fuselage_model_flight.evaluate_thickness(maximum_allowed_thickness_mm=1.0,
                                           thickness_step_mm=0.01)        
-        fuselage_model.plot_required_thickness()
+        fuselage_model_flight.plot_required_thickness()
 
-        fuselage_model.calculate_loads_landing(landing_deceleration_in_terms_of_g=4.0)
-        fuselage_model.plot_applied_loads()
-        fuselage_model.plot_applied_moments()
-        fuselage_model.plot_shear_and_moment_diagrams()
-        fuselage_model.evaluate_thickness(maximum_allowed_thickness_mm=1.0,
+        fuselage_model_landing.load_components_from_csv(str(csv_path))
+        fuselage_model_landing.plot_mass_distribution()
+        fuselage_model_landing.calculate_loads_landing(landing_deceleration_in_terms_of_g=4.0)
+        fuselage_model_landing.plot_applied_loads()
+        fuselage_model_landing.plot_applied_moments()
+        fuselage_model_landing.plot_shear_and_moment_diagrams()
+        fuselage_model_landing.evaluate_thickness(maximum_allowed_thickness_mm=1.0,
                                           thickness_step_mm=0.01)        
-        fuselage_model.plot_required_thickness()
+        fuselage_model_landing.plot_required_thickness()
