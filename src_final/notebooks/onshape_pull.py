@@ -6,7 +6,7 @@ import os
 # ===================================================================
 # CONFIG — Toggle what gets fetched from the API
 # ===================================================================
-UPDATE_MASSES = True   # True → hit assembly API (~80 calls). False → use mass_cache.json
+UPDATE_MASSES = False   # True → hit assembly API (~80 calls). False → use mass_cache.json
 MASS_CACHE_FILE = "mass_cache.json"
 
 # ===================================================================
