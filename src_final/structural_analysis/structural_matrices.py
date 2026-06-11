@@ -1,6 +1,3 @@
-#input properties: wing root chord, wing taper ratio, wing thickness, E, G, skin thickness
-#formulas: the integration, I, J for a hollow elipse
-
 import numpy as np
 import scipy.integrate as integrate
 import scipy.linalg as la
@@ -19,7 +16,7 @@ class StructuralMatrices:
                  planform: Planform,
                  material: Material,
                  skin_thickness: float,
-                 number_of_sections: int
+                 number_of_sections: int,
                  ):
         self.root_chord = planform.c_root
         self.wing_span = planform.span
@@ -35,30 +32,30 @@ class StructuralMatrices:
         self.skin_thicknesses=np.ones_like(self.wing_thicknesses)*self.skin_thickness
 
 
-    def a11(self) -> float:
+    def _a11(self) -> float:
         multiplier =1.0  #dummy
         integrand = self.chords #dummy
         raise NotImplementedError("not yet implemented")
         return multiplier*integrate.trapezoid(integrand,
                                               self.y_stations)
 
-    def a12(self) -> float:
+    def _a12(self) -> float:
         raise NotImplementedError("not yet implemented")
         return 0.0
     
-    def a21(self) -> float:
+    def _a21(self) -> float:
         raise NotImplementedError("not yet implemented")
         return 0.0
     
-    def a22(self) -> float:
+    def _a22(self) -> float:
         
         raise NotImplementedError("not yet implemented")
         return 0.0
 
 
     def A_matrix(self) -> np.matrix:
-        matrix = np.matrix([[self.a11(), self.a12()],
-                            [self.a21(), self.a22()]])
+        matrix = np.matrix([[self._a11(), self._a12()],
+                            [self._a21(), self._a22()]])
         
         raise NotImplementedError("not yet implemented")
         

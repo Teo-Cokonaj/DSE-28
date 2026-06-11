@@ -1,6 +1,3 @@
-#input properties: wing root chord, wing taper ratio, wing thickness, E, G, skin thickness
-#formulas: the integration, I, J for a hollow elipse
-
 import numpy as np
 import scipy.integrate as integrate
 import scipy.linalg as la
@@ -45,47 +42,47 @@ class AerodynamicMatrices:
         print('y_stations: ',self.y_stations)
 
 
-    def b11(self) -> float:
+    def _b11(self) -> float:
         multiplier = 0.5*self.atmosphere.density()*self.airspeed*self.wing_lift_slope
         integrand = (self.y_stations/self.half_span)**4*self.chords
 
         return multiplier*integrate.trapezoid(integrand,
                                               self.y_stations)
 
-    def b12(self) -> float:
+    def _b12(self) -> float:
 
         return 0.0
     
-    def b21(self) -> float:
+    def _b21(self) -> float:
         multiplier = -0.5*self.atmosphere.density()*self.airspeed*self.e*self.wing_lift_slope
         integrand = (self.y_stations/self.half_span)**3*self.chords**2
 
         return multiplier*integrate.trapezoid(integrand,
                                               self.y_stations)
     
-    def b22(self) -> float:
+    def _b22(self) -> float:
         multiplier = -0.5* self.atmosphere.density()*self.airspeed*self.M_thetadot/4
         integrand = (self.y_stations/self.half_span)**2*self.chords**3
 
         return multiplier*integrate.trapezoid(integrand,
                                               self.y_stations)
     
-    def c11(self) -> float:
+    def _c11(self) -> float:
 
         return 0.0
     
-    def c21(self) -> float:
+    def _c21(self) -> float:
 
         return 0.0
     
-    def c12(self) -> float:
+    def _c12(self) -> float:
         multiplier = 0.5*self.atmosphere.density()*self.airspeed**2*self.wing_lift_slope
         integrand = (self.y_stations/self.half_span)**3*self.chords
 
         return multiplier*integrate.trapezoid(integrand,
                                               self.y_stations)
     
-    def c22(self) -> float:
+    def _c22(self) -> float:
         multiplier = -0.5*self.atmosphere.density()*self.airspeed**2*self.e*self.wing_lift_slope*
         integrand =  (self.y_stations/self.half_span)**2*self.chords**2
 
@@ -94,13 +91,13 @@ class AerodynamicMatrices:
 
 
     def B_matrix(self) -> np.matrix:
-        matrix = np.matrix([[self.b11(), self.b12()],
-                            [self.b21(), self.b22()]])
+        matrix = np.matrix([[self._b11(), self._b12()],
+                            [self._b21(), self._b22()]])
         
         return matrix
     
     def C_matrix(self) -> np.matrix:
-        matrix = np.matrix([[self.c11(), self.c12()],
-                            [self.c21(), self.c22()]])
+        matrix = np.matrix([[self._c11(), self._c12()],
+                            [self._c21(), self._c22()]])
         
         return matrix
