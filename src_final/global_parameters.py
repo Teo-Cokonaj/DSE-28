@@ -46,10 +46,10 @@ class Assumptions():
         self.structural_safety_factor= 1.5 
         self.cfrp_density = 1600.0 # [kg/m^3]
         self.cfrp_yield_strength = 600e6 # [Pa]  
-        self.cfrp_Young_modulus = 80e9 # [Pa]
+        self.cfrp_Young_modulus = 68.5e9 # [Pa]
         self.cfrp_poisson = 0.048
         self.allowable_thicknesses = np.linspace(0.0004, 0.01) # [m]
-        self.foam_denisty = 100 #TODO verify # [kg/m3]
+        self.foam_denisty = 75 # [kg/m3]
 
         #Engine parameters
         self.energy_density_saf = 42.8e6 # [J/kg]       
