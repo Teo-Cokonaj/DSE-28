@@ -418,7 +418,8 @@ if __name__=='__main__':
                  planform = planform_wing,
                  load_factor=9.0,
                  local_fuselage_diameter=0.30,
-                 load_factor_maneuver=1.0
+                 inertial_load=1.0,
+                 cm=1.0
                  )
         
         canard_model_flight= WingModel(
@@ -428,7 +429,8 @@ if __name__=='__main__':
                  planform = planform_canard,
                  load_factor=9.0,
                  local_fuselage_diameter=0.1,
-                 load_factor_maneuver=1.0
+                 inertial_load=1.0,
+                 cm=1.0
                  )
         
         fuselage_model_flight= FuselageModel(
@@ -445,9 +447,10 @@ if __name__=='__main__':
                  number_of_nodes=100,
                  material_1 = material,
                  planform = planform_wing,
-                 load_factor=4.0,
                  local_fuselage_diameter=0.30,
-                 load_factor_maneuver=1.0
+                 load_factor=4.0,
+                 inertial_load=1.0,
+                 cm=1.0
                  )
         
         canard_model_landing= WingModel(
@@ -457,7 +460,8 @@ if __name__=='__main__':
                  planform = planform_canard,
                  load_factor=4.0,
                  local_fuselage_diameter=0.1,
-                 load_factor_maneuver=1.0
+                 inertial_load=1.0,
+                 cm=1.0
                  )
         
         fuselage_model_landing= FuselageModel(
