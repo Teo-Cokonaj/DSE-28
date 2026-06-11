@@ -60,7 +60,7 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
         are_we_buckling = wing_model.wing_stres_per_com()
         normal_stress = wing_model.bending_stresses()
 
-        print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}, {thickness}")
+        #print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}, {thickness}")
 
         if (np.max(shear_stress) < material.fracture_strength / 3) and (np.any(are_we_buckling) > 0) and (np.max(np.abs(normal_stress)) < material.fracture_strength / 1.5):
             return thickness

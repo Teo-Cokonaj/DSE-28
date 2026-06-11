@@ -6,6 +6,7 @@ from numba import njit
 import itertools as itt
 import aerosandbox as asb
 import pathlib
+import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -70,31 +71,79 @@ standard_wing.mass_cache = 3.
 standard_wing.x_cg_cache = 0.2
 
 
-tail_ARs = np.arange(0, 1.5, 0.5)
 
-AR_mass_list = []
+def AR_variation(AR_min: float = 0.5,
+                 AR_max: float = 10,
+                 dAR: float = 0.5,
+                 surface: str = "tail",
+                 ):
+
+    requirements = [MassReq(50.), MDReq(), FuelReq(), LGReq(), EmpennageReq()]
+    requirement_labels = ["MTOM", "Matching Diagram", "Fuel", "Landing Gear", "Empennage"]
+
+    ARs = np.arange(AR_min, AR_max + dAR, dAR)
+    AR_mass_list = []
+    AR_req_list = []
+
+    for AR in ARs:
+
+        if surface == "tail":
+            surfaces = TailFinder(fixed, material=material_skin, core_density=assumptions.foam_denisty,
+                                  thicknesses=assumptions.allowable_thicknesses,
+                                  safety_factor=assumptions.structural_safety_factor,
+                                  AR_h=AR, taper_h=.7, taper_v=.8).find_planforms(standard_wing)
+        elif surface == "canard":
+            surfaces = CanardFinder(fixed, material=material_skin, core_density=assumptions.foam_denisty,
+                                    thicknesses=assumptions.allowable_thicknesses,
+                                    safety_factor=assumptions.structural_safety_factor,
+                                    AR_c=AR, taper_c=.7, taper_v=.8).find_planforms(standard_wing)
+        else:
+            raise ValueError(f"surface must be 'tail' or 'canard', got '{surface}'")
+
+        for s in surfaces:
+            s.add_cache_entry('cruise', assumptions.mach_cruise, assumptions.altitude_cruise)
+            s.add_cache_entry('mach_max', assumptions.mach_max, assumptions.altitude_mach_max)
+            s.add_cache_entry('go_around', assumptions.airspeed_approach / go_around_atmosphere.speed_of_sound(), assumptions.altitude_go_round)
+            s.add_cache_entry('takeoff', assumptions.airspeed_approach / sea_level_atmosphere.speed_of_sound(), 0.)
+
+        ac = Aircraft(fixed, [standard_wing] + surfaces)
+        AR_mass_list.append((float(AR), float(ac.total_mass())))
+        AR_req_list.append({
+            "AR": float(AR),
+            **{label: requirement.assess(ac) for requirement, label in zip(requirements, requirement_labels)}
+        })
+
+    AR_mass_array = np.array(AR_mass_list)
+
+    return AR_mass_array, AR_req_list
 
 
-for AR in tail_ARs:
+if __name__ == "__main__":
+    tail_sensitivity, tail_reqs = AR_variation(surface="tail")
+    canard_sensitivity, canard_reqs = AR_variation(surface="canard")
 
-    tail = TailFinder(fixed, material=material_skin, core_density=assumptions.foam_denisty, thicknesses=assumptions.allowable_thicknesses, 
-                  safety_factor=assumptions.structural_safety_factor, AR_h=AR, taper_h=.7, taper_v=.8).find_planforms(standard_wing)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
-    #print(tail[0].wing_area / standard_wing.wing_area)
+    ax1.plot(tail_sensitivity[:, 0], tail_sensitivity[:, 1])
+    ax1.set_xlabel("Aspect Ratio")
+    ax1.set_ylabel("Total Mass")
+    ax1.set_title("AR sweep — Tail")
 
-    for t in tail:
-        t.add_cache_entry('cruise', assumptions.mach_cruise, assumptions.altitude_cruise)
-        t.add_cache_entry('mach_max', assumptions.mach_max, assumptions.altitude_mach_max)
-    #NOTE: not fully technically correct but prevents coupling which would be problematic, acceptable as CD0 dept. on mach is small @ low mach
-        t.add_cache_entry('go_around', assumptions.airspeed_approach / go_around_atmosphere.speed_of_sound(), assumptions.altitude_go_round)
-        t.add_cache_entry('takeoff', assumptions.airspeed_approach / sea_level_atmosphere.speed_of_sound(), 0.)
+    ax2.plot(canard_sensitivity[:, 0], canard_sensitivity[:, 1])
+    ax2.set_xlabel("Aspect Ratio")
+    ax2.set_ylabel("Total Mass")
+    ax2.set_title("AR sweep — Canard")
 
+    plt.tight_layout()
+    plt.show()
 
-    ac = Aircraft(fixed, [standard_wing] + tail)
+    # example: print failing ARs per requirement
+    for entry in tail_reqs:
+        failed = [k for k, v in entry.items() if k != "AR" and not v]
+        if failed:
+            print(f"Tail AR={entry['AR']:.1f} failed: {failed}")
 
-    AR_mass_list.append((AR, ac.total_mass))
-
-    print(AR_mass_list)
-
-
-
+    for entry in canard_reqs:
+        failed = [k for k, v in entry.items() if k != "AR" and not v]
+        if failed:
+            print(f"Canard AR={entry['AR']:.1f} failed: {failed}")

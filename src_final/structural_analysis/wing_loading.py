@@ -57,7 +57,7 @@ class WingModel:
         self.span_poz = np.asarray(self.span_poz, dtype=float)
         self.lift_span = np.asarray(self.lift_span, dtype=float) * self.load_factor_m
         self.chord_stations = np.asarray(self.chord_stations, dtype=float)
-        print(np.sum(self.lift_span)/9.81)
+        #print(np.sum(self.lift_span)/9.81)
         return self.span_poz, self.lift_span, self.chord_stations, self.y_stations_chord, self.dy
     
 
