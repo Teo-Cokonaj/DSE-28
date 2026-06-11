@@ -55,7 +55,13 @@ material_skin = Material(assumptions.cfrp_density, elastic_modulus=assumptions.c
                          yield_strength=assumptions.cfrp_yield_strength, fracture_strength=assumptions.cfrp_yield_strength)
 
 fuselage_diameter = fixed.fuselage.diameter_max
-size_planform(planform=standard_wing, thicknesses=assumptions.allowable_thicknesses, fuselage_diameter=fuselage_diameter, material_skin=material_skin, density_core=assumptions.foam_denisty) 
+size_planform(planform=standard_wing, 
+              thicknesses=assumptions.allowable_thicknesses, 
+              fuselage_diameter=fuselage_diameter, 
+              material_skin=material_skin, 
+              density_core=assumptions.foam_denisty, 
+              #safety_factor,
+              ) 
 
 
 go_around_atmosphere = asb.Atmosphere(assumptions.altitude_go_round)
@@ -88,15 +94,25 @@ def AR_variation(AR_min: float = 0.5,
     for AR in ARs:
 
         if surface == "tail":
-            surfaces = TailFinder(fixed, material=material_skin, core_density=assumptions.foam_denisty,
+            surfaces = TailFinder(fixed, 
+                                  material=material_skin, 
+                                  core_density=assumptions.foam_denisty,
                                   thicknesses=assumptions.allowable_thicknesses,
                                   safety_factor=assumptions.structural_safety_factor,
-                                  AR_h=AR, taper_h=.7, taper_v=.8).find_planforms(standard_wing)
+                                  AR_h=AR,                                                                  
+                                  taper_h=.7, 
+                                  taper_v=.8).find_planforms(standard_wing)
+            
         elif surface == "canard":
-            surfaces = CanardFinder(fixed, material=material_skin, core_density=assumptions.foam_denisty,
+            surfaces = CanardFinder(fixed, 
+                                    material=material_skin, 
+                                    core_density=assumptions.foam_denisty,
                                     thicknesses=assumptions.allowable_thicknesses,
                                     safety_factor=assumptions.structural_safety_factor,
-                                    AR_c=AR, taper_c=.7, taper_v=.8).find_planforms(standard_wing)
+                                    AR_c=AR,                                                                 
+                                    taper_c=.7, 
+                                    taper_v=.8).find_planforms(standard_wing)
+            
         else:
             raise ValueError(f"surface must be 'tail' or 'canard', got '{surface}'")
 
@@ -118,26 +134,96 @@ def AR_variation(AR_min: float = 0.5,
     return AR_mass_array, AR_req_list
 
 
+
+def SF_variation(SF_min: float = 1.0,
+                 SF_max: float = 2.5,
+                 dSF: float = 0.1,
+                 ):
+
+    requirements = [MassReq(50.), MDReq(), FuelReq(), LGReq(), EmpennageReq()]
+    requirement_labels = ["MTOM", "Matching Diagram", "Fuel", "Landing Gear", "Empennage"]
+
+    SFs = np.arange(SF_min, SF_max + dSF, dSF)
+    SF_mass_list = []
+    SF_req_list = []
+
+    for SF in SFs:
+        size_planform(planform=standard_wing, 
+                      thicknesses=assumptions.allowable_thicknesses, 
+                      fuselage_diameter=fuselage_diameter,
+                      material_skin=material_skin, 
+                      density_core=assumptions.foam_denisty, 
+                      safety_factor=SF)
+        
+        tail = TailFinder(fixed, 
+                                  material=material_skin, 
+                                  core_density=assumptions.foam_denisty,
+                                  thicknesses=assumptions.allowable_thicknesses,
+                                  safety_factor=SF,
+                                  AR_h=3,                                                                       # might not need to be hardcoded...
+                                  taper_h=.7, 
+                                  taper_v=.8).find_planforms(standard_wing)
+        
+        canard = CanardFinder(fixed, 
+                                    material=material_skin, 
+                                    core_density=assumptions.foam_denisty,
+                                    thicknesses=assumptions.allowable_thicknesses,
+                                    safety_factor=SF,
+                                    AR_c=3,                                                                     # might not need to be hardcoded...
+                                    taper_c=.7, 
+                                    taper_v=.8).find_planforms(standard_wing)
+        
+        for s in tail + canard:
+                s.add_cache_entry('cruise', assumptions.mach_cruise, assumptions.altitude_cruise)
+                s.add_cache_entry('mach_max', assumptions.mach_max, assumptions.altitude_mach_max)
+                s.add_cache_entry('go_around', assumptions.airspeed_approach / go_around_atmosphere.speed_of_sound(), assumptions.altitude_go_round)
+                s.add_cache_entry('takeoff', assumptions.airspeed_approach / sea_level_atmosphere.speed_of_sound(), 0.)
+
+        ac_tail = Aircraft(fixed, [standard_wing] + tail)
+        ac_canard = Aircraft(fixed, [standard_wing] + canard)
+
+        SF_mass_list.append((float(SF), float(ac_tail.total_mass()), float(ac_canard.total_mass())))
+        SF_req_list.append({
+            "SF": float(SF),
+            **{f"tail_{label}": bool(requirement.assess(ac_tail)) for requirement, label in zip(requirements, requirement_labels)},
+            **{f"canard_{label}": bool(requirement.assess(ac_canard)) for requirement, label in zip(requirements, requirement_labels)},
+        })
+
+    SF_mass_array = np.array(SF_mass_list)
+
+    return SF_mass_array, SF_req_list
+
+
 if __name__ == "__main__":
+
+    SF_mass_array, SF_req_list = SF_variation()
     tail_sensitivity, tail_reqs = AR_variation(surface="tail")
     canard_sensitivity, canard_reqs = AR_variation(surface="canard")
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
-    ax1.plot(tail_sensitivity[:, 0], tail_sensitivity[:, 1])
-    ax1.set_xlabel("Aspect Ratio")
+    ax1.plot(SF_mass_array[:, 0], SF_mass_array[:, 1], label="Tail")
+    ax1.plot(SF_mass_array[:, 0], SF_mass_array[:, 2], label="Canard")
+    ax1.set_xlabel("Safety Factor")
     ax1.set_ylabel("Total Mass")
-    ax1.set_title("AR sweep — Tail")
+    ax1.set_title("Safety Factor Sensitivity — MTOM")
+    ax1.legend()
 
-    ax2.plot(canard_sensitivity[:, 0], canard_sensitivity[:, 1])
+    ax2.plot(tail_sensitivity[:, 0], tail_sensitivity[:, 1], label="Tail")
+    ax2.plot(canard_sensitivity[:, 0], canard_sensitivity[:, 1], label="Canard")
     ax2.set_xlabel("Aspect Ratio")
     ax2.set_ylabel("Total Mass")
-    ax2.set_title("AR sweep — Canard")
+    ax2.set_title("AR Sensitivity — MTOM")
+    ax2.legend()
 
     plt.tight_layout()
     plt.show()
 
-    # example: print failing ARs per requirement
+    for entry in SF_req_list:
+        failed = [k for k, v in entry.items() if k != "SF" and not v]
+        if failed:
+            print(f"SF={entry['SF']:.2f} failed: {failed}")
+
     for entry in tail_reqs:
         failed = [k for k, v in entry.items() if k != "AR" and not v]
         if failed:
