@@ -88,7 +88,7 @@ class StructuralMatrices:
         return matrix
 
     
-    def _I(self) -> np.ndarray:
+    def I(self) -> np.ndarray:
         a = self.chords/2
         b = self.thickness_to_chord * self.chords/2
         t = self.skin_thickness
@@ -100,7 +100,7 @@ class StructuralMatrices:
         return I
     
 
-    def _J(self) -> np.ndarray:
+    def J(self) -> np.ndarray:
         a = self.chords/2
         b = self.thickness_to_chord * self.chords/2
         t = self.skin_thickness
@@ -111,12 +111,12 @@ class StructuralMatrices:
         return J
 
     def _e11(self) -> float:
-        integrand = (4*self.E*self._I())/(self.semi_span**3)
+        integrand = (4*self.E*self.I())/(self.semi_span**3)
         return integrate.trapezoid(integrand,
                                               self.y_stations)
 
     def _e22(self) -> float:
-        integrand = (self.G*self._J())/(self.semi_span)
+        integrand = (self.G*self.J())/(self.semi_span)
         return integrate.trapezoid(integrand,
                                               self.y_stations)
     

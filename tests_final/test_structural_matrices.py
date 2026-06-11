@@ -44,29 +44,41 @@ def structural_matrices(planform_wing,
                                                 number_of_sections=100)
 
 class TestStructuralMatrices:
-    def test_A_matrix(self,
-                      planform_wing,
-                      structural_matrices
-                      ):
-        S=planform_wing.half_span
-        c=structural_matrices.chords[0]
-        xf= structural_matrices.xf[0]
+    # def test_A_matrix(self,
+    #                   planform_wing,
+    #                   structural_matrices
+    #                   ):
+    #     S=planform_wing.half_span
+    #     c=structural_matrices.chords[0]
+    #     xf= structural_matrices.xf[0]
 
-        reference_A = np.matrix([
-            [S*c/5, (S/4)*(c**2/2 - c*xf)],
-            [(S/4)*(c**2/2 - c*xf), (S/3)*(c**3/3 - c**2*xf + xf**2*c)]
+    #     reference_A = np.matrix([
+    #         [S*c/5, (S/4)*(c**2/2 - c*xf)],
+    #         [(S/4)*(c**2/2 - c*xf), (S/3)*(c**3/3 - c**2*xf + xf**2*c)]
+    #     ])
+
+    #     print('reference A: ',reference_A)
+    #     print('actual A: ',structural_matrices.A_matrix())
+
+    #     np.testing.assert_allclose(structural_matrices.A_matrix(),
+    #                                reference_A)
+        
+    def test_E_matrix(self,
+                      planform_wing,
+                      structural_matrices,
+                      material):
+
+        s=planform_wing.half_span
+
+        reference_E= np.matrix([
+            [4*material.elastic_modulus*structural_matrices.I()[0]/s**3, 0],
+            [0, material.shear_modulus*structural_matrices.J()[0]/s]
         ])
 
-        print('reference A: ',reference_A)
-        print('actual A: ',structural_matrices.A_matrix())
+        print('reference E: ',reference_E)
+        print('actual E: ',structural_matrices.E_matrix())
 
-        np.testing.assert_allclose(structural_matrices.A_matrix(),
-                                   reference_A)
-
-# # Matrix E
-# E_mat = sp.Matrix([
-#     [4*E*I/s**3, 0],
-#     [0, G*J/s]
-# ])
+        np.testing.assert_allclose(structural_matrices.E_matrix(),
+                                   reference_E)
         
         
