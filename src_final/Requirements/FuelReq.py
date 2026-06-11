@@ -41,7 +41,7 @@ class FuelReq(Requirement):
 
         fuel_mass_required = aircraft.total_mass() * total_mass_fraction
 
-        print(f'Fuel available: {fuel_mass_available} kg')
-        print(f'Fuel required: {fuel_mass_required} kg')
-        print(f'Difference: {-fuel_mass_required+fuel_mass_available} kg')
+        #print(f'Fuel available: {fuel_mass_available} kg')
+        #print(f'Fuel required: {fuel_mass_required} kg')
+        #print(f'Difference: {-fuel_mass_required+fuel_mass_available} kg')
         return fuel_mass_available >= fuel_mass_required
