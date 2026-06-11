@@ -49,7 +49,10 @@ def wing_model(material, planform):
         number_of_nodes=4,
         material_1=material,
         planform=planform,
-        load_factor=6,
+        load_factor=1,
+        load_factor_maneuver=1,
+        local_fuselage_diameter=0.31
+
     )
 
     chord_stations, _, y_stations, dy = planform.sectional_properties(

@@ -238,24 +238,6 @@ class WingModel:
         return theta, displacement
 
 
-#     def step_crushing_pressure(self,
-#                          moments: np.ndarray | None = None,
-#                                ):
-#         if moments is None:
-#               M = self.step_moment(False,False)
-#         else:
-#              M = np.asarray(moments,dtype = float)
-        
-#         Ix = self.area_moment_inertia()[0]
-#         crushing_pressure = (
-#         self.wing_skin_thickness_m
-#         * self.chord_stations
-#         * M**2
-#         / (2 * self.material_1.elastic_modulus * Ix)
-# )           
-#         print(crushing_pressure)
-#         return crushing_pressure
-
     def buckling_model(self):
         C = 4 #from SAD
         #b = planform.span/(2*self.rib_number)
