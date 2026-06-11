@@ -23,7 +23,9 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
                     material_1 = material,
                     planform = planform,
                     load_factor = load_factor,
-                    load_factor_maneuver=load_factor_maneuver,
+                    inertial_load=1.,
+                    cm=planform.cm_quarter_chord,
+                    V=200.,
                     local_fuselage_diameter=fuselage_diameter
                     )
         wing_model.planform_data(diameter_fuselage=fuselage_diameter)
@@ -62,7 +64,7 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
 
         print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}, {thickness}")
 
-        if (np.max(shear_stress) < material.fracture_strength / 3) and (np.any(are_we_buckling) > 0) and (np.max(np.abs(normal_stress)) < material.fracture_strength / 1.5):
+        if (np.max(shear_stress) < material.fracture_strength / 3) and (np.any(are_we_buckling) > 0) and (np.max(np.abs(normal_stress)) < material.fracture_strength / 1.5) and (np.max(np.abs(twist_deg))<10.) and (np.max(np.abs(deflection_m)) < .15*planform.span):
             return thickness
         
     raise ValueError("None of the provided material thicknesses satisfy the constraints")
