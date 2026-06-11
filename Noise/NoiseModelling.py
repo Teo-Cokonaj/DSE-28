@@ -19,6 +19,15 @@ b_tail=2
 nu=CONSTANTS.DYNAMIC_VISCOSITY_SEA_LEVEL 
 asm=Assumptions()
 
+
+r=asm.altitude_cruise
+atm =aerosandbox.Atmosphere(altitude=r)
+V_mach_cruise=atm.speed_of_sound()*asm.mach_cruise
+V_take_off=150/3.6
+r=asm.altitude_mach_max
+V_mach_max=atm.speed_of_sound()*asm.mach_max
+V_landing=150/3.6*1.3
+
 x=[]
 y=[]
 z=[]
@@ -74,16 +83,17 @@ class Noise():
         r=asm.altitude_cruise
         atm =aerosandbox.Atmosphere(altitude=r)
         V=atm.speed_of_sound()*asm.mach_cruise
+        V=V_mach_max
         for i in range(0,d,1):
             rit=r/(np.sin(np.pi/1000+i*np.pi/1.01/d))
             for f in range(200,15000,20):
-                z.append(i)
+                z.append(i-1000)
                 x.append(f)
                 Result=self.SPL(f,S,b,theta,V,2,rit)
                 y.append(Result.real)
         
         plt.figure()
-        sc = plt.scatter(z, x, c=y, cmap='viridis', s=40)
+        sc = plt.scatter(z, x, c=y, cmap='magma', s=40,vmin=0, vmax=40)
         plt.colorbar(sc, label='SPL (in decibels)')
         plt.xlabel('x')
         plt.ylabel('y')
@@ -91,21 +101,19 @@ class Noise():
         plt.show()
         return ("done")
         
-        
-    #def FlightProfile(self,):
-    
+
     def plotOperation(self,S,b,theta):
         x=[]
         y=[]
         z=[]
-        def FlightProfile(c1,c2,t):
+        def FlightProfile(c1,c2,t,V1,V2):
             for f in range(200,15000,20):
                         z.append(i)
                         x.append(f)
                         if (i<=t+200 and t<=i):
-                            Result=self.SPL(f,S,b,theta,V,c1,r)*(1-(i-t)/200)+self.SPL(f,S,b,theta,V,c2,r)*(((i-t)/200))
+                            Result=self.SPL(f,S,b,theta,V1,c1,r)*(1-(i-t)/200)+self.SPL(f,S,b,theta,V2,c2,r)*(((i-t)/200))
                         else:
-                            Result=self.SPL(f,S,b,theta,V,c2,r)
+                            Result=self.SPL(f,S,b,theta,V2,c2,r)
                             
                         y.append(Result.real)
             return ("fisk")
@@ -114,8 +122,8 @@ class Noise():
      
         #take-off
         for i in range(0,t,1):
-            V=150/3.6
-            r=100+asm.altitude_cruise/t*i
+            V=150/3.6+0.9*V_mach_cruise/1000*i
+            r=10+asm.altitude_cruise/t*i
             for f in range(200,15000,20):
                 z.append(i)
                 x.append(f)
@@ -129,7 +137,7 @@ class Noise():
             r=asm.altitude_cruise
             atm =aerosandbox.Atmosphere(altitude=r)
             V=atm.speed_of_sound()*asm.mach_cruise
-            FlightProfile(2,1,t)
+            FlightProfile(2,1,t,150/3.6+0.9*V_mach_cruise,V_mach_cruise)
 
         
         #Max cruise
@@ -139,7 +147,7 @@ class Noise():
             r=asm.altitude_mach_max
             atm = aerosandbox.Atmosphere(altitude=r)
             V=atm.speed_of_sound()*asm.mach_max
-            FlightProfile(1,2,t)
+            FlightProfile(1,2,t,V_mach_cruise,V_mach_max)
 
         t=t+1+int(asm.time_mach_max)       
         
@@ -148,18 +156,19 @@ class Noise():
             r=asm.altitude_cruise
             atm = aerosandbox.Atmosphere(altitude=r)
             V=atm.speed_of_sound()*asm.mach_cruise
-            FlightProfile(2,1,t)
+            FlightProfile(2,1,t,V_mach_max,V_mach_cruise)
 
         t=t+1+int(asm.time_cruise/2)
-        print(t)
+
         #Landing approach 
-        for i in range(t,t+100,1):
-            r=100
+        for i in range(t,t+400,1):
+            r=100+asm.altitude_cruise*(1-(i-t)/400)
             V=150/3.6*1.3
-            FlightProfile(1,0,t)
+            FlightProfile(1,0,t,V_mach_cruise,V_landing)
+        
         
         plt.figure()
-        sc = plt.scatter(z, x, c=y, cmap='viridis', s=10,vmin=0, vmax=80)
+        sc = plt.scatter(z, x, c=y, cmap='viridis', s=10,vmin=0, vmax=60)
         plt.colorbar(sc, label='SPL (in decibels)')
         plt.xlabel('x')
         plt.ylabel('y')
@@ -169,11 +178,10 @@ class Noise():
         
        
                 
-           
-    
+        
 noise = Noise()
-#noise.plotFlyover(S,b,theta,V,2,1000,2000)
-noise.plotOperation(S,b,theta)
+noise.plotFlyover(S,b,theta,V_mach_max,2,1000,2000)
+#noise.plotOperation(S,b,theta)
 
 
 
