@@ -6,15 +6,15 @@ import os
 # ===================================================================
 # CONFIG — Toggle what gets fetched from the API
 # ===================================================================
-UPDATE_MASSES = True    # True → hit assembly API (~80 calls). False → use mass_cache.json
+UPDATE_MASSES = True   # True → hit assembly API (~80 calls). False → use mass_cache.json
 MASS_CACHE_FILE = "mass_cache.json"
 
 # ===================================================================
 # ONSHAPE API CREDENTIALS
 # ===================================================================
 API_URL = "https://cad.onshape.com"
-ACCESS_KEY = 'on_jsbnmgzkR9IhNJP5epMsG'
-SECRET_KEY = 'Y9yIoS8lTX8XJLIlL13O43FsZPPm1HZo10LrqhxjoK4ZHoxg'
+ACCESS_KEY = 'on_wkiWin3a4Nq7pTbfVt7pB'
+SECRET_KEY = '0vS06G7KDpVeP6wsFl2j4giQN93UbakaPwhqGmUmIPeR1sVm'
 
 # Assembly API uses separate keys (from extractandsave.py)
 ASSEMBLY_ACCESS_KEY = "on_ZZzfBxwa3TC6GxkWekaqt"
@@ -23,7 +23,7 @@ ASSEMBLY_SECRET_KEY = "tS7EE3Ilnx6XvREH1Ncm2bT3fFc8tfcpuApd3MbJf9boA2KH"
 # --- TARGET IDs ---
 DID = "e17cbed2e815359ba964f636"
 WID = "0bc6fdd770562c4aa0c2a839"
-ASSEMBLY_WID = "93d2dfcb61f932badc048181"
+ASSEMBLY_WID = "0bc6fdd770562c4aa0c2a839"
 ASSEMBLY_EID = "1f24790f90e799bbc1eb8f34"
 
 FUSELAGE_STUDIO_EID = "cd8303f96be0e5a01a796829"
@@ -374,7 +374,7 @@ def is_fuel_component(name):
 def compute_cg(components, include_fuel_1=True, include_fuel_2=True):
     """
     Compute total mass and CG given a list of components.
-    Can exclude fuel tanks to find CG envelope bounds.
+    Excludes suppressed parts and can exclude fuel tanks to find CG bounds.
     Returns (total_mass, cg_x, cg_y, cg_z).
     """
     total_mass = 0.0
@@ -382,14 +382,21 @@ def compute_cg(components, include_fuel_1=True, include_fuel_2=True):
     moment_y = 0.0
     moment_z = 0.0
 
+    # Define parts to universally ignore (substring match ignores instance numbers)
+    EXCLUDED_PARTS = ["Canard", "Wing_Port_Cover", "Wing Port Foam"]
+
     for c in components:
         mass = c["mass"]
         name = c["name"]
 
-        # Skip fuel tanks based on flags
-        if name == "Fuel <1>" and not include_fuel_1:
+        # 1. Skip universally excluded parts (suppressed in CAD)
+        if any(excluded in name for excluded in EXCLUDED_PARTS):
             continue
-        if name == "Fuel <2>" and not include_fuel_2:
+
+        # 2. Skip fuel tanks based on flags (using substring match for robustness)
+        if "Fuel" in name and "<1>" in name and not include_fuel_1:
+            continue
+        if "Fuel" in name and "<2>" in name and not include_fuel_2:
             continue
 
         total_mass += mass
@@ -424,9 +431,9 @@ def compute_cg_scenarios(components):
     x_cg_min = min(cg_x_t1_only, cg_x_t2_only)
     x_cg_max = max(cg_x_t1_only, cg_x_t2_only)
 
-    # Also extract individual fuel masses for reference
-    fuel_1_mass = sum(c["mass"] for c in components if c["name"] == "Fuel <1>")
-    fuel_2_mass = sum(c["mass"] for c in components if c["name"] == "Fuel <2>")
+    # Extract individual fuel masses for reference (using substring match)
+    fuel_1_mass = sum(c["mass"] for c in components if "Fuel" in c["name"] and "<1>" in c["name"])
+    fuel_2_mass = sum(c["mass"] for c in components if "Fuel" in c["name"] and "<2>" in c["name"])
     fuel_total = fuel_1_mass + fuel_2_mass
 
     return {
@@ -441,7 +448,6 @@ def compute_cg_scenarios(components):
         "x_cg_t1_only": cg_x_t1_only,
         "x_cg_t2_only": cg_x_t2_only,
     }
-
 
 # ---------------------------------------------------------------------------
 # 4. PRETTY PRINT
