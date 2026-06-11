@@ -20,7 +20,7 @@ class AerodynamicMatrices:
                  number_of_sections: int,
                  airspeed: float,
                  altitude_m: float,
-                 elastic_axis_fractional_position: float = 0.5
+                 fractional_distance_e: float = 0.25
                  ):
         self.root_chord = planform.c_root
         self.wing_span = planform.span
@@ -37,7 +37,7 @@ class AerodynamicMatrices:
         self.airspeed=airspeed
         self.atmosphere=Atmosphere(altitude_m)
         self.half_span = planform.half_span
-        self.e = elastic_axis_fractional_position
+        self.e = fractional_distance_e
         self.M_thetadot = -1.2 #do not change this
         print('y_stations: ',self.y_stations)
 

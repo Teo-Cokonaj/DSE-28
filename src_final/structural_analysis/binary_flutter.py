@@ -165,7 +165,7 @@ if __name__=='__main__':
                   material=material,
                   skin_thickness=1.0,
                   number_of_sections=100,
-                  elastic_axis_fractional_position = 0.5
+                  elastic_axis_fractional_position = 0.25
                   )
     
     plot_flutter_diagram(airspeeds=airspeeds,
