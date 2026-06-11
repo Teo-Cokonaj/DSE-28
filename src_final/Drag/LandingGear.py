@@ -9,7 +9,7 @@ from Drag.Component import Component
 
 class LandingGear(Component):
     def __init__(self, wheel_width:float, exposed_height:float, wheel_diameter:float, strut_width:float):
-        super().__init__(0., 0., 0., 0., 0.)
+        super().__init__(1., 1., 1., 0.1)
 
         width_total = wheel_width + strut_width
         height_total = exposed_height + wheel_diameter / 2
@@ -21,3 +21,6 @@ class LandingGear(Component):
 
     def drag_area_contribution(self, mach) -> float:
         return self._drag_area
+    
+    def form_factor(self, mach):
+        return 0.
