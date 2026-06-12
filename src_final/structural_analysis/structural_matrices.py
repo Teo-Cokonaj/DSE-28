@@ -49,6 +49,7 @@ class StructuralMatrices:
             return df[mask].iloc[0]["Mass (kg)"]
         
         self.main_wing_mass = get_mass("Main Wing")
+        
         self.mass_per_unit_area = self.main_wing_mass / self.main_wing_area
 
     def I(self) -> np.ndarray:
@@ -58,7 +59,11 @@ class StructuralMatrices:
         a_i = a-t
         b_i = b-t
 
-        I = (np.pi / 4) * (a * b**3 - a_i * b_i**3)
+        I = np.where(
+            b_i <= 0.0,
+            (np.pi / 4) * (a * b**3),
+            (np.pi / 4) * (a * b**3 - a_i * b_i**3)
+        )
 
         return I
 
@@ -66,10 +71,15 @@ class StructuralMatrices:
         a = self.chords/2
         b = self.thickness_to_chord * self.chords/2
         t = self.skin_thickness
-        U = np.pi * (a+b-t)*(1 + 0.258 * ((a-b)**2)/((a+b-t)**2))
-        
-        J = (4 * (np.pi**2) * t * ((a - 0.5 * t)**2 * (b + 0.5 * t)**2))/U
 
+        q=(b-t)/b
+
+        J = np.where(
+            q <= 0.0,
+            np.pi*a**3*b**3/(a**2+b**2),
+            np.pi*a**3*b**3/(a**2+b**2)*(1-q**4)
+        )
+        
         return J
 
     def _a11(self) -> float:
