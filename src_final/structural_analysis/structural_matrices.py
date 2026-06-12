@@ -111,12 +111,12 @@ class StructuralMatrices:
         return J
 
     def _e11(self) -> float:
-        integrand = (4*self.E*self.I())/(self.semi_span**3)
+        integrand = (4*self.E*self.I())/(self.semi_span**4)
         return integrate.trapezoid(integrand,
                                               self.y_stations)
 
     def _e22(self) -> float:
-        integrand = (self.G*self.J())/(self.semi_span)
+        integrand = (self.G*self.J())/(self.semi_span**2)
         return integrate.trapezoid(integrand,
                                               self.y_stations)
     

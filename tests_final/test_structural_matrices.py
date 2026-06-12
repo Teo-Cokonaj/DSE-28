@@ -44,24 +44,33 @@ def structural_matrices(planform_wing,
                                                 number_of_sections=100)
 
 class TestStructuralMatrices:
-    # def test_A_matrix(self,
-    #                   planform_wing,
-    #                   structural_matrices
-    #                   ):
-    #     S=planform_wing.half_span
-    #     c=structural_matrices.chords[0]
-    #     xf= structural_matrices.xf[0]
+    def test_A_matrix(self,
+                      planform_wing,
+                      structural_matrices
+                      ):
+        S=planform_wing.half_span
+        c=structural_matrices.chords[0]
+        xf= structural_matrices.xf[0]
+        structural_matrices._mass_per_unit_area()
 
-    #     reference_A = np.matrix([
-    #         [S*c/5, (S/4)*(c**2/2 - c*xf)],
-    #         [(S/4)*(c**2/2 - c*xf), (S/3)*(c**3/3 - c**2*xf + xf**2*c)]
-    #     ])
+        reference_A = structural_matrices.mass_per_unit_area*np.matrix([
+            [S*c/5, (S/4)*(c**2/2 - c*xf)],
+            [(S/4)*(c**2/2 - c*xf), (S/3)*(c**3/3 - c**2*xf + xf**2*c)]
+        ])
 
-    #     print('reference A: ',reference_A)
-    #     print('actual A: ',structural_matrices.A_matrix())
+        print(type(reference_A))
+        print(type(structural_matrices.A_matrix()))
 
-    #     np.testing.assert_allclose(structural_matrices.A_matrix(),
-    #                                reference_A)
+        print(reference_A.shape)
+        print(structural_matrices.A_matrix().shape)
+
+        print('reference A: ',reference_A)
+        print('actual A: ',structural_matrices.A_matrix())
+
+        np.testing.assert_allclose(np.asarray(structural_matrices.A_matrix()),
+                                   np.asarray(reference_A),
+                                   rtol=1e-2,
+                                   atol=1e-15)
         
     def test_E_matrix(self,
                       planform_wing,
