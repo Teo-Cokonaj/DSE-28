@@ -43,7 +43,8 @@ def aerodynamic_matrices(planform_wing,
                                skin_thickness=0.01,
                                number_of_sections=100,
                                airspeed=100.0,
-                               altitude_m=6000.0)
+                               altitude_m=6000.0,
+                               compressibility_correction=False)
 
 class TestAerodynamicMatrices:
     def test_B_matrix(self,
@@ -61,9 +62,6 @@ class TestAerodynamicMatrices:
             [c*S/10 * a_w, 0],
             [-c**2*S/8 * e * a_w, -c**3*S/24*(-1.2)]
         ])
-
-        print('reference B: ',reference_B)
-        print('actual B: ',aerodynamic_matrices.B_matrix())
 
         np.testing.assert_allclose(aerodynamic_matrices.B_matrix(),
                                    reference_B,
@@ -85,9 +83,6 @@ class TestAerodynamicMatrices:
             [0.0, c*S/8*a_w],
             [0.0, -c**2*S/6*e*a_w]
         ])
-
-        print('reference C: ',reference_C)
-        print('actual C: ',aerodynamic_matrices.C_matrix())
 
         np.testing.assert_allclose(aerodynamic_matrices.C_matrix(),
                                    reference_C,

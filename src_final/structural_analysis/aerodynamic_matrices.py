@@ -21,6 +21,7 @@ class AerodynamicMatrices:
                  airspeed: float,
                  altitude_m: float,
                  fractional_distance_e: float = 0.25,
+                 compressibility_correction: bool = True,
                  ):
         self.root_chord = planform.c_root
         self.wing_span = planform.span
@@ -40,7 +41,7 @@ class AerodynamicMatrices:
         self.e = fractional_distance_e
         self.M_thetadot = -1.2 #do not change this
         self.planform=planform
-        #print(f'Mach 0.75 at {0.75*self.atmosphere.speed_of_sound()}')
+        self.compressibility_correction = compressibility_correction
 
 
     def _b11(self) -> float:
@@ -98,15 +99,24 @@ class AerodynamicMatrices:
     def sweep_correction(self) -> float:
         return np.cos(self.planform.sweep_quarter_rad)
 
-
     def B_matrix(self) -> np.matrix:
         matrix = np.matrix([[self._b11(), self._b12()],
                             [self._b21(), self._b22()]])
         
-        return matrix/self.prandtl_glauert_correction()*self.sweep_correction()
+        matrix*=self.sweep_correction()
+
+        if self.compressibility_correction:
+            matrix*=self.prandtl_glauert_correction()
+        
+        return matrix
     
     def C_matrix(self) -> np.matrix:
         matrix = np.matrix([[self._c11(), self._c12()],
                             [self._c21(), self._c22()]])
         
-        return matrix/self.prandtl_glauert_correction()*self.sweep_correction()
+        matrix*=self.sweep_correction()
+        
+        if self.compressibility_correction:
+            matrix*=self.prandtl_glauert_correction()
+        
+        return matrix
