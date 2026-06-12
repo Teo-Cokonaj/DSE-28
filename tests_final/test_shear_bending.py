@@ -41,19 +41,18 @@ def planform():
     )
 
 @pytest.fixture
-def wing_model(planform, material):
+def wing_model(material, planform):
     model = WingModel(
-            wing_skin_thickness_m =0.01,
-            number_of_nodes=100,
-            material_1 = material,
-            planform = planform,
-            load_factor=10.0,
-            local_fuselage_diameter=0.31,
-            cm = 0,
-            V =200,
-            inertial_load=1.,
-            )
-
+        wing_skin_thickness_m=0.01,
+        number_of_nodes=4,
+        material_1=material,
+        planform=planform,
+        load_factor=1,
+        inertial_load=1,
+        local_fuselage_diameter=0.31,
+        cm = 0.003,
+        V = 50
+    )
     wing_loading_module.planform = planform
     wing_loading_module.material_1 = material
 

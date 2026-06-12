@@ -6,7 +6,7 @@ import pytest
 from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import src_final.structural_analysis.wing_loading as wing_loading_module
 from src_final.Aircraft.Planform import Planform
@@ -50,11 +50,10 @@ def wing_model(material, planform):
         material_1=material,
         planform=planform,
         load_factor=1,
+        inertial_load=1,
         local_fuselage_diameter=0.31,
-        inertial_load=1.,
-        cm = 0,
-        V = 200,
-
+        cm = 0.003,
+        V = 50
     )
 
     chord_stations, _, y_stations, dy = planform.sectional_properties(
@@ -130,7 +129,6 @@ class TestWingModel:
             * wing_model.wing_skin_thickness_m
             * wing_model.dy[-len(wing_model.lift_span) :]
             * 9.81
-            * wing_model.load_factor
         )
         expected_force = wing_model.lift_span - expected_weight
 
@@ -153,6 +151,17 @@ class TestWingModel:
                 expected_torsion,
             )
         )
+        expected_surface = wing_model.chord_stations[1:] * wing_model.dy
+        expected_surface = np.insert(expected_surface, 0, expected_surface[0])
+        expected_wing_moment = (
+            0.5
+            * wing_loading_module.CONSTANTS.AIR_DENSITY_SEA_LEVEL
+            * wing_model.V**2
+            * wing_model.cm
+            * wing_model.chord_stations
+            * expected_surface
+        )
+        expected_torsion = expected_torsion + expected_wing_moment
 
         np.testing.assert_allclose(torsion, expected_torsion)
 

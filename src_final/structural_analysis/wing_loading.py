@@ -27,7 +27,7 @@ class WingModel:
                  local_fuselage_diameter: float,
                  inertial_load:float,
                  cm:float,
-                 V:float,
+                 V :float=200.0,
                  #rib_number:float,
                 ):
         self.wing_leng_m = planform.span
@@ -456,6 +456,7 @@ class WingModel:
         c_stations_cop = c_stations[-np.size(reduced_sectional_spanwise_positions):]
         y_stations_cop = y_stations[-np.size(reduced_sectional_spanwise_positions):]
         thickness_to_chord = self.planform.thickness_to_chord
+        shift = self.number_of_nodes - np.size(reduced_sectional_spanwise_positions)
 
     # Ellipse properties
         a = 0.5 * c_stations
@@ -474,18 +475,20 @@ class WingModel:
                 moment_of_inertia = self.wing_skin_thickness_m * trapezoid(y_coord**2 * arc_diff, diff_angle )  # Ixx = int(y^2 dA) = int(y^2 d_arc/d_angle * d_angle)
 
                 first_area_moment = cumulative_trapezoid(y_coord * arc_diff * self.wing_skin_thickness_m, diff_angle, initial=0.0)  # Q = int(y*dA)
-                qb = shear_forces[i] * first_area_moment / moment_of_inertia
+                qb = shear_forces[i+shift] * first_area_moment / moment_of_inertia
 
             # Get q0            q0 = int(Qt * arc_diff)/int(arc_diff)   -->     q0 = int(Qt * arc_diff)/perimeter
                 q0 = (-trapezoid(qb * arc_diff,  diff_angle) / perimeter)[0]
+                
                 q0 = np.ones_like(qb) * q0
 
                 shear_stress = (q0 + qb) / thickness_skin
-                shear_stress_max = np.max(np.abs(shear_stress))
-
+                shear_stress_max = np.max(shear_stress)
 
             # Get the total shear stress
                 shear_stress_V[i] = shear_stress_max
+
+
 
     # Interpolate to the fuselage section
         shear_node_tot_V = interp1d(reduced_sectional_spanwise_positions,
@@ -675,7 +678,7 @@ if __name__=='__main__':
 
         shear_stress_V = wing_model.step_shear_stress_V(
             debug = False,
-            plot = plot_1
+            plot = True
         )
 
         shear_stress = wing_model.step_shear_stress_total(
