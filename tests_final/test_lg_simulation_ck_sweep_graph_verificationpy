@@ -1,0 +1,86 @@
+import sys
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import matplotlib.colors as mcolors
+from matplotlib.colors import ListedColormap
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src_final')))
+
+
+from landing_gear_tuning.landing_gear_tuning import landing_gear_response
+#from landing_gear_tuning.landing_gear_parameter_search import plot_parameer_space
+
+# Columns: c [Pa·s/m], k [N/m], expected condition
+# Conditions: 'both', 'disp_only', 'force_only', 'neither', 'overdamped'
+
+
+"""
+Parameters in the function used to generate the graph:
+
+downward_landing_speed:float = 0.5,                   
+displacement_constraint_compression:float = 0.0095, 
+force_requirement: float = 4, 
+dt:float = 0.01, 
+t:int = 5, 
+m:float = 50, 
+L:float = 490, 
+plotting:bool = False, 
+debug:bool = False
+
+"""
+
+critical_points = np.array([
+    # --- Four corners ---
+    [10,         500000,    1],   # 0
+    [2840.49,    492913,    3],   # 1
+    [5000,       500000,    1],   # 2
+    [9.97,       303056,    3],   # 3
+    [425.073,    402486,    3],   # 4
+    [4952.64,    127636,    1],   # 5
+    [4024,       83302.9,   1],   # 6 Checked and verifiec
+    [9.8178,     127636,    2],   # 7
+    [1934.65,    19166.3,   3],   # 8 Checked and verified
+    [10,         1000,      2],   # 9
+    [425.073,    998.557,   2],   # 10
+    [5068.7,     963.378,   4],   # 11 Checked and continuously fails, but this is expected 
+                                  # as the program stops computation if overdampong is detected, 
+                                  # so it is extrapolating the other constraints
+], dtype=float)
+
+# Legend: 0=neither, 1=disp_only, 2=force_only, 3=both, 4=overdamped
+labels = {0: 'neither', 1: 'disp_only', 2: 'force_only', 3: 'both', 4: 'overdamped'}
+
+
+expected_status = critical_points[:, 2].astype(int)
+real_status = []
+
+
+for i in critical_points:
+    c = i[0]
+    k = i[1]
+
+    _, _, constraints_met = landing_gear_response(k = k, c = c, debug = False)
+
+    real_status.append(constraints_met)
+
+    
+computed_constraint_status = np.array(real_status)
+
+arrays_match = np.array_equal(computed_constraint_status, expected_status)
+
+if arrays_match:
+    print("All constraints match")
+
+else:
+    print("Constraints do not match")
+    mismatches = np.where(computed_constraint_status != expected_status)[0]
+    for idx in mismatches:
+        print(f"  -> Mismatch at index {idx}: Point (c={critical_points[idx,0]}, k={critical_points[idx,1]}). "
+              f"Expected {expected_status[idx]}, got {computed_constraint_status[idx]}")
+    
+
+
+
+
