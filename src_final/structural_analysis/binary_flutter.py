@@ -165,20 +165,22 @@ def plot_flutter_diagram(airspeeds: np.ndarray,
 
 
 if __name__=='__main__':
-    airspeeds = np.arange(1.0,500.0,1.0)
-    altitude_m = 20000.0
+    airspeeds = np.arange(1.0,270.0,1.0)
+    altitude_m = 0.3048*27000
+
     material = Material(density=1600,
-                            elastic_modulus=50e9,
-                            shear_modulus=5e9,
-                            poisson_ratio=0.3,
+                            elastic_modulus=69e9,
+                            shear_modulus=5.58e9,
+                            poisson_ratio=0.048,
                             yield_strength=600e6,
                             fracture_strength=600e6
                             )
+    
     planform_wing=Planform(
-            aspect_ratio=7.5,
-            span=15.0,
-            sweep_quarter_deg=0.0,
-            taper=1.0,
+            aspect_ratio=27.0,
+            span=2.67,
+            sweep_quarter_deg=15.0,
+            taper=0.3,
             thickness_to_chord=0.12,
             cm_quarter_chord=1.0,
             wetted_surface_ratio=1.0,
@@ -191,9 +193,9 @@ if __name__=='__main__':
                   altitude_m=altitude_m,
                   planform=planform_wing,
                   material=material,
-                  skin_thickness=0.004,
-                  number_of_sections=100,
-                  elastic_axis_fractional_position = 0.48,
+                  skin_thickness=0.0045,
+                  number_of_sections=10,
+                  elastic_axis_fractional_position = 0.50,
                   structural_damping = True
                   )
     
