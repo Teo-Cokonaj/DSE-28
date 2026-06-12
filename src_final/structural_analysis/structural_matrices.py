@@ -37,6 +37,7 @@ class StructuralMatrices:
         self.xf = elastic_axis_fractional_position * self.chords
         self.csv_path=csv_path
 
+
     def _mass_per_unit_area(self):
         
         df = pd.read_csv(self.csv_path)
@@ -50,6 +51,26 @@ class StructuralMatrices:
         self.main_wing_mass = get_mass("Main Wing")
         self.mass_per_unit_area = self.main_wing_mass / self.main_wing_area
 
+    def I(self) -> np.ndarray:
+        a = self.chords/2
+        b = self.thickness_to_chord * self.chords/2
+        t = self.skin_thickness
+        a_i = a-t
+        b_i = b-t
+
+        I = (np.pi / 4) * (a * b**3 - a_i * b_i**3)
+
+        return I
+
+    def J(self) -> np.ndarray:
+        a = self.chords/2
+        b = self.thickness_to_chord * self.chords/2
+        t = self.skin_thickness
+        U = np.pi * (a+b-t)*(1 + 0.258 * ((a-b)**2)/((a+b-t)**2))
+        
+        J = (4 * (np.pi**2) * t * ((a - 0.5 * t)**2 * (b + 0.5 * t)**2))/U
+
+        return J
 
     def _a11(self) -> float:
         self._mass_per_unit_area()
@@ -83,32 +104,7 @@ class StructuralMatrices:
     def A_matrix(self) -> np.matrix:
         matrix = np.matrix([[self._a11(), self._a12()],
                             [self._a21(), self._a22()]])
-        
-        
         return matrix
-
-    
-    def I(self) -> np.ndarray:
-        a = self.chords/2
-        b = self.thickness_to_chord * self.chords/2
-        t = self.skin_thickness
-        a_i = a-t
-        b_i = b-t
-
-        I = (np.pi / 4) * (a * b**3 - a_i * b_i**3)
-
-        return I
-    
-
-    def J(self) -> np.ndarray:
-        a = self.chords/2
-        b = self.thickness_to_chord * self.chords/2
-        t = self.skin_thickness
-        U = np.pi * (a+b-t)*(1 + 0.258 * ((a-b)**2)/((a+b-t)**2))
-        
-        J = (4 * (np.pi**2) * t * ((a - 0.5 * t)**2 * (b + 0.5 * t)**2))/U
-
-        return J
 
     def _e11(self) -> float:
         integrand = (4*self.E*self.I())/(self.semi_span**4)
@@ -120,38 +116,45 @@ class StructuralMatrices:
         return integrate.trapezoid(integrand,
                                               self.y_stations)
     
-    def eigenvalues(self,
-                    matrix):
-        eigenvalues = la.eigvals(matrix)
-        print('eigenvalues: ',eigenvalues)
-        
-        #complex conjugate pairs so we keep only one per pair
-        eigenvalues = eigenvalues[eigenvalues.imag > 0] 
-        print('eigenvalues: ',eigenvalues)
-
-        # Sort by ascending frequency for consistent mode ordering
-        eigenvalues = eigenvalues[np.argsort(eigenvalues.imag)]
-        print('eigenvalues: ',eigenvalues)
-
-        omega = np.abs(eigenvalues)           # natural frequency [rad/s]
-        print('omega: ',omega)
-        zeta  = -eigenvalues.real / omega     # damping ratio [-]
-        print('zeta: ',zeta)
-
-        return omega, zeta
-    
     def E_matrix(self) -> np.matrix:
-        matrix = np.matrix([[self._e11(), 0],
-                            [0, self._e22()]])
+        matrix = np.matrix([[self._e11(), 0.0],
+                            [0.0, self._e22()]])
         
         return matrix
     
     def D_matrix(self) -> np.matrix:
-        print('Matrix A: ',self.A_matrix())
-        omega_A, zeta_A =self.eigenvalues(self.A_matrix())
-        print('omega_A: ',omega_A)
-        omega_E, zeta_E=self.eigenvalues(self.E_matrix())
-        alpha = 2*omega_A*omega_E*(zeta_E*omega_A-zeta_A*omega_E)/(omega_A**2-omega_E**2)
-        beta = 2*(omega_A*zeta_A-omega_E*zeta_E)/(omega_A**2-omega_E**2)
+        M = np.asarray(self.A_matrix())
+        K = np.asarray(self.E_matrix())
 
-        return alpha*self.A_matrix()+beta*self.E_matrix
+        eigvals, eigvecs = la.eig(K, M)
+
+        omega = np.sqrt(np.real(eigvals))
+        omega = np.sort(omega)
+
+        omega1 = omega[0]
+        omega2 = omega[1]
+
+        A = np.array([
+            [1/omega1, omega1],
+            [1/omega2, omega2]
+        ])
+
+        zeta_bending = 0.01   # 1% damping
+        zeta_torsion = 0.01   # 1% damping
+
+        b = 2*np.array([zeta_bending, zeta_torsion])
+
+        alpha, beta = np.linalg.solve(A, b)
+
+        return alpha*M + beta*K
+
+    def eigenvalues(self,
+                    matrix):
+        eigenvalues = la.eigvals(matrix)        
+        eigenvalues = eigenvalues[eigenvalues.imag > 0] #only keep one element of a complex conjugate pair
+        eigenvalues = eigenvalues[np.argsort(eigenvalues.imag)] 
+
+        omega = np.abs(eigenvalues)           # natural frequency [rad/s]
+        zeta  = -eigenvalues.real / omega     # damping ratio [-]
+
+        return omega, zeta
