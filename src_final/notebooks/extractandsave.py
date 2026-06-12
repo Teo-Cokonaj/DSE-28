@@ -6,11 +6,11 @@ import os
 # ==========================================
 # 1. Credentials & Target Assembly
 # ==========================================
-ACCESS_KEY = 'on_jsbnmgzkR9IhNJP5epMsG'
-SECRET_KEY = 'Y9yIoS8lTX8XJLIlL13O43FsZPPm1HZo10LrqhxjoK4ZHoxg'
+ACCESS_KEY = 'on_wkiWin3a4Nq7pTbfVt7pB'
+SECRET_KEY = '0vS06G7KDpVeP6wsFl2j4giQN93UbakaPwhqGmUmIPeR1sVm'
 
 DOCUMENT_ID = "e17cbed2e815359ba964f636"
-WORKSPACE_ID = "93d2dfcb61f932badc048181"
+WORKSPACE_ID = "0bc6fdd770562c4aa0c2a839"
 ELEMENT_ID = "1f24790f90e799bbc1eb8f34"
 
 BASE_URL = "https://cad.onshape.com/api/v10"

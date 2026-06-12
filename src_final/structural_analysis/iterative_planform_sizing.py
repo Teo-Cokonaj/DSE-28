@@ -15,7 +15,7 @@ from src_final.global_parameters import CONSTANTS
 from src_final.Aircraft.Planform import Planform
 from src_final.structural_analysis.wing_loading import WingModel
 
-def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage_diameter:float, material:Material, load_factor:float=1., load_factor_maneuver:float=3.) -> float:
+def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage_diameter:float, material:Material, load_factor:float=6., load_factor_maneuver:float=1.) -> float:
     for thickness in thicknesses:
         wing_model= WingModel(
                     wing_skin_thickness_m = thickness,
@@ -23,7 +23,9 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
                     material_1 = material,
                     planform = planform,
                     load_factor = load_factor,
-                    load_factor_maneuver=load_factor_maneuver,
+                    inertial_load=1.,
+                    cm=planform.cm_quarter_chord,
+                    V=200.,
                     local_fuselage_diameter=fuselage_diameter
                     )
         wing_model.planform_data(diameter_fuselage=fuselage_diameter)
@@ -60,9 +62,9 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
         are_we_buckling = wing_model.wing_stres_per_com()
         normal_stress = wing_model.bending_stresses()
 
-        #print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}, {thickness}")
+        print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}, {thickness}")
 
-        if (np.max(shear_stress) < material.fracture_strength / 3) and (np.any(are_we_buckling) > 0) and (np.max(np.abs(normal_stress)) < material.fracture_strength / 1.5):
+        if (np.max(shear_stress) < material.fracture_strength / 3) and (np.any(are_we_buckling) > 0) and (np.max(np.abs(normal_stress)) < material.fracture_strength / 1.5) and (np.max(np.abs(twist_deg))<10.) and (np.max(np.abs(deflection_m)) < .15*planform.span):
             return thickness
         
     raise ValueError("None of the provided material thicknesses satisfy the constraints")
@@ -90,7 +92,7 @@ def find_planform_mass_cg(planform:Planform, thickness:float, density_core:float
     return mass_tot * 2, np.sum(masses_tot_stations * x_cg_stations) / mass_tot #NOTE: 2 accounts for the fact we have a wing on each side of the fuselage
 
 
-def size_planform(planform:Planform, thicknesses:list[float], fuselage_diameter:float, material_skin:Material, density_core:float, number_of_sections = 20, safety_factor = 1.5, load_factor=1., load_factor_maneuver=3.) -> None:
+def size_planform(planform:Planform, thicknesses:list[float], fuselage_diameter:float, material_skin:Material, density_core:float, number_of_sections = 20, safety_factor = 1.5, load_factor=1., load_factor_maneuver=6.) -> None:
     '''Updates theplanform mass and cg caches'''
     thickness = find_planform_thickness(planform, thicknesses, fuselage_diameter, material_skin, load_factor, load_factor_maneuver)
     pf_mass, pf_x_cg = find_planform_mass_cg(planform, thickness, density_core, material_skin.density, number_of_sections, safety_factor)

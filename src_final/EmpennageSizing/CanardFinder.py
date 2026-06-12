@@ -62,7 +62,7 @@ class CanardFinder(EmpennageFinder):
             )
         
         load_ratio = canard.positive_C_L_max / main_wing.positive_C_L_max * Sh_S
-        size_planform(canard, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, load_ratio, 3*load_ratio)
+        size_planform(canard, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, 6*load_ratio)
 
         vertical_surface = 2 * self.Sv_S * main_wing.wing_area #NOTE: 2 as rudder is only 1 sided
         vertical_span = np.sqrt(vertical_surface*self.AR_v)
@@ -80,7 +80,7 @@ class CanardFinder(EmpennageFinder):
         )
         vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
         vertical_tail.mass_cache = 0.3 #TODO actually conduct the structural analysishere
-        size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, load_ratio, 3*load_ratio)
+        size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, 6*load_ratio)
 
 
         return canard, vertical_tail

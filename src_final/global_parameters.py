@@ -39,17 +39,17 @@ class Assumptions():
         self.altitude_go_round = 1500 * .3048 # [m]
         self.time_half_circle = 60.0 # [s]
         self.omega_go_round = np.pi / 60 # [rad/s] -> rate 1 coordinated turn
-        self.airfield_length = 1275. #m #TODO check with the actual airport
+        self.airfield_length = 1275. #m
         self.positive_manoeuvring_limit_load_factor=6.0 #CS-23 aerobatic
 
         #Structural properties
         self.structural_safety_factor= 1.5 
         self.cfrp_density = 1600.0 # [kg/m^3]
         self.cfrp_yield_strength = 600e6 # [Pa]  
-        self.cfrp_Young_modulus = 80e9 # [Pa]
+        self.cfrp_Young_modulus = 68.5e9 # [Pa]
         self.cfrp_poisson = 0.048
         self.allowable_thicknesses = np.linspace(0.0004, 0.01) # [m]
-        self.foam_denisty = 100 #TODO verify # [kg/m3]
+        self.foam_denisty = 75 # [kg/m3]
 
         #Engine parameters
         self.energy_density_saf = 42.8e6 # [J/kg]       

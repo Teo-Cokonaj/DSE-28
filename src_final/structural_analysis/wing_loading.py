@@ -651,9 +651,9 @@ if __name__=='__main__':
         plot_1 = False
         force_distribution, lift, weight = wing_model.force_per_unit(plot=plot_1)
 
-        torque = wing_model.step_torsion_determination(plot=plot_1)
+        torque = wing_model.step_torsion_determination(plot=False)
 
-        shear_force = wing_model.step_shear_forces(debug=False, plot=plot_1)
+        shear_force = wing_model.step_shear_forces(debug=False, plot=False)
 
         bending_moment = wing_model.step_moment(debug=False, plot=plot_1)
 
