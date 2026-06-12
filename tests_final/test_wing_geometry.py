@@ -6,7 +6,7 @@ import pytest
 from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import src_final.structural_analysis.wing_loading as wing_loading_module
 from src_final.Aircraft.Planform import Planform

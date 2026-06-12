@@ -2,14 +2,14 @@ import numpy as np
 from Aircraft.Planform import Planform
 from Aircraft.Fixed import Fixed
 from EmpennageSizing.EmpennageFinder import EmpennageFinder
+from structural_analysis.iterative_planform_sizing import size_planform
 
 class CanardFinder(EmpennageFinder):
-    def __init__(self, fixed, AR_c:float=3., taper_c:float=1., taper_v:float=1., min_sc_s:float = 0.05, AR_v:float=4., Sv_S:float=0.15):
-        super().__init__(fixed)
+    def __init__(self, fixed:Fixed, thicknesses, material, core_density, safety_factor, AR_c:float=3., taper_c:float=1., taper_v:float=1., AR_v:float=4., Sv_S:float=0.15, number_of_sections=30):
+        super().__init__(fixed, thicknesses, material, core_density, safety_factor, number_of_sections)
         self.AR_c = AR_c
         self.taper_c = taper_c
         self.taper_v = taper_v
-        self.min_sc_s = min_sc_s
         self.AR_v = AR_v
         self.Sv_S = Sv_S
 
@@ -60,8 +60,9 @@ class CanardFinder(EmpennageFinder):
                 clmax=.35 * self.AR_c**(1/3) / .9 / np.cos(main_wing.sweep_quarter_rad),
                 flap=False
             )
-        canard.x_cg_cache = canard.x_MAC + canard.MAC / 3 #TODO: rough assumption revise
-        canard.mass_cache = 0.5 #TODO actually conduct the structural analysishere
+        
+        load_ratio = canard.positive_C_L_max / main_wing.positive_C_L_max * Sh_S
+        size_planform(canard, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, load_ratio, 3*load_ratio)
 
         vertical_surface = 2 * self.Sv_S * main_wing.wing_area #NOTE: 2 as rudder is only 1 sided
         vertical_span = np.sqrt(vertical_surface*self.AR_v)
@@ -74,10 +75,12 @@ class CanardFinder(EmpennageFinder):
             cm_quarter_chord=0.,
             wetted_surface_ratio=1.05 / 2, #NOTE: to account for half the drag
             interference_factor=1.04,
-            clmax=0.,
+            clmax=.35 * self.AR_c**(1/3) / .9 / np.cos(main_wing.sweep_quarter_rad),
             flap=False
         )
         vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
         vertical_tail.mass_cache = 0.3 #TODO actually conduct the structural analysishere
+        size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, load_ratio, 3*load_ratio)
+
 
         return canard, vertical_tail

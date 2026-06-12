@@ -15,15 +15,15 @@ from src_final.global_parameters import CONSTANTS
 from src_final.Aircraft.Planform import Planform
 from src_final.structural_analysis.wing_loading import WingModel
 
-def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage_diameter:float, material:Material) -> float:
+def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage_diameter:float, material:Material, load_factor:float=1., load_factor_maneuver:float=3.) -> float:
     for thickness in thicknesses:
         wing_model= WingModel(
                     wing_skin_thickness_m = thickness,
                     number_of_nodes=100,
                     material_1 = material,
                     planform = planform,
-                    load_factor = 1,
-                    load_factor_maneuver=3,
+                    load_factor = load_factor,
+                    load_factor_maneuver=load_factor_maneuver,
                     local_fuselage_diameter=fuselage_diameter
                     )
         wing_model.planform_data(diameter_fuselage=fuselage_diameter)
@@ -60,7 +60,7 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
         are_we_buckling = wing_model.wing_stres_per_com()
         normal_stress = wing_model.bending_stresses()
 
-        print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}")
+        #print(f"Stresses {np.max(shear_stress)}, {np.max(np.abs(normal_stress))}, {thickness}")
 
         if (np.max(shear_stress) < material.fracture_strength / 3) and (np.any(are_we_buckling) > 0) and (np.max(np.abs(normal_stress)) < material.fracture_strength / 1.5):
             return thickness
@@ -90,9 +90,9 @@ def find_planform_mass_cg(planform:Planform, thickness:float, density_core:float
     return mass_tot * 2, np.sum(masses_tot_stations * x_cg_stations) / mass_tot #NOTE: 2 accounts for the fact we have a wing on each side of the fuselage
 
 
-def size_planform(planform:Planform, thicknesses:list[float], fuselage_diameter:float, material_skin:Material, density_core:float, number_of_sections = 20, safety_factor = 1.5) -> None:
+def size_planform(planform:Planform, thicknesses:list[float], fuselage_diameter:float, material_skin:Material, density_core:float, number_of_sections = 20, safety_factor = 1.5, load_factor=1., load_factor_maneuver=3.) -> None:
     '''Updates theplanform mass and cg caches'''
-    thickness = find_planform_thickness(planform, thicknesses, fuselage_diameter, material_skin)
+    thickness = find_planform_thickness(planform, thicknesses, fuselage_diameter, material_skin, load_factor, load_factor_maneuver)
     pf_mass, pf_x_cg = find_planform_mass_cg(planform, thickness, density_core, material_skin.density, number_of_sections, safety_factor)
     planform.mass_cache = pf_mass
     planform.x_cg_cache = pf_x_cg
