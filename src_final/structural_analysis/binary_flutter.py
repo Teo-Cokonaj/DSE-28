@@ -178,7 +178,7 @@ if __name__=='__main__':
     
     planform_wing=Planform(
             aspect_ratio=27.0,
-            span=2.67,
+            span=3.2,
             sweep_quarter_deg=15.0,
             taper=0.3,
             thickness_to_chord=0.12,
@@ -194,7 +194,7 @@ if __name__=='__main__':
                   planform=planform_wing,
                   material=material,
                   skin_thickness=0.0045,
-                  number_of_sections=10,
+                  number_of_sections=100,
                   elastic_axis_fractional_position = 0.50,
                   structural_damping = True
                   )
