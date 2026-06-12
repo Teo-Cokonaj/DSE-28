@@ -289,13 +289,13 @@ if __name__ == "__main__":
         k_min=1000,
         k_max=500000,
         n_points=60,            # increase for higher resolution (slower)
-        downward_landing_speed=0.5,
-        displacement_constraint_compression=0.0095,
+        downward_landing_speed=2,
+        displacement_constraint_compression=0.0775,
         force_requirement=4,
         dt=0.01,
         t=5,
-        m=50,
-        L=490,
+        m=25,
+        L=25*9.81,
         log_scale=True,
         save_path="landing_gear_parameter_space.png",
     )
