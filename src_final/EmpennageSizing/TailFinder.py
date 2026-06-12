@@ -10,7 +10,7 @@ from EmpennageSizing.EmpennageFinder import EmpennageFinder
 from structural_analysis.iterative_planform_sizing import size_planform
 
 class TailFinder(EmpennageFinder):
-    def __init__(self, fixed, thicknesses, material, core_density, safety_factor, AR_h:float=3., taper_h:float=1., taper_v:float=1., SM=0.05, Sv_S=.15, number_of_sections=30):
+    def __init__(self, fixed, thicknesses, material, core_density, safety_factor, AR_h:float=3., taper_h:float=1., taper_v:float=0.6, SM=0.1, Sv_S=.25, number_of_sections=30):
         super().__init__(fixed, thicknesses, material, core_density, safety_factor, number_of_sections)
         self.AR_h = AR_h
         self.taper_h = taper_h
@@ -78,17 +78,17 @@ class TailFinder(EmpennageFinder):
         load_ratio = horizontal_tail.positive_C_L_max / main_wing.positive_C_L_max * Sh_S
         
         size_planform(horizontal_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor,
-                      load_factor=load_ratio, load_factor_maneuver=3*load_ratio)
+                      load_factor=6*load_ratio, load_factor_maneuver=1.)
         # horizontal_tail.x_cg_cache = horizontal_tail.x_MAC + horizontal_tail.MAC / 3 #TODO: rough assumption revise
         # horizontal_tail.mass_cache = 0.5 #TODO actually conduct the structural analysishere
 
         vertical_surface = 2 * self.Sv_S * main_wing.wing_area #NOTE: 2 as rudder is only 1 sided
-        vertical_span = 2 * vertical_surface / (1 + 1/self.taper_v) / horizontal_tail.c_tip #NOTE: to fit the horizontal tail
+        vertical_span = 2 * vertical_surface / (1 + 1/self.taper_v) / (horizontal_tail.c_root *1.3) #NOTE: to fit the horizontal tail
         vertical_tail = Planform(
             aspect_ratio=vertical_span**2 / vertical_surface, 
-            span=horizontal_tail.span,
+            span=vertical_span,
             taper=self.taper_v,
-            sweep_quarter_deg=abs(np.rad2deg(main_wing.sweep_quarter_rad)),
+            sweep_quarter_deg=30.,
             thickness_to_chord=0.12,
             cm_quarter_chord=0.,
             wetted_surface_ratio=1.05 / 2, #NOTE: to account for half the drag
@@ -97,7 +97,7 @@ class TailFinder(EmpennageFinder):
             flap=False
         )
         size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor,
-                      load_factor=load_ratio, load_factor_maneuver=3*load_ratio) #as rudder needs to carry the main wing as well
+                      load_factor=6*load_ratio) #as rudder needs to carry the main wing as well
 
         # vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
         # vertical_tail.mass_cache = 0.3 #TODO actually conduct the structural analysishere
