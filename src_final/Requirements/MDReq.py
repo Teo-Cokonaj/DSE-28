@@ -12,9 +12,10 @@ from src_final.global_parameters import CONSTANTS, Assumptions
 
 
 class MDReq(Requirement):
-    def __init__(self, matching_diagram:MatchingDiagramJet=MatchingDiagramJet(2), assumptions:Assumptions=Assumptions()):
+    def __init__(self, matching_diagram:MatchingDiagramJet=MatchingDiagramJet(2), assumptions:Assumptions=Assumptions(), mtom=50.):
         self.assumptions = assumptions
         self.matching_diagram = matching_diagram
+        self.mtom = mtom
 
 
     def assess(self, 
@@ -72,7 +73,7 @@ class MDReq(Requirement):
             CL_takeoff = planform.positive_C_L_max 
         )
         
-        wing_loading = aircraft.wing_loading()
+        wing_loading = self.mtom*CONSTANTS.G0/aircraft.planforms[0].wing_area#aircraft.wing_loading()
         thrust_to_weight = aircraft.thrust_to_weight()
 
         # self.matching_diagram.create_wing_loading_axis()
