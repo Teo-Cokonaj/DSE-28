@@ -13,8 +13,9 @@ from global_parameters import CONSTANTS, Assumptions
 
 class FuelReq(Requirement):
     #TODO: connect the fuel estimation. Check if the fuselage fuel tanks have enough fuel
-    def __init__(self, assumptions:Assumptions=Assumptions()):
+    def __init__(self, assumptions:Assumptions=Assumptions(), print_:bool=False):
         self.assumptions = assumptions
+        self.print_ = print_
 
     def assess(self, aircraft:Aircraft) -> bool:
         assumptions = self.assumptions
@@ -40,6 +41,9 @@ class FuelReq(Requirement):
 
 
         fuel_mass_required = aircraft.total_mass() * total_mass_fraction
+
+        if self.print_:
+            print(fuel_mass_required)
 
         #print(f'Fuel available: {fuel_mass_available} kg')
         #print(f'Fuel required: {fuel_mass_required} kg')

@@ -289,7 +289,7 @@ if __name__ == "__main__":
         k_min=1000,
         k_max=500000,
         n_points=60,            # increase for higher resolution (slower)
-        downward_landing_speed=2,
+        downward_landing_speed=2.233713,
         displacement_constraint_compression=0.0775,
         force_requirement=4,
         dt=0.01,

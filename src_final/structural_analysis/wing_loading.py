@@ -590,7 +590,7 @@ class WingModel:
         y_max = self.planform.thickness_to_chord * self.chord_stations
         bending_stress = moments * y_max / Ix
 
-        diff = buckling_stress- bending_stress
+        diff = buckling_stress+ bending_stress
 
         return diff
     

@@ -6,7 +6,7 @@ import scipy as sp
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from Aircraft.Planform import Planform
-from tau_curve_approximation import tau_func
+from AileronSizing.tau_curve_approximation import tau_func
 
 
 # Roll rate:
