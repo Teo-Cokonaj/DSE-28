@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 def landing_gear_response(k:float, 
                           c:float, 
-                          downward_landing_speed:float = 2.3,                    # Has to be implemented into simulation, but I am not sure how to do that using lsim
+                          downward_landing_speed:float = 3,                    # Has to be implemented into simulation, but I am not sure how to do that using lsim
                           displacement_constraint_compression:float = 0.0775, 
                           dt:float = 0.01, 
                           t:int = 5, 
@@ -187,9 +187,20 @@ def landing_gear_response(k:float,
 if __name__ == "__main__":
     K = 6590.07
     C = 1146.48
+
+    # K = 48168.2
+    # C = 781.115
+
+    # K = 11066.2
+    # C = 1404.13
+
+    # K = 28895.5
+    # C = 906.175
+
+    V = 1
     m = 50
 
-    y_displacement, y_force, constraint_status, design_force, total_gs = landing_gear_response(K, C, m=m, plotting=True, debug=False)
+    y_displacement, y_force, constraint_status, design_force, total_gs = landing_gear_response(K, C, downward_landing_speed = V, m=m, plotting=True, debug=False)
 
     print("max displacement: ", np.max(np.abs(y_displacement)) * 100, " [cm]")
     print("max force (raw): ", np.max(np.abs(y_force)) / 1000, " [kN]")
