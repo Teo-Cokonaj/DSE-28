@@ -184,34 +184,99 @@ def landing_gear_response(k:float,
     return y_displacement, y_force, constraint_status, design_force, total_gs
 
 
+# if __name__ == "__main__":
+#     # K = 6590.07
+#     # C = 1146.48
+
+#     K = 48168.2
+#     C = 781.115
+
+#     # K = 11066.2
+#     # C = 1404.13
+
+#     # K = 28895.5
+#     # C = 906.175
+
+#     V = 2
+#     m = 50
+
+#     y_displacement, y_force, constraint_status, design_force, total_gs = landing_gear_response(K, C, downward_landing_speed = V, m=m, plotting=True, debug=False)
+
+#     print("max displacement: ", np.max(np.abs(y_displacement)) * 100, " [cm]")
+#     print("max force (raw): ", np.max(np.abs(y_force)) / 1000, " [kN]")
+#     print("design force (1.5x safety factor): ", design_force / 1000, " [kN]")
+#     print("Constraint status: ", constraint_status)
+#     print("gs on fuselage (w/ SF: 1.5): ", total_gs , " [g]")
+
+#     y_disp_max = np.max(np.abs(y_displacement))
+#     y_force_max = np.max(np.abs(y_force))
+
+#     # print("max displacement: ", y_disp_max * 100, " [cm]")
+#     # print("max force: ", y_force_max / 1000, " [kN]")
+
+#     # print("The constraints were met: ", constraint_status)
+
 if __name__ == "__main__":
-    K = 6590.07
-    C = 1146.48
-
-    # K = 48168.2
-    # C = 781.115
-
-    # K = 11066.2
-    # C = 1404.13
-
-    # K = 28895.5
-    # C = 906.175
-
-    V = 1
+    K = 48168.2
+    C = 781.115
     m = 50
+ 
+    velocities = [
+        (2, 'steelblue',  'darkorange'),
+        (3, 'mediumseagreen', 'tomato'),
+    ]
+ 
+    dt = 0.01
+    t_end = 5
+    displacement_constraint_compression = 0.0775
+ 
+    t_arr = np.arange(0, t_end + dt, dt)
+ 
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+ 
+    # Displacement limit line (same for all velocities)
+    axs[0].axhline(displacement_constraint_compression * 100,
+                   color='red', linestyle='--', linewidth=1.2,
+                   label=f"Compression limit ({displacement_constraint_compression*100:.2f} cm)")
+ 
+    for V, col_disp, col_force in velocities:
+        y_displacement, y_force, constraint_status, design_force, total_gs = landing_gear_response(
+            K, C,
+            downward_landing_speed=V,
+            displacement_constraint_compression=displacement_constraint_compression,
+            dt=dt, t=t_end, m=m,
+            plotting=False, debug=False,
+        )
+ 
+        print(f"\n--- V = {V} m/s ---")
+        print("max displacement:             ", np.max(np.abs(y_displacement)) * 100, " [cm]")
+        print("max force (raw):              ", np.max(np.abs(y_force)) / 1000,       " [kN]")
+        print("design force (1.5x SF):       ", design_force / 1000,                  " [kN]")
+        print("Constraint status:            ", constraint_status)
+        print("gs on fuselage (w/ SF 1.5):   ", total_gs,                             " [g]")
+ 
+        axs[0].plot(t_arr, y_displacement * 100,
+                    color=col_disp, label=f"Displacement  v={V} m/s")
+ 
+        axs[1].plot(t_arr, y_force / 1000,
+                    color=col_force, label=f"Gear force  v={V} m/s")
+        axs[1].axhline(np.max(np.abs(y_force)) / 1000,
+                       color=col_force, linestyle=':', linewidth=0.9,
+                       label=f"Peak force  v={V} m/s: {np.max(np.abs(y_force))/1000:.2f} kN")
+ 
+    axs[0].set_title("Displacement Response")
+    axs[0].set_xlabel("Time (s)")
+    axs[0].set_ylabel("Displacement (cm)")
+    axs[0].legend()
+    axs[0].grid(True)
+ 
+    axs[1].set_title("Force Response")
+    axs[1].set_xlabel("Time (s)")
+    axs[1].set_ylabel("Force (kN)")
+    axs[1].legend()
+    axs[1].grid(True)
+ 
+    plt.suptitle(f"Landing Gear Response  —  K={K} N/m,  C={C} Pa·s/m,  m={m} kg", fontsize=11)
+    plt.tight_layout()
+    plt.show()
 
-    y_displacement, y_force, constraint_status, design_force, total_gs = landing_gear_response(K, C, downward_landing_speed = V, m=m, plotting=True, debug=False)
-
-    print("max displacement: ", np.max(np.abs(y_displacement)) * 100, " [cm]")
-    print("max force (raw): ", np.max(np.abs(y_force)) / 1000, " [kN]")
-    print("design force (1.5x safety factor): ", design_force / 1000, " [kN]")
-    print("Constraint status: ", constraint_status)
-    print("gs on fuselage (w/ SF: 1.5): ", total_gs , " [g]")
-
-    y_disp_max = np.max(np.abs(y_displacement))
-    y_force_max = np.max(np.abs(y_force))
-
-    # print("max displacement: ", y_disp_max * 100, " [cm]")
-    # print("max force: ", y_force_max / 1000, " [kN]")
-
-    # print("The constraints were met: ", constraint_status)
