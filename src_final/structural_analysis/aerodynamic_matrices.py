@@ -106,7 +106,7 @@ class AerodynamicMatrices:
         matrix*=self.sweep_correction()
 
         if self.compressibility_correction:
-            matrix*=self.prandtl_glauert_correction()
+            matrix/=self.prandtl_glauert_correction()
         
         return matrix
     
@@ -117,6 +117,6 @@ class AerodynamicMatrices:
         matrix*=self.sweep_correction()
         
         if self.compressibility_correction:
-            matrix*=self.prandtl_glauert_correction()
+            matrix/=self.prandtl_glauert_correction()
         
         return matrix
