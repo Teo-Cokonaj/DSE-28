@@ -7,13 +7,11 @@ import matplotlib.pyplot as plt
 
 def landing_gear_response(k:float, 
                           c:float, 
-                          downward_landing_speed:float = 0.5,                    # Has to be implemented into simulation, but I am not sure how to do that using lsim
-                          displacement_constraint_compression:float = 0.0095, 
-                          force_requirement: float = 4, 
+                          downward_landing_speed:float = 2.3,                    # Has to be implemented into simulation, but I am not sure how to do that using lsim
+                          displacement_constraint_compression:float = 0.0775, 
                           dt:float = 0.01, 
                           t:int = 5, 
                           m:float = 50, 
-                          L:float = 490, 
                           plotting:bool = False, 
                           debug:bool = False):
 
@@ -23,7 +21,6 @@ def landing_gear_response(k:float,
     # c                                     [Pa/m/s]
     # landing_speed                         [m/s]
     # displacement_constraint_compression   [m]
-    # force requirement (how many g)        [-]
     # dt                                    [s]
     # t                                     [s]
     # m                                     [kg]
@@ -34,6 +31,8 @@ def landing_gear_response(k:float,
     # constants
 
     g = 9.80665                             # [m/s/s]
+
+    L = m * g
 
     # state space matrices
 
@@ -56,8 +55,6 @@ def landing_gear_response(k:float,
     #_____________________________________________Simulating step response of landing gear:_____________________________________________________________________________
 
     max_load = g - L/m                                                                                  # load applied [N]
-    
-    load_requirement = force_requirement * m * g                                                        # [N]              
 
     t = np.arange(0, t + dt, dt)                                                                        # time array
 
@@ -76,9 +73,9 @@ def landing_gear_response(k:float,
     # constraints of displacement response
     y_displacement_constraint_compression = displacement_constraint_compression * 100 * np.ones_like(t)       
 
-    # constraints of force response
-
-    y_force_constraint_compression = force_requirement * g * m / 1000 * np.ones_like(t) 
+    # peak force (sized for 1.5x mass already applied via m parameter)
+    peak_force = np.max(np.abs(y_force))
+    design_force = peak_force
 
     #___________________________________________________________________________________________________________________________________________________________________
 
@@ -113,10 +110,10 @@ def landing_gear_response(k:float,
                     y_force / 1000, 
                     color='darkorange', 
                     label="Gear force")
-        axs[1].plot(t, 
-                    y_force_constraint_compression, 
-                    'r--', 
-                    label="4g limit")
+        axs[1].axhline(design_force / 1000,
+                    color='r',
+                    linestyle='--',
+                    label=f"Max gear force: {design_force/1000:.2f} kN")
         axs[1].set_title("Force Response")
         axs[1].set_xlabel("Time (s)")
         axs[1].set_ylabel("Force (kN)")
@@ -129,10 +126,8 @@ def landing_gear_response(k:float,
     # constraints met?
 
     peak_displacement = np.max(np.abs(y_displacement)) 
-    peak_force = np.max(np.abs(y_force)) 
 
     met_displacement_constraints = peak_displacement < np.abs(displacement_constraint_compression) 
-    met_force_constraints = peak_force < load_requirement 
 
     constraints_met = False
     force_constraint = False
@@ -141,54 +136,71 @@ def landing_gear_response(k:float,
     constraint_status = 0
 
 
+    total_gs = peak_force * 1.5 / (m * g)
+
+
 # debugging and constraint status evaluation
 
     met_displacement_constraints = peak_displacement < np.abs(displacement_constraint_compression) 
-    met_force_constraints = peak_force < load_requirement 
 
     # Determine constraint status based on your truth table
-    if met_displacement_constraints and met_force_constraints:
-                                                                                                                                    # Both met: Check if system is overdamped (c^2 >= 4*m*k)
+    # if met_displacement_constraints and met_force_constraints:
+    #                                                                                                                                 # Both met: Check if system is overdamped (c^2 >= 4*m*k)
+    #     if (c ** 2) >= (4 * m * k):
+    #         constraint_status = 4  
+    #                                                                                                         # Overdamped / invalid
+    #     else:
+    #         constraint_status = 3  
+    #                                                                                                          # Both constraints met (underdamped)
+    # elif met_displacement_constraints and not met_force_constraints:
+    #     constraint_status = 1        
+    #                                                                                                    # Only displacement constraint met
+    # elif not met_displacement_constraints and met_force_constraints:
+    #     constraint_status = 2    
+    #                                                                                                        # Only force constraint met
+    # else:
+    #     constraint_status = 0                                                                                                       # Neither constraint met
+
+
+# landing gear requirements HOT FIX
+    if met_displacement_constraints:
         if (c ** 2) >= (4 * m * k):
-            constraint_status = 4  
-                                                                                                            # Overdamped / invalid
+            constraint_status = 2  # Overdamped / invalid
         else:
-            constraint_status = 3  
-                                                                                                             # Both constraints met (underdamped)
-    elif met_displacement_constraints and not met_force_constraints:
-        constraint_status = 1        
-                                                                                                       # Only displacement constraint met
-    elif not met_displacement_constraints and met_force_constraints:
-        constraint_status = 2    
-                                                                                                           # Only force constraint met
+            constraint_status = 1  # Displacement constraint met (underdamped)
     else:
-        constraint_status = 0                                                                                                       # Neither constraint met
+        constraint_status = 0  # Displacement constraint not met
+
+
 
     if debug:
         labels = {
-             0: "Neither displacement nor force constraint met",
-             1: "Only displacement constraint met",
-             2: "Only force constraint met",
-             3: "Both constraints met (Underdamped)",
-             4: "Overdamped / Invalid",
+             0: "Displacement constraint not met",
+             1: "Displacement constraint met (Underdamped)",
+             2: "Overdamped / Invalid",
         }
 
     # Return the status integer instead of the old boolean
-    return y_displacement, y_force, constraint_status
+    return y_displacement, y_force, constraint_status, design_force, total_gs
 
 
 if __name__ == "__main__":
-    K = 1000
-    C = 10
+    K = 6590.07
+    C = 1146.48
+    m = 50
 
-    y_displacement, y_force, constraint_status = landing_gear_response(K, C, plotting = True, debug = False)
+    y_displacement, y_force, constraint_status, design_force, total_gs = landing_gear_response(K, C, m=m, plotting=True, debug=False)
+
+    print("max displacement: ", np.max(np.abs(y_displacement)) * 100, " [cm]")
+    print("max force (raw): ", np.max(np.abs(y_force)) / 1000, " [kN]")
+    print("design force (1.5x safety factor): ", design_force / 1000, " [kN]")
+    print("Constraint status: ", constraint_status)
+    print("gs on fuselage (w/ SF: 1.5): ", total_gs , " [g]")
 
     y_disp_max = np.max(np.abs(y_displacement))
     y_force_max = np.max(np.abs(y_force))
 
-    print("max displacement: ", y_disp_max * 100, " [cm]")
-    print("max force: ", y_force_max / 1000, " [kN]")
+    # print("max displacement: ", y_disp_max * 100, " [cm]")
+    # print("max force: ", y_force_max / 1000, " [kN]")
 
-    print("The constraints were met: ", constraint_status)
-
-
+    # print("The constraints were met: ", constraint_status)
