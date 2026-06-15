@@ -70,7 +70,7 @@ class Assumptions():
 
         #Vertical tail properties
         self.VT_surface_area_m2=0.25 #based on FLEXOP
-        self.VT_clmax=2*np.pi
+        self.VT_clmax=1.5
         
         # Main gear properties (based on FLEXOP)
         self.main_gear_diameter_wheel = 0.17 / 2 # [m]
