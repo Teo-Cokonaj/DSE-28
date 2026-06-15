@@ -42,7 +42,12 @@ def _add_contours(ax, C_grid, K_grid, data_grid, levels, color, linestyle, fmt, 
     try:
         cs = ax.contour(C_grid, K_grid, masked, levels=levels,
                         colors=color, linewidths=0.9, linestyles=linestyle)
-        ax.clabel(cs, fmt=fmt, colors=color, fontsize=fontsize, inline=True)
+        labels = ax.clabel(cs, fmt=fmt, colors=color, fontsize=fontsize, inline=False)
+
+        for txt in labels:
+            txt.set_bbox(dict(facecolor=ax.get_facecolor(),
+                            edgecolor='none',
+                            pad=0.4))
     except Exception:
         pass
 
@@ -135,7 +140,7 @@ def plot_parameter_space(c_min: float = 1e-3,
     d_start = np.ceil(d_min / disp_contour_step_cm) * disp_contour_step_cm
     disp_levels = np.arange(d_start, d_max + disp_contour_step_cm, disp_contour_step_cm)
 
-    G_COLOR    = '#cccccc'   # grey dashed  → g-load
+    G_COLOR    = '#fffffe'   # grey dashed  → g-load
     D_COLOR    = '#99ddff'   # light-blue dotted → displacement
     G_STYLE    = '--'
     D_STYLE    = ':'
@@ -144,9 +149,10 @@ def plot_parameter_space(c_min: float = 1e-3,
     #  Plot setup  — 4 panels                                             #
     # ------------------------------------------------------------------ #
 
-    fig, axes = plt.subplots(1, 4, figsize=(26, 6))
+    fig, axes = plt.subplots(2, 2, figsize=(15, 15))
     fig.patch.set_facecolor('#0f1117')
-    for ax in axes:
+    axflat = axes.flatten()
+    for ax in axflat:
         ax.set_facecolor('#1a1d27')
 
     C_grid, K_grid = np.meshgrid(c_values, k_values)
@@ -165,7 +171,7 @@ def plot_parameter_space(c_min: float = 1e-3,
     def _overlay_contours(ax):
         """Add g and displacement contours to any axis."""
         _add_contours(ax, C_grid, K_grid, total_gs_grid,
-                      g_levels, G_COLOR, G_STYLE, fmt='%.1fg')
+                      g_levels, G_COLOR, G_STYLE, fmt='%.0fg')
         # _add_contours(ax, C_grid, K_grid, disp_cm_grid,
         #               disp_levels, D_COLOR, D_STYLE, fmt='%.1fcm')
 
@@ -173,7 +179,7 @@ def plot_parameter_space(c_min: float = 1e-3,
     #  Plot 1 — Peak displacement heat-map                                #
     # ------------------------------------------------------------------ #
 
-    ax1 = axes[0]
+    ax1 = axflat[0]
     masked_disp = np.ma.masked_invalid(disp_cm_grid)
 
     im1 = ax1.pcolormesh(C_grid, K_grid, masked_disp, cmap='plasma', shading='auto')
@@ -199,7 +205,7 @@ def plot_parameter_space(c_min: float = 1e-3,
     #  Plot 2 — Peak force heat-map                                       #
     # ------------------------------------------------------------------ #
 
-    ax2 = axes[1]
+    ax2 = axflat[1]
     force_kN = peak_force_grid / 1000
     masked_force = np.ma.masked_invalid(force_kN)
 
@@ -217,7 +223,7 @@ def plot_parameter_space(c_min: float = 1e-3,
     #  Plot 3 — Damping ratio heat-map                                    #
     # ------------------------------------------------------------------ #
 
-    ax3 = axes[2]
+    ax3 = axflat[2]
     masked_zeta = np.ma.masked_invalid(damping_ratio_grid)
 
     im3 = ax3.pcolormesh(C_grid, K_grid, masked_zeta,
@@ -252,7 +258,7 @@ def plot_parameter_space(c_min: float = 1e-3,
     cmap_cat = ListedColormap(['#3a3a4a', '#e05252', '#52c97a'])
     norm_cat  = mcolors.BoundaryNorm([-1.5, -0.5, 0.5, 1.5], cmap_cat.N)
 
-    ax4 = axes[3]
+    ax4 = axflat[3]
     ax4.pcolormesh(C_grid, K_grid, result_grid,
                    cmap=cmap_cat, norm=norm_cat, shading='auto')
 
@@ -314,7 +320,7 @@ if __name__ == "__main__":
         m=50,
         log_scale=True,
         save_path="landing_gear_parameter_space.png",
-        g_contour_step=1,
+        g_contour_step=3,
         disp_contour_step_cm=1.0,
     )
 
