@@ -249,16 +249,15 @@ class FuselageModel:
         
 
     def compute_sectional_properties(self,
-                                     t_skin_mm: np.ndarray) -> tuple[np.ndarray,np.ndarray,float]:
+                                     t_skin_mm: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
         r_o = self.fuselage_diameter_m/2
         r_i = r_o - t_skin_mm/1000
         y_bar = (4/(3*math.pi))*(r_o**2 + r_o*r_i + r_i**2)/(r_o+r_i)
         area = (math.pi/2)*(r_o**2 - r_i**2)
         Q = y_bar * area
-        I_xx =np.pi/4*(r_o**4 - r_i**4)
-        enclosed_area=(self.fuselage_diameter_m/2)**2*np.pi
+        I_xx =np.pi*r_o**3*t_skin_mm/1000#np.pi/4*(r_o**4 - r_i**4)
 
-        return Q, I_xx, enclosed_area
+        return Q, I_xx
     
     
     def calculate_buckling_stress(self,
@@ -267,6 +266,7 @@ class FuselageModel:
         '''Calculate buckling stress of thin-walled cylinders'''
 
         phi=1/16*np.sqrt(self.fuselage_diameter_m/2/t_skin)
+        assert np.all(self.fuselage_diameter_m/2/t_skin) <1500
         gamma=1.0-0.901*(1-np.exp(-phi))
         sigma_cr=gamma*(self.material.elastic_modulus*t_skin)/(math.sqrt(3*(1-self.material.poisson_ratio**2))*self.fuselage_diameter_m/2)
 
@@ -276,15 +276,21 @@ class FuselageModel:
     def thickness_utils(self,
                         thicknesses_m: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
 
-        Q, I, enclosed_area = self.compute_sectional_properties(t_skin_mm=thicknesses_m*1000)
-        tau_shear = np.abs(self.internal_shear_forces * Q / (I * thicknesses_m))+np.abs(self.internal_torques/thicknesses_m/2/enclosed_area)
+        Q, I = self.compute_sectional_properties(t_skin_mm=thicknesses_m*1000)
+        r_outer=self.fuselage_diameter_m/2
+        r_inner =r_outer-thicknesses_m
+
+        tau_torque = np.abs(2*self.internal_torques*r_outer/(np.pi*(r_outer**4-r_inner**4)))
+        tau_shear = np.abs(self.internal_shear_forces * Q / (I * thicknesses_m))
+        tau_total=tau_torque+tau_shear
+
         sigma_bending = np.abs(self.internal_bending_moments*self.fuselage_diameter_m/(2*I))
         sigma_buckling = np.abs(self.calculate_buckling_stress(thicknesses_m))
 
         maximum_allowed_normal_stress = np.minimum(0.7*self.material.yield_strength, sigma_buckling)
         maximum_allowed_shear_stress = 0.5*self.material.yield_strength #Tresca
         bending_util = sigma_bending / maximum_allowed_normal_stress
-        shear_util = tau_shear / maximum_allowed_shear_stress
+        shear_util = tau_total / maximum_allowed_shear_stress
 
         return bending_util, shear_util
 
@@ -374,22 +380,20 @@ class FuselageModel:
         plt.show()
         
         
-
-
 if __name__=='__main__': 
-        material = Material(density=1600,
-                            elastic_modulus=50e9,
-                            shear_modulus=5e9,
-                            poisson_ratio=0.3,
-                            yield_strength=600e6,
-                            fracture_strength=600e6
+        material = Material(density=1570,
+                            elastic_modulus=69e9,
+                            shear_modulus=5.58e9,
+                            poisson_ratio=0.048,
+                            yield_strength=900e6,
+                            fracture_strength=900e6
                             )
         
         planform_wing=Planform(
             aspect_ratio=27.0,
-            span=2.67,
+            span=3.2,
             sweep_quarter_deg=15.0,
-            taper=0.5,
+            taper=0.3,
             thickness_to_chord=0.12,
             cm_quarter_chord=1.0,
             wetted_surface_ratio=1.0,
@@ -437,7 +441,7 @@ if __name__=='__main__':
                  minimum_fuselage_thickness_mm=0.1,
                  material=material,
                  number_of_nodes=1000,
-                 canard_lift_fraction=0.2, 
+                 canard_lift_fraction=0.3, 
                  wing_model=wing_model_flight,
                  canard_model=canard_model_flight            
                  )
@@ -448,7 +452,7 @@ if __name__=='__main__':
                  material_1 = material,
                  planform = planform_wing,
                  local_fuselage_diameter=0.30,
-                 load_factor=4.0,
+                 load_factor=8.0,
                  inertial_load=1.0,
                  cm=1.0
                  )
@@ -458,7 +462,7 @@ if __name__=='__main__':
                  number_of_nodes=100,
                  material_1 = material,
                  planform = planform_canard,
-                 load_factor=4.0,
+                 load_factor=8.0,
                  local_fuselage_diameter=0.1,
                  inertial_load=1.0,
                  cm=1.0
@@ -468,7 +472,7 @@ if __name__=='__main__':
                  minimum_fuselage_thickness_mm=0.1,
                  material=material,
                  number_of_nodes=1000,
-                 canard_lift_fraction=0.2, 
+                 canard_lift_fraction=0.3, 
                  wing_model=wing_model_landing,
                  canard_model=canard_model_landing            
                  )
@@ -487,7 +491,7 @@ if __name__=='__main__':
 
         fuselage_model_landing.load_components_from_csv(str(csv_path))
         fuselage_model_landing.plot_mass_distribution()
-        fuselage_model_landing.calculate_loads_landing(landing_deceleration_in_terms_of_g=4.0)
+        fuselage_model_landing.calculate_loads_landing(landing_deceleration_in_terms_of_g=8.0)
         fuselage_model_landing.plot_applied_loads()
         fuselage_model_landing.plot_applied_moments()
         fuselage_model_landing.plot_shear_and_moment_diagrams()
