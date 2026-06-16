@@ -548,7 +548,7 @@ class WingModel:
 
         return diff
     
-    def bending_stresses(self,plot = bool):
+    def bending_stresses(self,plot:bool = False):
         moments = self.step_moment(False, False)
         Ix,_ = self.area_moment_inertia()
         y_max = self.planform.thickness_to_chord * self.chord_stations
