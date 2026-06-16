@@ -74,6 +74,9 @@ class MDReq(Requirement):
         
         wing_loading = aircraft.wing_loading()
         thrust_to_weight = aircraft.thrust_to_weight()
+
+        # self.matching_diagram.create_wing_loading_axis()
+        # self.matching_diagram.plot(wing_loading, thrust_to_weight, max_thrust_weight=1.0)
         
         results = {}
 
@@ -83,7 +86,7 @@ class MDReq(Requirement):
         for label, tw_constraint in self.matching_diagram.constraints_thrust_weight.items():
             results[label] = bool(thrust_to_weight >= tw_constraint(wing_loading))
 
-        return results
+        return not (False in results.values())
         
         
     
