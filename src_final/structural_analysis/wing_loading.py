@@ -544,7 +544,7 @@ class WingModel:
         y_max = self.planform.thickness_to_chord * self.chord_stations
         bending_stress = moments * y_max / Ix
 
-        diff = buckling_stress+ bending_stress
+        diff = buckling_stress- bending_stress
 
         return diff
     
@@ -691,5 +691,3 @@ if __name__=='__main__':
         
         # shear = wing_model.step_shear_stress(reduced_sectional_spanwise_positions=span_poz, modified_sectional_lifts_schrenk=force_along_wing[0], debug = True, plot = True)
         # p_crush = wing_model.step_crushing_pressure(c_stations,material_1.elastic_modulus,planform.thickness_to_chord,y_station_chord)
-       
-        

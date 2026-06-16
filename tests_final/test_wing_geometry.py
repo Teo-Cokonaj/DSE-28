@@ -231,6 +231,3 @@ class TestWingModel:
         expected_margin = buckling_stress - bending_stress
 
         np.testing.assert_allclose(stress_margin, expected_margin)
-
-
-# python -m pytest tests_final/test_wing_geometry.py -v
