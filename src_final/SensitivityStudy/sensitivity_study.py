@@ -39,6 +39,16 @@ pickle_path = _HERE / ".." / "notebooks" / "pickles" / "fixed_pickle.pcl"
 with open(pickle_path, "rb") as f:
     fixed: Fixed = pickle.load(f)
 
+fixed.x_LE_wing = 1.255
+delta_z = 0.01
+fixed.z_tail_cone += delta_z
+fixed.z_cg += delta_z
+fixed.fuel_mass = 13.54
+fixed.x_cg_min = 1.378 #m #1.381
+fixed.x_cg_max = 1.381 #m # 1.378
+fixed.mass = 40.782#kg 
+fixed.fuselage.diameter_max = 0.315
+
 for component in fixed.drag_components(False):
     component.add_cache_entry("go_around", assumptions.airspeed_approach/asb.Atmosphere(assumptions.altitude_go_round).speed_of_sound(), assumptions.altitude_go_round)
     component.add_cache_entry("mach_max", assumptions.mach_max, assumptions.altitude_mach_max)
@@ -47,8 +57,8 @@ for component in fixed.drag_components(True):
     component.add_cache_entry("takeoff", assumptions.airspeed_approach/asb.Atmosphere().speed_of_sound(), 0.)
 
 
-standard_wing = Planform(aspect_ratio=27, span=2.667, sweep_quarter_deg=15., taper=.5, thickness_to_chord=0.12, cm_quarter_chord=0,
-                         wetted_surface_ratio=1.07, interference_factor=1.0, clmax=1.25, flap=False)
+standard_wing = Planform(aspect_ratio=27, span=3.4, sweep_quarter_deg=15., taper=.3, thickness_to_chord=0.12, cm_quarter_chord=0,
+                         wetted_surface_ratio=1.07, interference_factor=1.0, clmax=1.22, flap=False)
 
 material_skin = Material(assumptions.cfrp_density, elastic_modulus=assumptions.cfrp_Young_modulus, 
                          poisson_ratio=assumptions.cfrp_poisson, shear_modulus=assumptions.cfrp_Young_modulus / 2 / (1 + assumptions.cfrp_poisson),
@@ -204,15 +214,15 @@ if __name__ == "__main__":
 
     ax1.plot(SF_mass_array[:, 0], SF_mass_array[:, 1], label="Tail")
     ax1.plot(SF_mass_array[:, 0], SF_mass_array[:, 2], label="Canard")
-    ax1.set_xlabel("Safety Factor")
-    ax1.set_ylabel("Total Mass")
-    ax1.set_title("Safety Factor Sensitivity — MTOM")
+    ax1.set_xlabel("Wing weight to wing structural weight ratio")
+    ax1.set_ylabel("Total mass in the standard planform configuration [kg]")
+    ax1.set_title("Safety factor sensitivity — MTOM")
     ax1.legend()
 
     ax2.plot(tail_sensitivity[:, 0], tail_sensitivity[:, 1], label="Tail")
     ax2.plot(canard_sensitivity[:, 0], canard_sensitivity[:, 1], label="Canard")
-    ax2.set_xlabel("Aspect Ratio")
-    ax2.set_ylabel("Total Mass")
+    ax2.set_xlabel("Empennage Aspect Ratio")
+    ax2.set_ylabel("Total mass in the standard planform configuration [kg]")
     ax2.set_title("AR Sensitivity — MTOM")
     ax2.legend()
 
