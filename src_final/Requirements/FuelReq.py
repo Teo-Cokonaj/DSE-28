@@ -36,7 +36,7 @@ class FuelReq(Requirement):
                                                   glide_ratio_cruise=glide_ratio_cruise, glide_ratio_go_around=glide_ratio_go_around,
                                                   airspeed_approach=assumptions.airspeed_approach, wing_loading=wing_loading, efficiency_cruise=efficiency_cruise,
                                                   energy_density_saf=assumptions.energy_density_saf, mach_cruise=assumptions.mach_cruise,
-                                                  mach_max=assumptions.mach_max,time_cruise=assumptions.time_cruise,time_mach_max=assumptions.time_mach_max,debug=False,
+                                                  mach_max=assumptions.mach_max,time_cruise=assumptions.time_cruise,time_mach_max=assumptions.time_mach_max,debug=self.print_,
                                                   efficiency_go_around=efficiency_go_around, efficiency_mach_max=efficiency_mach_max)
 
 
