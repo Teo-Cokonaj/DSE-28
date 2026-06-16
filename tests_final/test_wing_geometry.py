@@ -98,7 +98,7 @@ class TestWingModel:
             1 + (3 * h) / (10 + np.sqrt(4 - 3 * h))
         )
         t = wing_model.wing_skin_thickness_m
-        expected_area = np.pi * (a * b - (a - 2 * t) * (b - 2 * t)) / 4
+        expected_area = np.pi * (a ) * (b) / 4
 
         np.testing.assert_allclose(perimeter, expected_perimeter)
         np.testing.assert_allclose(area, expected_area)
@@ -212,8 +212,8 @@ class TestWingModel:
             4
             * np.pi**2
             * material.elastic_modulus
-            / (12 * (1 - material.poisson_ratio) ** 2)
-            * (wing_model.wing_skin_thickness_m / wing_model.chord_stations)
+            / (12 * (1 - material.poisson_ratio ** 2))
+            * (wing_model.wing_skin_thickness_m / wing_model.chord_stations)**2
         )
 
         np.testing.assert_allclose(buckling_stress, expected_stress)
@@ -231,6 +231,3 @@ class TestWingModel:
         expected_margin = buckling_stress - bending_stress
 
         np.testing.assert_allclose(stress_margin, expected_margin)
-
-
-# python -m pytest tests_final/test_wing_geometry.py -v

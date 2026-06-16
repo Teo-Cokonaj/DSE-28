@@ -1,6 +1,6 @@
 import sys
 import os
-from numba import njit
+import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import numpy as np
@@ -10,7 +10,7 @@ from EmpennageSizing.EmpennageFinder import EmpennageFinder
 from structural_analysis.iterative_planform_sizing import size_planform
 
 class TailFinder(EmpennageFinder):
-    def __init__(self, fixed, thicknesses, material, core_density, safety_factor, AR_h:float=3., taper_h:float=1., taper_v:float=0.6, SM=0.1, Sv_S=.25, number_of_sections=30):
+    def __init__(self, fixed, thicknesses, material, core_density, safety_factor, AR_h:float=3., taper_h:float=1., taper_v:float=0.6, SM=0.05, Sv_S=.25, number_of_sections=30):
         super().__init__(fixed, thicknesses, material, core_density, safety_factor, number_of_sections)
         self.AR_h = AR_h
         self.taper_h = taper_h
@@ -19,7 +19,7 @@ class TailFinder(EmpennageFinder):
         self.Sv_S = Sv_S
 
 
-    def find_planforms(self, main_wing:Planform, initial:float=.1, maxiter:int=50, tolerance:float=1e-4 , print_=False) -> list[Planform]:
+    def find_planforms(self, main_wing:Planform, initial:float=.1, maxiter:int=50, tolerance:float=1e-4 , print_=False, plot=True) -> list[Planform]:
         x_ac_mac = self._x_ac(main_wing, self.fixed.x_LE_wing, main_wing.MAC)
         ac_term = x_ac_mac  - main_wing.cm_quarter_chord / main_wing.positive_C_L_max
         Sh_S = initial
@@ -38,11 +38,11 @@ class TailFinder(EmpennageFinder):
             #if main_wing.sweep_quarter_rad > 0:
             downwash = self.downwash_gradient(main_wing, l_h_mac * main_wing.MAC, vertical_tail)
             x_cg_mac_max = self._x_cg([main_wing, horizontal_tail, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail], False)
-            Sh_S_new_stab = (x_cg_mac_max - x_ac_mac - self.SM) / ((1-downwash) * horizontal_tail.CL_alpha * l_h_mac / main_wing.CL_alpha)
+            Sh_S_new_stab = (x_cg_mac_max - x_ac_mac + self.SM) / ((1-downwash) * horizontal_tail.CL_alpha * l_h_mac / main_wing.CL_alpha)
             #else:
                 #Sh_S_new_stab = 0
             
-            Sh_S_new = max(Sh_S_new_ctrl, Sh_S_new_stab)
+            Sh_S_new = max(Sh_S_new_ctrl, Sh_S_new_stab, initial)
             assert Sh_S_new > 0
 
             diff = abs(Sh_S_new - Sh_S) / Sh_S_new
@@ -58,6 +58,22 @@ class TailFinder(EmpennageFinder):
                 RuntimeWarning(f"For planform of AR:{main_wing.aspect_ratio}, and sweep: {np.rad2deg(main_wing.sweep_quarter_rad)} deg, the tail sizing converged within {diff}, above tolerance: {tolerance}.")
 
         horizontal_tail, vertical_tail = self._t_tail(main_wing, Sh_S)
+
+        if plot:
+            x_cg_mac_min = self._x_cg([main_wing, horizontal_tail, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail])
+            x_cg_mac_max = self._x_cg([main_wing, horizontal_tail, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail], False)
+            
+            x_cgs = np.linspace(x_cg_mac_min-0.2, x_cg_mac_max+0.2, 100)
+            Sh_S_stbs = (x_cgs - x_ac_mac + self.SM) / ((1-downwash) * horizontal_tail.CL_alpha * l_h_mac / main_wing.CL_alpha)
+            Sh_S_ctrls = np.abs((x_cgs - ac_term) / (CL_h * l_h_mac / main_wing.positive_C_L_max))
+
+            print(f"downwash = {downwash}")
+
+            plt.plot(x_cgs, Sh_S_stbs, label="stability")
+            plt.plot(x_cgs, Sh_S_ctrls, label="controlability")
+            plt.legend()
+            plt.show()
+
         return [horizontal_tail, vertical_tail]
 
 
@@ -77,13 +93,13 @@ class TailFinder(EmpennageFinder):
         
         load_ratio = horizontal_tail.positive_C_L_max / main_wing.positive_C_L_max * Sh_S
         
-        size_planform(horizontal_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor,
+        size_planform(horizontal_tail, self.thicknesses, 1e-4, self.material, self.core_density, self.number_of_sections, self.safety_factor,
                       load_factor=6*load_ratio, load_factor_maneuver=1.)
         # horizontal_tail.x_cg_cache = horizontal_tail.x_MAC + horizontal_tail.MAC / 3 #TODO: rough assumption revise
         # horizontal_tail.mass_cache = 0.5 #TODO actually conduct the structural analysishere
 
         vertical_surface = 2 * self.Sv_S * main_wing.wing_area #NOTE: 2 as rudder is only 1 sided
-        vertical_span = 2 * vertical_surface / (1 + 1/self.taper_v) / (horizontal_tail.c_root *1.3) #NOTE: to fit the horizontal tail
+        vertical_span = 2 * vertical_surface / (1 + 1/self.taper_v) / (horizontal_tail.c_root) #NOTE: to fit the horizontal tail
         vertical_tail = Planform(
             aspect_ratio=vertical_span**2 / vertical_surface, 
             span=vertical_span,
@@ -96,7 +112,7 @@ class TailFinder(EmpennageFinder):
             clmax=.35 * self.AR_h**(1/3) / .9 / np.cos(main_wing.sweep_quarter_rad),
             flap=False
         )
-        size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor,
+        size_planform(vertical_tail, self.thicknesses, 1e-4, self.material, self.core_density, self.number_of_sections, self.safety_factor,
                       load_factor=6*load_ratio) #as rudder needs to carry the main wing as well
 
         # vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
