@@ -221,7 +221,7 @@ if __name__ == "__main__":
 
     ax2.plot(tail_sensitivity[:, 0], tail_sensitivity[:, 1], label="Tail")
     ax2.plot(canard_sensitivity[:, 0], canard_sensitivity[:, 1], label="Canard")
-    ax2.set_xlabel("Empennage Aspect Ratio")
+    ax2.set_xlabel("Horizontal Stabilizer Aspect Ratio")
     ax2.set_ylabel("Total mass in the standard planform configuration [kg]")
     ax2.set_title("AR Sensitivity — MTOM")
     ax2.legend()
