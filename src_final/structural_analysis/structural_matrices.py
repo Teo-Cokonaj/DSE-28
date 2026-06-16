@@ -21,6 +21,7 @@ class StructuralMatrices:
                  elastic_axis_fractional_position: float = 0.5,
                  csv_path: str = 'src_final/structural_analysis/onshape_mass_distribution.csv'
                  ):
+        
         self.root_chord = planform.c_root
         self.wing_span = planform.span
         self.semi_span = planform.half_span
@@ -36,7 +37,6 @@ class StructuralMatrices:
         self.skin_thicknesses=np.ones_like(self.wing_thicknesses)*self.skin_thickness
         self.xf = elastic_axis_fractional_position * self.chords
         self.csv_path=csv_path
-
 
     def _mass_per_unit_area(self):
         
@@ -132,7 +132,8 @@ class StructuralMatrices:
         
         return matrix
     
-    def D_matrix(self) -> np.matrix:
+    def D_matrix(self,
+                 desired_damping_ratio_critical: float=0.01) -> np.matrix:
         M = np.asarray(self.A_matrix())
         K = np.asarray(self.E_matrix())
 
@@ -149,8 +150,8 @@ class StructuralMatrices:
             [1/omega2, omega2]
         ])
 
-        zeta_bending = 0.01   # 1% damping
-        zeta_torsion = 0.01   # 1% damping
+        zeta_bending = desired_damping_ratio_critical
+        zeta_torsion = desired_damping_ratio_critical
 
         b = 2*np.array([zeta_bending, zeta_torsion])
 
