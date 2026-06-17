@@ -9,13 +9,15 @@ from src_final.global_parameters import *
 
 
 # Data taken from article Micro Turbojet Engine Nozzle Ejector Impact on the Acoustic Emission, Thrust Force and Fuel Consumption Analysis
-# Data used for the polynomic regression can be found at: the github folder under the name      
+
+# Data used for the polynomic regression can be found at:     
 theta=0
 phi=0
-S_wing=0.439
-b_wing=3.2
-S_tail=0.086
-b_tail=0.5701744594787047
+S_wing=2
+b_wing=5
+S_tail=0.2
+b_tail=2
+
 nu=CONSTANTS.DYNAMIC_VISCOSITY_SEA_LEVEL 
 asm=Assumptions()
 
@@ -64,6 +66,7 @@ class NoFusWing():
     def __init__(self, S:float, b:float):
         self.WingSurface=S  
         self.span=b         
+
     def SPL(self,f,theta,V,h):
         delta=0.37*(self.WingSurface/self.span)*(V*self.WingSurface/(self.span*nu))**(-0.2)
         OASPL=50*np.log10(V/51.44)+10*np.log10(delta*self.span/(h**2)*(np.cos(phi)**2)*(np.cos(theta/2)**2))+101.3
@@ -75,13 +78,14 @@ class Noise():
     def __init__(self):
         self.Jet=NoJet()
     def SPL(self,f,S,b,St,bt,theta,V,c,r):
+
         if c==0:
             NoJetSPL=NoJet.SPL_idle(f)+20*np.log10(1.2)    
         if c==1:
             NoJetSPL=NoJet.SPL_cruise(f)+20*np.log10(1.2)    
         if c==2:
             NoJetSPL=NoJet.SPL_max(f)+20*np.log10(1.2)  
-            
+
         
         NoFusWingSPL=NoFusWing(S,b).SPL(f,theta,V,r)
         NoFusTailSPL=NoFusWing(St,bt).SPL(f,theta,V,r)
@@ -182,18 +186,22 @@ class Noise():
             V=atm.speed_of_sound()*asm.mach_cruise
             FlightProfile(2,1,t,150/3.6+0.9*V_mach_cruise,V_mach_cruise,i,10)
 
+
         
         #Max cruise
         t=t+int(asm.time_cruise/2)+1
+
         for i in range(t,int(t+asm.time_mach_max),10):
             r=asm.altitude_mach_max
             atm = aerosandbox.Atmosphere(altitude=r)
             V=atm.speed_of_sound()*asm.mach_max
             FlightProfile(1,2,t,V_mach_cruise,V_mach_max,i,10)
 
+
         t=t+1+int(asm.time_mach_max)       
         
         #cruise second phase 
+
         for i in range(t,int(t+asm.time_cruise/2),10):
             r=asm.altitude_cruise
             atm = aerosandbox.Atmosphere(altitude=r)
@@ -244,11 +252,9 @@ class Noise():
         plt.tight_layout()
         plt.show()
         
+
         return ("done")
         
-       
-                
-
 
 def run_self_tests():
     def assert_(condition, msg):
@@ -297,4 +303,5 @@ if __name__ == "__main__":
         noise = Noise()
         noise.plotOperation(S_wing,b_wing,S_tail,b_tail, theta,10)
         noise.plotFlyover(S_wing,b_wing,S_tail,b_tail,0,V_mach_max,2,1000,2000,10)
+
 

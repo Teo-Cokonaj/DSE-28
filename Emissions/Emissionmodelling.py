@@ -28,7 +28,7 @@ class Emmisions():
     def CO2(self,fuelflow):
         return (CO2_per_fuel*fuelflow,CO2_GWP*CO2_per_fuel*fuelflow)
     def H2O(self,fuelflow):
-        return (H2O_per_fuel*fuelflow,H2O_GWP*H2O_per_fuel*fuelflow)
+        return (H2O_per_fuel*fuelflow,CO2_GWP*H2O_per_fuel*fuelflow)
     def NMVOCs(self,fuelflow):
         return (NMVOCs_per_fuel*fuelflow,NMVOCs_GWP*NMVOCs_per_fuel*fuelflow)  
     def SO42(self,fuelflow):
@@ -65,6 +65,48 @@ class Emmisions():
         +Contrails_cirrusb_per_fuel*Contrails_cirrusb_GWP)*fuelflow
         return (GWP)
 
+
+Emmis=Emmisions()
+x=[]
+y=[]
+z=[]
+print(Emmis.Total(5.31045413298577/1500))
+
+for i in range(0,1500,10):
+    for j in range(0,5000,10):
+            x.append(i)
+            y.append(j)
+            if (j>2000 and j<2500):
+                z.append(Emmis.Total(5.31045413298577/1500))
+            else:
+                z.append(0)
+for i in range(1500,1800,10):
+    for j in range(0,5000,10):
+            x.append(i)
+            y.append(j)
+            if (j>3000 and j<3500):
+                z.append(Emmis.Total(1.111694622595013/300))
+            else:
+                z.append(0)
+                
+for i in range(1800,2280,10):
+    for j in range(0,5000,10):
+            x.append(i)
+            y.append(j)
+            if (j>1000 and j<1500):
+                z.append(Emmis.Total(1.8129882930851229/480))
+            else:
+                z.append(0)
+        
+        
+        
+plt.figure()
+sc = plt.scatter(x, y, c=z, cmap='viridis', s=10,vmin=0, vmax=0.03)
+plt.colorbar(sc, label='GWP')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.tight_layout()
+plt.show()
 
 
 
@@ -157,3 +199,4 @@ if __name__ == "__main__":
         run_self_tests()
     else:
         plotGWP(5.31045413298577,1.111694622595013,1.8129882930851229,1500,300,480)
+
