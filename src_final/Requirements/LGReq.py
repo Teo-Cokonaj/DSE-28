@@ -2,7 +2,7 @@ import sys
 import os
 import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src_final.Requirements.Requirement import Requirement
+from Requirements.Requirement import Requirement
 from Aircraft.Aircraft import Aircraft
 
 
@@ -36,7 +36,7 @@ class LGReq(Requirement):
 
         # tip over cg (psi < 55 degrees)
 
-        psi = np.arctan( z_cg / ((x_cg - x_nose_lg) * np.sin( np.arctan ( y_main_lg / (x_main_lg - x_nose_lg)))))
+        psi = np.arctan( z_cg / ((x_cg - x_nose_lg) * np.sin( np.arctan ( y_main_lg * 0.5 / (x_main_lg - x_nose_lg)))))
         psi_degrees = psi * 180 / np.pi
 
         # wing strike (phi > 8 )
@@ -54,20 +54,20 @@ class LGReq(Requirement):
         phi_pass = phi_degrees > 8 
 
 
-        if theta_pass:
-            if beta_pass:
-                if psi_pass:
-                    if phi_pass:
-                        print('all constraints satisfied')
+        # if theta_pass:
+        #     if beta_pass:
+        #         if psi_pass:
+        #             if phi_pass:
+        #                 print('all constraints satisfied')
             
-                    else:
-                        print('phi fails')
-                else:
-                    print('psi fails')
-            else:
-                print('beta fails')
-        else:
-            print('theta fails')
+        #             else:
+        #                 print('phi fails')
+        #         else:
+        #             print('psi fails')
+        #     else:
+        #         print('beta fails')
+        # else:
+        #     print('theta fails')
 
         return theta_pass and beta_pass and psi_pass and phi_pass
 
