@@ -9,6 +9,7 @@ from src_final.global_parameters import *
 
 
 # Data taken from article Micro Turbojet Engine Nozzle Ejector Impact on the Acoustic Emission, Thrust Force and Fuel Consumption Analysis
+
 # Data used for the polynomic regression can be found at:     
 theta=0
 phi=0
@@ -16,6 +17,7 @@ S_wing=2
 b_wing=5
 S_tail=0.2
 b_tail=2
+
 nu=CONSTANTS.DYNAMIC_VISCOSITY_SEA_LEVEL 
 asm=Assumptions()
 
@@ -23,14 +25,28 @@ asm=Assumptions()
 r=asm.altitude_cruise
 atm =aerosandbox.Atmosphere(altitude=r)
 V_mach_cruise=atm.speed_of_sound()*asm.mach_cruise
-V_take_off=150/3.6
-r=asm.altitude_mach_max
-V_mach_max=atm.speed_of_sound()*asm.mach_max
-V_landing=150/3.6*1.3
 
-x=[]
-y=[]
-z=[]
+
+V_take_off=40.49
+
+r=asm.altitude_mach_max
+print(asm.altitude_mach_max)
+atm = aerosandbox.Atmosphere(altitude=r)
+V_mach_max=atm.speed_of_sound()*asm.mach_max
+
+
+V_landing=40.49*1.3
+V_goaround=47.051
+
+
+#A-filtering 
+
+def R(f):
+    R=12194**2*f**4/((f**2+20.6**2)*np.sqrt((f**2+107.7**2)*(f**2+737.9**2))*(f**2+1214**2))
+    return R
+
+def A_curve(f):
+    return (20*np.log10(R(f))-20*np.log10(R(1000)))
 
 
 class NoJet():
@@ -50,138 +66,242 @@ class NoFusWing():
     def __init__(self, S:float, b:float):
         self.WingSurface=S  
         self.span=b         
-    def SPL(self,f,theta,V):
-        delta=0.37*(self.WingSurface/self.span)*(V*self.WingSurface/self.span*nu)**(0.3)
-        OASPL=50*np.log10(V/51.44)+10*np.log10(delta*self.span/(1**2)*(np.cos(phi)**2)*(np.cos(theta/2)**2))+101.3
+
+    def SPL(self,f,theta,V,h):
+        delta=0.37*(self.WingSurface/self.span)*(V*self.WingSurface/(self.span*nu))**(-0.2)
+        OASPL=50*np.log10(V/51.44)+10*np.log10(delta*self.span/(h**2)*(np.cos(phi)**2)*(np.cos(theta/2)**2))+101.3
         DeltaSPL=-0.03*(1/152.4)*(f/(0.1*V/delta)-1)**(3/2)
-        SPL=OASPL+10*np.log10(0.613*(f/(0.1*V/delta))**4*((f/(0.1*V/delta))**(3/2)+0.5)**(-4))+DeltaSPL+6
+        SPL=OASPL+10*np.log10(0.613*(f/(0.1*V/delta))**4*((f/(0.1*V/delta))**(3/2)+0.5)**(-4))+DeltaSPL
         return SPL
-
-
+        
 class Noise(): 
     def __init__(self):
         self.Jet=NoJet()
-    def SPL(self,f,S,b,theta,V,c,r):
+    def SPL(self,f,S,b,St,bt,theta,V,c,r):
+
         if c==0:
             NoJetSPL=NoJet.SPL_idle(f)+20*np.log10(1.2)    
         if c==1:
             NoJetSPL=NoJet.SPL_cruise(f)+20*np.log10(1.2)    
         if c==2:
             NoJetSPL=NoJet.SPL_max(f)+20*np.log10(1.2)  
-            
-        NoFusWingSPL=NoFusWing(S_wing,b_wing).SPL(f,theta,V)
-        NoFusTailSPL=NoFusWing(S_tail,b_tail).SPL(f,theta,V)
-        NoTurb=np.log10(2)+NoJetSPL
-        SPL_total= 10*np.log10((10**(NoFusWingSPL/10)+10**(NoTurb/10)+10**(NoFusTailSPL/10)))+20*np.log10(1/r) 
+
+        
+        NoFusWingSPL=NoFusWing(S,b).SPL(f,theta,V,r)
+        NoFusTailSPL=NoFusWing(St,bt).SPL(f,theta,V,r)
+        #Make the jet noise for two jet turbines
+        NoTurb=10*np.log10(2)*1+NoJetSPL
+        #Adding all the sources of sound. Adding the inverse square law and A-filtering
+        SPL_total= 10*np.log10(10**(NoFusTailSPL/10)+10**(NoFusWingSPL/10)+10**(NoTurb/10))+20*np.log10(1/r)+A_curve(f)-3
         return(SPL_total)
         
-  
-    def plotFlyover(self,S,b,theta,V,c,r,d):
+        
+    #The function used to calculate the noise generated when the plane performs a flyover.
+    def plotFlyover(self,S_wing,b_wing,S_tail,b_tail,theta,V,c,r,d,step):
         x=[]
         y=[]
         z=[]
-        r=asm.altitude_cruise
-        atm =aerosandbox.Atmosphere(altitude=r)
-        V=atm.speed_of_sound()*asm.mach_cruise
-        V=V_mach_max
-        for i in range(0,d,1):
-            rit=r/(np.sin(np.pi/1000+i*np.pi/1.01/d))
-            for f in range(200,15000,20):
-                z.append(i-1000)
+        TotalT=[]
+        TotalN=[]
+
+        for i in range(0,d,step):
+            fsum=0
+            theta=0.0001+i*np.pi/d
+            rit=r/(np.sin(theta))
+            for f in range(150,15000,20):
+                z.append(i-d)
                 x.append(f)
-                Result=self.SPL(f,S,b,theta,V,2,rit)
+                Result=self.SPL(f,S_wing,b_wing,S_tail,b_tail,theta,V,2,rit)
                 y.append(Result.real)
+                fsum=fsum+10*10**(Result/10)
+            total=10*np.log10(fsum) 
+            TotalN.append(total)
+            TotalT.append(i-d)
+        plt.figure()
+        sc = plt.scatter(z, x, c=y, cmap='plasma', s=40,vmin=0, vmax=30)
+        plt.colorbar(sc, label='SPL (in decibels)')
+        plt.xlabel('Horizontal distance from observer [m]')
+        plt.ylabel('Frequency [Hz]')
+        plt.tight_layout()
+        plt.ylim(500,10000)
+        plt.yscale('log')
+        plt.show()
         
         plt.figure()
-        sc = plt.scatter(z, x, c=y, cmap='magma', s=40,vmin=0, vmax=40)
-        plt.colorbar(sc, label='SPL (in decibels)')
-        plt.xlabel('x')
-        plt.ylabel('y')
+        sc = plt.plot(TotalT, TotalN,color='red')
+        plt.xlabel('Horizontal distance from observer [m]')
+        plt.ylabel('SPL [dB]')
+        plt.ylim(0,100)
         plt.tight_layout()
         plt.show()
-        return ("done")
-        
 
-    def plotOperation(self,S,b,theta):
+        
+    
+    # the function for plotting the noise-spectrum of the flight profile 
+    def plotOperation(self,S_wing,b_wing,S_tail,b_tail,theta,step):
         x=[]
         y=[]
         z=[]
-        def FlightProfile(c1,c2,t,V1,V2):
-            for f in range(200,15000,20):
-                        z.append(i)
-                        x.append(f)
-                        if (i<=t+200 and t<=i):
-                            Result=self.SPL(f,S,b,theta,V1,c1,r)*(1-(i-t)/200)+self.SPL(f,S,b,theta,V2,c2,r)*(((i-t)/200))
-                        else:
-                            Result=self.SPL(f,S,b,theta,V2,c2,r)
-                            
-                        y.append(Result.real)
-            return ("fisk")
+        TotalT=[]
+        TotalN=[]
+        def FlightProfile(c1,c2,t,V1,V2,i,step):
+            total=0
+            fsum=0
+            for f in range(400,15000,step):
+                z.append(i)
+                x.append(f)
+                if (i<=t+50 and t<=i):
+                    Result=self.SPL(f,S_wing,b_wing,S_tail,b_tail,theta,V1,c1,r)*(1-(i-t)/50)+self.SPL(f,S_wing,b_wing,S_tail,b_tail,theta,V2,c2,r)*(((i-t)/50))
+                else:
+                    Result=self.SPL(f,S_wing,b_wing,S_tail,b_tail,theta,V2,c2,r)
+                fsum=fsum+step*10**(Result/10)
+                y.append(Result.real)
+            total=10*np.log10(fsum) 
+            TotalN.append(total)
+            TotalT.append(i)
         
-        t=1000
-     
+        t=240
         #take-off
         for i in range(0,t,1):
             V=150/3.6+0.9*V_mach_cruise/1000*i
-            r=10+asm.altitude_cruise/t*i
-            for f in range(200,15000,20):
+            r=50+asm.altitude_cruise/t*i
+            total=0
+            fsum=0
+            for f in range(400,15000,step):
                 z.append(i)
                 x.append(f)
-                Result=self.SPL(f,S,b,theta,V,2,r)
+                Result=self.SPL(f,S_wing,b_wing,S_tail,b_tail,theta,V,2,r)
                 y.append(Result.real)
-       
+                fsum=fsum+step*10**(Result/10)
+            total=10*np.log10(fsum)    
+            TotalN.append(total)
+            TotalT.append(i)
+            print(total.real)
 
        #cruise first phase 
         t=t+1
-        for i in range(t,int(t+asm.time_cruise/2),1):
+        for i in range(t,int(t+asm.time_cruise/2),10):
             r=asm.altitude_cruise
             atm =aerosandbox.Atmosphere(altitude=r)
             V=atm.speed_of_sound()*asm.mach_cruise
-            FlightProfile(2,1,t,150/3.6+0.9*V_mach_cruise,V_mach_cruise)
+            FlightProfile(2,1,t,150/3.6+0.9*V_mach_cruise,V_mach_cruise,i,10)
+
 
         
         #Max cruise
         t=t+int(asm.time_cruise/2)+1
-        print(t)
-        for i in range(t,int(t+asm.time_mach_max),1):
+
+        for i in range(t,int(t+asm.time_mach_max),10):
             r=asm.altitude_mach_max
             atm = aerosandbox.Atmosphere(altitude=r)
             V=atm.speed_of_sound()*asm.mach_max
-            FlightProfile(1,2,t,V_mach_cruise,V_mach_max)
+            FlightProfile(1,2,t,V_mach_cruise,V_mach_max,i,10)
+
 
         t=t+1+int(asm.time_mach_max)       
         
         #cruise second phase 
-        for i in range(t,int(t+asm.time_cruise/2),1):
+
+        for i in range(t,int(t+asm.time_cruise/2),10):
             r=asm.altitude_cruise
             atm = aerosandbox.Atmosphere(altitude=r)
             V=atm.speed_of_sound()*asm.mach_cruise
-            FlightProfile(2,1,t,V_mach_max,V_mach_cruise)
+            FlightProfile(2,1,t,V_mach_max,V_mach_cruise,i,10)
 
         t=t+1+int(asm.time_cruise/2)
 
-        #Landing approach 
+        #Landing approach 1
         for i in range(t,t+400,1):
-            r=100+asm.altitude_cruise*(1-(i-t)/400)
-            V=150/3.6*1.3
-            FlightProfile(1,0,t,V_mach_cruise,V_landing)
+            r=50+asm.altitude_cruise*(1-(i-t)/400)
+            FlightProfile(1,0,t,V_mach_cruise,V_landing,i,10)
+        t=t+401
+        #aborted attempt
         
+        for i in range(t,t+60,1):
+            r=50+(i-t)*450/60
+            print(r)
+            FlightProfile(0,2,t,V_landing,V_goaround,i,10)
+        t=t+61
+
+        #loiter 
+        for i in range(t,t+480,1):
+            r=500
+            FlightProfile(2,1,t,V_goaround,V_goaround,i,10)
+
+        t=t+480
+        #Final Landing approach 1
+        for i in range(t,t+100,1):
+            r=500-450*((i-t)/100)
+            FlightProfile(1,0,t,V_goaround,V_landing,i,10)
+
+
+        plt.figure()
+        sc = plt.scatter(z, x, c=y, cmap='viridis', s=10,vmin=0, vmax=40)
+        plt.colorbar(sc, label='SPL (in decibels)')
+        plt.xlabel('Time [s]')
+        plt.ylabel('Frequency [Hz]')
+        plt.tight_layout()
+        plt.yscale('log')
+        plt.show()
         
         plt.figure()
-        sc = plt.scatter(z, x, c=y, cmap='viridis', s=10,vmin=0, vmax=60)
-        plt.colorbar(sc, label='SPL (in decibels)')
-        plt.xlabel('x')
-        plt.ylabel('y')
+        sc = plt.plot(TotalT, TotalN,color='blue')
+        plt.xlabel('Time [s]')
+        plt.ylabel('SPL [dB]')
+        plt.ylim(0,100)
         plt.tight_layout()
         plt.show()
+        
+
         return ("done")
         
-       
-                
-        
-noise = Noise()
-noise.plotFlyover(S,b,theta,V_mach_max,2,1000,2000)
-#noise.plotOperation(S,b,theta)
 
+def run_self_tests():
+    def assert_(condition, msg):
+        if not condition:
+            raise AssertionError(f"FAIL: {msg}")
+        print(f"  OK  {msg}")
+
+    print("Running self-tests...")
+
+
+    # Power 
+    assert_(NoJet.SPL_idle(1000) < NoJet.SPL_cruise(1000) < NoJet.SPL_max(1000),
+            "idle < cruise < max")
+
+    # Physical range
+    for f in range(200, 15000, 1000):
+        assert_(20 < NoJet.SPL_idle(f) < 140, f"SPL_idle range at {f} Hz")
+        assert_(20 < NoJet.SPL_max(f)  < 140, f"SPL_max range at {f} Hz")
+        assert_(20 < NoJet.SPL_cruise(f)  < 140, f"SPL_max range at {f} Hz")
+
+    nfw = NoFusWing(S_wing, b_wing)
+    assert_(np.isfinite(nfw.SPL(1000, 0, 200,100)), "wing SPL finite")
+    assert_(nfw.SPL(1000, 0, 200,100) > nfw.SPL(1000, 0, 100,100), "louder at higher speed")
+
+    # Inverse square law: doubling r 6 dB
+    n    = Noise()
+    s100 = n.SPL(1000, S_wing, b_wing,S_tail,b_tail, 0, 200, 1, 100)
+    s200 = n.SPL(1000, S_wing, b_wing,S_tail,b_tail, 0, 200, 1, 200)
+    assert_(abs((s100 - s200) - 6.0206) < 0.05, "6 dB per doubling of distance")
+
+    # Max louder than idle
+    assert_(n.SPL(1000, S_wing, b_wing,S_tail,b_tail, 0, 200, 2, 100) >
+            n.SPL(1000, S_wing, b_wing,S_tail,b_tail, 0, 200, 0, 100), "max > idle")
+    # Max louder than idle
+    assert_(n.SPL(1000, S_wing+10, b_wing+10,S_tail,b_tail, 0, 200, 2, 100) >
+            n.SPL(1000, S_wing, b_wing,S_tail,b_tail, 0, 200, 2, 100), "louder when geometry is larger")
+
+    print("All tests passed.")
+
+
+if __name__ == "__main__":
+    import sys
+    if "--test" in sys.argv:
+        run_self_tests()
+    else:
+        noise = Noise()
+        noise.plotOperation(S_wing,b_wing,S_tail,b_tail, theta,10)
+        noise.plotFlyover(S_wing,b_wing,S_tail,b_tail,0,V_mach_max,2,1000,2000,10)
 
 

@@ -39,7 +39,7 @@ class Emmisions():
         return (Soot_per_fuel*fuelflow,Soot_GWP*Soot_per_fuel*fuelflow)
     def Contrails_cirrusb(self,fuelflow):
         return (Contrails_cirrusb_per_fuel*fuelflow,Contrails_cirrusb_GWP*Contrails_cirrusb_per_fuel*fuelflow)
-    def Total(self,fuelflow):
+    def TotalEM(self,fuelflow):
         mass=(CO2_per_fuel
         +H2O_per_fuel
         +NMVOCs_per_fuel
@@ -55,6 +55,16 @@ class Emmisions():
         +Soot_per_fuel*Soot_GWP
         +Contrails_cirrusb_per_fuel*Contrails_cirrusb_GWP)*fuelflow
         return (mass)
+    def TotalEMGWP(self,fuelflow):
+        GWP=(CO2_per_fuel*CO2_GWP
+        +H2O_per_fuel*H2O_GWP
+        +NMVOCs_per_fuel*NMVOCs_GWP
+        +SO42_per_fuel*SO42_GWP
+        +CO_per_fuel*CO_GWP
+        +Soot_per_fuel*Soot_GWP
+        +Contrails_cirrusb_per_fuel*Contrails_cirrusb_GWP)*fuelflow
+        return (GWP)
+
 
 Emmis=Emmisions()
 x=[]
@@ -105,3 +115,88 @@ Fuel mass at cruise (8229.6 m, 1500 s) = 5.31045413298577 kg
 Fuel mass at mach max (8229.6 m, 300) = 1.111694622595013 kg
 Fuel mass at go-around (457.20000000000005 m, 480.0) = 1.8129882930851229 kg
 """
+
+def fuelflow(m_fuel,t):
+    return (m_fuel/t)  
+
+def plotGWP(m1,m2,m3,t1,t2,t3):
+    x=[]
+    y=[]
+    fuelburnt=0
+    for i in range(0,t1,1):
+        x.append(i)
+        fuelburnt=fuelburnt+5.31045413298577/1500
+        y.append(fuelburnt)
+    t=t1+1
+    for i in range(t,t+t2,1):
+        x.append(i)
+        fuelburnt=fuelburnt+1.111694622595013/300
+        y.append(fuelburnt)
+    t=t+t2+1
+    for i in range(t,t+t3,1):
+        x.append(i)
+        fuelburnt=fuelburnt+1.8129882930851229/480.0
+        y.append(fuelburnt)    
+    sc = plt.plot(x, y,color='blue')
+    plt.xlabel('Time [s]')
+    plt.ylabel('SPL [dB]')
+    plt.ylim(0,15)
+    plt.tight_layout()
+    plt.show()
+    print(np.sum(y)/8)
+    print(np.sum(y)*5*1000*15)
+    print(8*5*1000*15)
+     
+    
+
+
+def run_self_tests():
+    def assert_(condition, msg):
+        if not condition:
+            raise AssertionError(f"FAIL: {msg}")
+        print(f"  OK  {msg}")
+        
+    EM=Emmisions()
+    
+    EM = Emmisions()
+    f  = 1.0  
+
+    #Zero fuelflow → zero output
+    assert_(EM.TotalEM(0) == 0,      "zero fuelflow → zero mass")
+    assert_(EM.TotalEMGWP(0) == 0,   "zero fuelflow → zero GWP")
+
+    # double fuelflow → double output
+    assert_(EM.TotalEM(2*f) == 2*EM.TotalEM(f),        "TotalEM linear in fuelflow")
+    assert_(EM.TotalEMGWP(2*f) == 2*EM.TotalEMGWP(f),  "TotalEMGWP linear in fuelflow")
+
+
+    #Sum of individual masses equals TotalEM
+    mass_parts = EM.CO2(f)[0]+EM.H2O(f)[0]+EM.NMVOCs(f)[0]+EM.SO42(f)[0]+EM.CO(f)[0]+EM.Soot(f)[0]+ EM.Contrails_cirrusb(f)[0]
+    assert_(abs(mass_parts - EM.TotalEM(f)) < 1e-10, "parts sum to TotalEM")
+
+    #Sum of individual GWPs equals TotalEMGWP 
+    gwp_parts = EM.CO2(f)[1]+EM.H2O(f)[1]+EM.NMVOCs(f)[1]+EM.SO42(f)[1]+EM.CO(f)[1]+EM.Soot(f)[1]+ EM.Contrails_cirrusb(f)[1]
+    assert_(abs(gwp_parts - EM.TotalEMGWP(f)) < 1e-10, "parts GWP sum to TotalEMGWP")
+
+    #SO42 cools (negative GWP) 
+    assert_(EM.SO42(f)[1] < 0, "SO42 GWP is negative (cooling effect)")
+
+    #CO2 GWP factor = 1
+    assert_(abs(EM.CO2(f)[0] - EM.CO2(f)[1]) < 1e-10, "CO2: mass == GWP (factor=1)")
+
+    assert_(EM.TotalEM(10) >
+            EM.TotalEM(5), "High FF > LOW FF")
+    assert_(EM.TotalEMGWP(10) >
+            EM.TotalEMGWP(5), "High FF > LOW FF")   
+
+    print("Running self-tests...")
+    print("All tests passed.")
+
+
+if __name__ == "__main__":
+    import sys
+    if "--test" in sys.argv:
+        run_self_tests()
+    else:
+        plotGWP(5.31045413298577,1.111694622595013,1.8129882930851229,1500,300,480)
+
