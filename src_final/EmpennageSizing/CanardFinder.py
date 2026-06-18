@@ -35,7 +35,7 @@ class CanardFinder(EmpennageFinder):
             if  diff < tolerance:
                 Sh_S = (Sh_S + Sh_S_new) / 2
                 break
-            Sh_S = Sh_S_new
+            Sh_S = max(Sh_S_new, initial)
 
             if print_:
                 print(f"Iteration {i}: Sh_S={Sh_S}, lh={l_c_mac}, x_ac_h={x_ac_c_mac}, x_cg={x_cg_mac_min}")
