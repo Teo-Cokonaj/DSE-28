@@ -19,7 +19,7 @@ class TailFinder(EmpennageFinder):
         self.Sv_S = Sv_S
 
 
-    def find_planforms(self, main_wing:Planform, initial:float=.1, maxiter:int=50, tolerance:float=1e-4 , print_=False, plot=True) -> list[Planform]:
+    def find_planforms(self, main_wing:Planform, initial:float=.1, maxiter:int=50, tolerance:float=1e-4 , print_=False, plot=False) -> list[Planform]:
         x_ac_mac = self._x_ac(main_wing, self.fixed.x_LE_wing, main_wing.MAC)
         ac_term = x_ac_mac  - main_wing.cm_quarter_chord / main_wing.positive_C_L_max
         Sh_S = initial
