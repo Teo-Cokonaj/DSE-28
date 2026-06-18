@@ -4,11 +4,11 @@ import typing as ty
 import numpy.typing as nt
 import aerosandbox.numpy as np
 
-# Add the 'src' directory to the python path
+# Add the 'src_midterm' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.Sizing_Loop.DesignOptionState import DesignOptionState
-from src.Sizing_Loop.DesignOptionStep import DesignOptionStep
+from src_midterm.Sizing_Loop.DesignOptionState import DesignOptionState
+from src_midterm.Sizing_Loop.DesignOptionStep import DesignOptionStep
 
 class DesignOption:
     def __init__(self, state:DesignOptionState, steps:list[DesignOptionStep]):

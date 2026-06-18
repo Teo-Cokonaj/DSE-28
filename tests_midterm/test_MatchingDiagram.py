@@ -9,8 +9,8 @@ import aerosandbox as asb
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.MatchingDiagram.MatchingDiagram import MatchingDiagram
-from src.MatchingDiagram.MatchingDiagramJet import MatchingDiagramJet
+from src_midterm.MatchingDiagram.MatchingDiagram import MatchingDiagram
+from src_midterm.MatchingDiagram.MatchingDiagramJet import MatchingDiagramJet
 
 @pytest.fixture
 def constraints_thrust_nonphysical():

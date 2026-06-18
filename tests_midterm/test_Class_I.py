@@ -4,11 +4,11 @@ import aerosandbox as asb
 import sys
 import os
 
-# Add the 'src' directory to the python path
+# Add the 'src_midterm' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.Class_I.Class_I import Class_I
-from src.global_parameters import CONSTANTS
+from src_midterm.Class_I.Class_I import Class_I
+from src_midterm.global_parameters import CONSTANTS
 
 class TestClass_I:
     debug = True

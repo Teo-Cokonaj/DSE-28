@@ -9,22 +9,22 @@ current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 sys.path.append(project_root)
 
-from src.Sizing_Loop.Steps.CD0Step import CD0Step
-from src.objects.possible_engines import PossibleEngines
-from src.Sizing_Loop.DesignOptionState import DesignOptionState
-from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
-from src.global_parameters import CONSTANTS, Assumptions
+from src_midterm.Sizing_Loop.Steps.CD0Step import CD0Step
+from src_midterm.objects.possible_engines import PossibleEngines
+from src_midterm.Sizing_Loop.DesignOptionState import DesignOptionState
+from src_midterm.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
+from src_midterm.global_parameters import CONSTANTS, Assumptions
 
-from src.objects.aircraft_parameters import AircraftParameters
-from src.objects.lading_gear import LandingGear
-from src.objects.lifting_surface_planform import LiftingSurfacePlanform
-from src.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
-from src.objects.propulsion_parameters import PropulsionParameters, EngineParameters
+from src_midterm.objects.aircraft_parameters import AircraftParameters
+from src_midterm.objects.lading_gear import LandingGear
+from src_midterm.objects.lifting_surface_planform import LiftingSurfacePlanform
+from src_midterm.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
+from src_midterm.objects.propulsion_parameters import PropulsionParameters, EngineParameters
 
-import src.Drag.LandingGear as dlg
-from src.Drag.Bay import Bay
-from src.Drag.Fuselage import Fuselage
-from src.Drag.Planform import Planform
+import src_midterm.Drag.LandingGear as dlg
+from src_midterm.Drag.Bay import Bay
+from src_midterm.Drag.Fuselage import Fuselage
+from src_midterm.Drag.Planform import Planform
 
 def initial_state_interior():
     pe = PossibleEngines()

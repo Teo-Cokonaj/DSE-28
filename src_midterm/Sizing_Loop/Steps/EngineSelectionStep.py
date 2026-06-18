@@ -8,12 +8,12 @@ current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 sys.path.append(project_root)
 
-from src.Sizing_Loop.DesignOptionStep import DesignOptionStep
-from src.Sizing_Loop.DesignOptionState import DesignOptionState
-from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
-from src.objects.possible_engines import PossibleEngines
-from src.objects.propulsion_parameters import PropulsionParameters, EngineParameters
-from src.global_parameters import CONSTANTS
+from src_midterm.Sizing_Loop.DesignOptionStep import DesignOptionStep
+from src_midterm.Sizing_Loop.DesignOptionState import DesignOptionState
+from src_midterm.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
+from src_midterm.objects.possible_engines import PossibleEngines
+from src_midterm.objects.propulsion_parameters import PropulsionParameters, EngineParameters
+from src_midterm.global_parameters import CONSTANTS
 
 class EngineSelectionStep(DesignOptionStep):
     def __init__(self, print_:bool=False):

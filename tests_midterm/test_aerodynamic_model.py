@@ -5,10 +5,10 @@ import numpy.testing as nte
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.global_parameters import CONSTANTS, Assumptions
-from src.objects.aircraft_parameters import AircraftParameters
-from src.objects.lifting_surface_planform import LiftingSurfacePlanform
-from src.aerodynamic_model.lifting_line_theory import LiftingLineTheory
+from src_midterm.global_parameters import CONSTANTS, Assumptions
+from src_midterm.objects.aircraft_parameters import AircraftParameters
+from src_midterm.objects.lifting_surface_planform import LiftingSurfacePlanform
+from src_midterm.aerodynamic_model.lifting_line_theory import LiftingLineTheory
 
 
 @pytest.fixture

@@ -5,13 +5,12 @@ import os
 import sys
 import copy
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
-from src.objects.aircraft_parameters import AircraftParameters
-from src.Sizing_Loop.DesignOptionStep import DesignOptionStep
-from src.Sizing_Loop.DesignOptionState import DesignOptionState
-from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
-from src.tail_sizing.tail_sizing import TailVolume
-from src.aerodynamic_model.lifting_line_theory import LiftingLineTheory
-from src.global_parameters import CONSTANTS
+from src_midterm.objects.aircraft_parameters import AircraftParameters
+from src_midterm.Sizing_Loop.DesignOptionStep import DesignOptionStep
+from src_midterm.Sizing_Loop.DesignOptionState import DesignOptionState
+from src_midterm.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
+from src_midterm.tail_sizing.tail_sizing import TailVolume
+from src_midterm.aerodynamic_model.lifting_line_theory import LiftingLineTheory
 
 class TailSizingStep(DesignOptionStep):
     def __init__(self, debug=False,

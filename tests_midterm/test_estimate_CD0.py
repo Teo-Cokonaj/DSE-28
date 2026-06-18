@@ -3,10 +3,10 @@ import aerosandbox.numpy as np
 import sys
 import os
 
-# Add the 'src' directory to the python path
+# Add the 'src_midterm' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import src.Drag.component_method as dcm
+import src_midterm.Drag.component_method as dcm
 
 class TestCD0Estimate:
     def test_compare_with_year2_aircraft(self):

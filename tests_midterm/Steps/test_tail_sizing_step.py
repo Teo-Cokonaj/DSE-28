@@ -4,19 +4,19 @@ import sys
 import os
 import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from src.aerodynamic_model.lifting_line_theory import LiftingLineTheory
-from src.objects.lifting_surface_planform import LiftingSurfacePlanform
-from src.tail_sizing.tail_sizing import TailVolume
-from src.Sizing_Loop.Steps.tail_sizing_step import TailSizingStep
-from src.Sizing_Loop.DesignOptionState import DesignOptionState
-from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
-from src.Sizing_Loop.DesignOptionStateFixed import DesignOptionStateFixed
-from src.Sizing_Loop.DesignOptionChoices import DesignOptionChoices
-from src.objects.aircraft_parameters import AircraftParameters
-from src.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
-from src.objects.possible_engines import PossibleEngines
-from src.objects.lading_gear import LandingGear
-from src.global_parameters import CONSTANTS, Assumptions
+from src_midterm.aerodynamic_model.lifting_line_theory import LiftingLineTheory
+from src_midterm.objects.lifting_surface_planform import LiftingSurfacePlanform
+from src_midterm.tail_sizing.tail_sizing import TailVolume
+from src_midterm.Sizing_Loop.Steps.tail_sizing_step import TailSizingStep
+from src_midterm.Sizing_Loop.DesignOptionState import DesignOptionState
+from src_midterm.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
+from src_midterm.Sizing_Loop.DesignOptionStateFixed import DesignOptionStateFixed
+from src_midterm.Sizing_Loop.DesignOptionChoices import DesignOptionChoices
+from src_midterm.objects.aircraft_parameters import AircraftParameters
+from src_midterm.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
+from src_midterm.objects.possible_engines import PossibleEngines
+from src_midterm.objects.lading_gear import LandingGear
+from src_midterm.global_parameters import CONSTANTS, Assumptions
 
 
 @pytest.fixture

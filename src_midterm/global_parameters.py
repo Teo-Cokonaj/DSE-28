@@ -6,7 +6,7 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import src.ac_stats as stat
+import src_midterm.ac_stats as stat
 
 # Global parameters for configurations:
 class CONSTANTS:

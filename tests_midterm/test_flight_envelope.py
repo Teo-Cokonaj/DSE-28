@@ -3,10 +3,10 @@ import aerosandbox.numpy as np
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.global_parameters import CONSTANTS, Assumptions
-from src.objects.aircraft_parameters import AircraftParameters
-from src.objects.lifting_surface_planform import LiftingSurfacePlanform
-from src.flight_envelope.flight_envelope import FlightEnvelope
+from src_midterm.global_parameters import CONSTANTS, Assumptions
+from src_midterm.objects.aircraft_parameters import AircraftParameters
+from src_midterm.objects.lifting_surface_planform import LiftingSurfacePlanform
+from src_midterm.flight_envelope.flight_envelope import FlightEnvelope
 
 
 @pytest.fixture

@@ -1,8 +1,6 @@
 import sys
 import os
-import aerosandbox.numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from global_parameters import CONSTANTS
 from objects.lifting_surface_planform import LiftingSurfacePlanform
 
 class TailVolume:

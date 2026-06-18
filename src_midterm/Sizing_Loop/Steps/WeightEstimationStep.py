@@ -8,10 +8,10 @@ current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 sys.path.append(project_root)
 
-from src.Sizing_Loop.DesignOptionStep import DesignOptionStep
-from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
-from src.Class_I.Class_I import Class_I, Class_I_Result
-from src.global_parameters import CONSTANTS
+from src_midterm.Sizing_Loop.DesignOptionStep import DesignOptionStep
+from src_midterm.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
+from src_midterm.Class_I.Class_I import Class_I, Class_I_Result
+from src_midterm.global_parameters import CONSTANTS
 
 class WeightEstimationStep(DesignOptionStep):
     def __init__(self, debug=False):

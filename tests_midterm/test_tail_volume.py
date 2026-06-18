@@ -2,8 +2,8 @@ import pytest
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.objects.lifting_surface_planform import LiftingSurfacePlanform
-from src.tail_sizing.tail_sizing import TailVolume
+from src_midterm.objects.lifting_surface_planform import LiftingSurfacePlanform
+from src_midterm.tail_sizing.tail_sizing import TailVolume
 
 
 @pytest.fixture

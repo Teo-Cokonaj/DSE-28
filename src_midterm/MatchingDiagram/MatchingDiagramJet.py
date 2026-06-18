@@ -7,9 +7,9 @@ import typing as ty
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.MatchingDiagram.MatchingDiagram import MatchingDiagram
-from src.MatchingDiagram.ThrustLapse import ThrustLapse
-from src.global_parameters import CONSTANTS
+from src_midterm.MatchingDiagram.MatchingDiagram import MatchingDiagram
+from src_midterm.MatchingDiagram.ThrustLapse import ThrustLapse
+from src_midterm.global_parameters import CONSTANTS
 
 class MatchingDiagramJet(MatchingDiagram):
     def __init__(self, n_engines:float, bypass:float=0., resolution:int=100):

@@ -11,8 +11,6 @@ sys.path.append(project_root)
 from Sizing_Loop.DesignOptionState import DesignOptionState
 from global_parameters import CONSTANTS, Assumptions
 import Drag.component_method as dcm
-from flight_envelope.flight_envelope import FlightEnvelope
-from objects.aircraft_parameters import AircraftParameters
 from objects.lifting_surface_planform import LiftingSurfacePlanform
 from Sizing_Loop.DesignOptionStep import DesignOptionStep
 

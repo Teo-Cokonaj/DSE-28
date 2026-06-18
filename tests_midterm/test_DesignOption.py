@@ -6,27 +6,27 @@ import matplotlib.pyplot as plt
 import pytest
 import aerosandbox as asb
 
-# Add the 'src' directory to the python path
+# Add the 'src_midterm' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.Sizing_Loop.DesignOption import DesignOption
-from src.Sizing_Loop.DesignOptionState import DesignOptionState
-from src.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
+from src_midterm.Sizing_Loop.DesignOption import DesignOption
+from src_midterm.Sizing_Loop.DesignOptionState import DesignOptionState
+from src_midterm.Sizing_Loop.DesignOptionStateIterable import DesignOptionStateIterable
 
-from src.Sizing_Loop.Steps.MatchingDiagramStep import MatchingDiagramStep
-from src.Sizing_Loop.Steps.CD0Step import CD0Step
-from src.Sizing_Loop.Steps.WeightEstimationStep import WeightEstimationStep
-from src.Sizing_Loop.Steps.InviscidAnalysisStep import InviscidAnalysisStep
-from src.Sizing_Loop.Steps.tail_sizing_step import TailSizingStep
-from src.Sizing_Loop.Steps.EngineSelectionStep import EngineSelectionStep
-from src.Sizing_Loop.Steps.LandingGearStep import LandingGearStep
-from src.Sizing_Loop.Steps.OEMStep import OEMStep
+from src_midterm.Sizing_Loop.Steps.MatchingDiagramStep import MatchingDiagramStep
+from src_midterm.Sizing_Loop.Steps.CD0Step import CD0Step
+from src_midterm.Sizing_Loop.Steps.WeightEstimationStep import WeightEstimationStep
+from src_midterm.Sizing_Loop.Steps.InviscidAnalysisStep import InviscidAnalysisStep
+from src_midterm.Sizing_Loop.Steps.tail_sizing_step import TailSizingStep
+from src_midterm.Sizing_Loop.Steps.EngineSelectionStep import EngineSelectionStep
+from src_midterm.Sizing_Loop.Steps.LandingGearStep import LandingGearStep
+from src_midterm.Sizing_Loop.Steps.OEMStep import OEMStep
 
-from src.objects.aircraft_parameters import AircraftParameters
-from src.objects.lading_gear import LandingGear
-from src.objects.lifting_surface_planform import LiftingSurfacePlanform
-from src.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
-from src.objects.propulsion_parameters import PropulsionParameters, EngineParameters
+from src_midterm.objects.aircraft_parameters import AircraftParameters
+from src_midterm.objects.lading_gear import LandingGear
+from src_midterm.objects.lifting_surface_planform import LiftingSurfacePlanform
+from src_midterm.objects.performance_parameters import PerformanceParameters, PerformanceAtAltitude
+from src_midterm.objects.propulsion_parameters import PropulsionParameters, EngineParameters
 
 def initial_state_interior():
     return DesignOptionState(

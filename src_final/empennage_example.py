@@ -2,14 +2,14 @@ import sys
 import os
 import numpy as np
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(os.path.abspath(os.path.dirname(__file__),'..'))
 
 from Aircraft.Planform import Planform
 from Aircraft.Fixed import Fixed
 from Drag.Fuselage import Fuselage
 from Drag.LandingGear import LandingGear
 from Drag.Bay import Bay
-from src_final.EmpenageSizing.EmpenageFinderOld import EmpenageFinder
+from EmpenageSizing.EmpenageFinderOld import EmpenageFinder
 
 
 def report(label, tail, canard, wing_area):

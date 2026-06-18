@@ -5,7 +5,7 @@ import aerosandbox.numpy as np
 # Add the 'src' directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.Drag.Component import Component
+from src_midterm.Drag.Component import Component
 
 class LandingGear(Component):
     def __init__(self, geometry_params:dict[str, float], enclosed:bool):
