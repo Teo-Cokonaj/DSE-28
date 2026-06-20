@@ -24,17 +24,14 @@ class EmpennageFinder():
         return (x_LE + local_ac - self.fixed.x_LE_wing) / MAC
     
 
-    def _x_cg(self, planforms:list[Planform], x_LEs:list[float], fore:bool=True):
+    def _x_cg(self, planforms:list[Planform], x_LEs:list[float], fore:bool=True) -> float:
+        #NOTE: can be called only after masses are assigned to planforms
         x_cgs = np.zeros(len(planforms) + 1)
         ms = np.zeros(len(planforms) + 1)
 
         for i, planform in enumerate(planforms):
-            if (planform.mass_cache is None) or (planform.x_cg_cache is None):
-                #TODO implement structural analysis
-                raise NotImplementedError("Planform Structural Analysis not implementedyet")
-            else:
-                x_cgs[i] = planform.x_cg_cache + x_LEs[i]
-                ms[i] = planform.mass_cache
+            x_cgs[i] = planform.x_cg_cache + x_LEs[i]
+            ms[i] = planform.mass_cache
 
         x_cgs[-1] = self.fixed.x_cg_min if fore else self.fixed.x_cg_max
         ms[-1] = self.fixed.mass #conservative, as it assumes maximum mass at foremost C.G.

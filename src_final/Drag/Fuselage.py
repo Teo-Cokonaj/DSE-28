@@ -30,7 +30,7 @@ class Fuselage(Component):
         length_to_diameter = self.characteristic_length/self.diameter_max
         return 0.9+5/length_to_diameter**1.5 +length_to_diameter/400
     
-    def drag_area_contribution(self, mach):
+    def drag_area_contribution(self, mach)->float:
         upsweep_contribution = 3.83 * self.upsweep**2.5 * np.pi / 4 * self.diameter_max**2
         base_drag_contribution = (.139 + .419*(mach-.161)**2) * self.area_base
         return upsweep_contribution + base_drag_contribution

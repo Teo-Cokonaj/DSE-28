@@ -222,8 +222,8 @@ if __name__ == "__main__":
     m = 50
  
     velocities = [
-        (2, 'blue',  'magenta'),
-        (3, 'gold', 'black'),
+        (2, 'steelblue',  'darkorange'),
+        (3, 'mediumseagreen', 'tomato'),
     ]
  
     dt = 0.01

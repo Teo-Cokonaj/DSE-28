@@ -41,10 +41,8 @@ class Planform(Component):
         self.mass_cache:float = None
         self.x_cg_cache:float = None
 
-        #self.oswald = 4.61*(1 - 0.045 * self.aspect_ratio**.68)*np.cos(self.sweep_LE_rad)**0.15 - 3.1
-
         super().__init__(
-            interference_factor = interference_factor, #high wing
+            interference_factor = interference_factor,
             surface_wetted = 2 * wetted_surface_ratio * self.wing_area,
             characteristic_length = self.MAC,
             laminar_fraction = laminar_fraction 
@@ -118,7 +116,7 @@ class Planform(Component):
 
     @property
     def downwash(self) -> float:
-        """Simplified downwash gradient dε/dα."""
+        #NOTE: simplified downwash, not used - does not capture vertical separation
         return 4 / (2 + self.aspect_ratio)
     
     @property
@@ -246,9 +244,6 @@ class Planform(Component):
 
         return reduced_sectional_spanwise_positions, modified_sectional_lifts_schrenk
 
-    
-    # def cache_weight(self, name:str, mach:float, altitude:float)->float:
-    #     self.weight_cache[name] = self.estimate_weight(mach, altitude)
 
 if __name__=='__main__':
     

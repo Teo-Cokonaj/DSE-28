@@ -32,7 +32,7 @@ def fuel_mass_fraction(altitude_go_around:float, altitude_cruise:float, altitude
     omega_turn = np.pi/time_half_turn
     atmosphere_go_around = asb.Atmosphere(altitude_go_around)
     rho_go_around_altitude = atmosphere_go_around.density()
-    # n**2 - quadratic_b_term*n -1
+    #NOTE: to get go around condition, solve n**2 - quadratic_b_term*n -1 = 0
     quadratic_b_term = omega_turn**2/CONSTANTS.G0**2 * wing_loading * 2/rho_go_around_altitude / CL_max_glide_ratio_go_around
     load_factor_go_around = .5*(quadratic_b_term + np.sqrt(quadratic_b_term**2+4))
     airspeed_go_around = np.sqrt(wing_loading * 2/rho_go_around_altitude * load_factor_go_around/CL_max_glide_ratio_go_around)
