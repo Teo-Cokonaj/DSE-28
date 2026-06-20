@@ -93,10 +93,9 @@ class TailFinder(EmpennageFinder):
         
         load_ratio = horizontal_tail.positive_C_L_max / main_wing.positive_C_L_max * Sh_S
         
+        n_limit = 6.
         size_planform(horizontal_tail, self.thicknesses, 1e-4, self.material, self.core_density, self.number_of_sections, self.safety_factor,
-                      load_factor=6*load_ratio, load_factor_maneuver=1.)
-        # horizontal_tail.x_cg_cache = horizontal_tail.x_MAC + horizontal_tail.MAC / 3 #TODO: rough assumption revise
-        # horizontal_tail.mass_cache = 0.5 #TODO actually conduct the structural analysishere
+                      load_factor=n_limit*load_ratio, load_factor_maneuver=1.)
 
         vertical_surface = 2 * self.Sv_S * main_wing.wing_area #NOTE: 2 as rudder is only 1 sided
         vertical_span = 2 * vertical_surface / (1 + 1/self.taper_v) / (horizontal_tail.c_root) #NOTE: to fit the horizontal tail
@@ -113,10 +112,7 @@ class TailFinder(EmpennageFinder):
             flap=False
         )
         size_planform(vertical_tail, self.thicknesses, 1e-4, self.material, self.core_density, self.number_of_sections, self.safety_factor,
-                      load_factor=6*load_ratio) #as rudder needs to carry the main wing as well
-
-        # vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
-        # vertical_tail.mass_cache = 0.3 #TODO actually conduct the structural analysishere
+                      load_factor=n_limit*load_ratio) 
 
         return horizontal_tail, vertical_tail
     
@@ -127,6 +123,7 @@ class TailFinder(EmpennageFinder):
     l_h:float,
     vertical_tail:Planform
     ):
+        #NOTE: converted to code from Slingerland 2005 using an LLM. The entire tail/canard analysis was later cross-verified with Flow 5
         """
         Compute wing downwash gradient dε/dα using the Slingerland correlation.
 

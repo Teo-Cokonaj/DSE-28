@@ -22,5 +22,5 @@ class LandingGear(Component):
     def drag_area_contribution(self, mach) -> float:
         return self._drag_area
     
-    def form_factor(self, mach):
+    def form_factor(self, mach) -> float:
         return 0.

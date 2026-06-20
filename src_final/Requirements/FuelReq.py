@@ -12,7 +12,6 @@ from global_parameters import CONSTANTS, Assumptions
 
 
 class FuelReq(Requirement):
-    #TODO: connect the fuel estimation. Check if the fuselage fuel tanks have enough fuel
     def __init__(self, assumptions:Assumptions=Assumptions(), print_:bool=False):
         self.assumptions = assumptions
         self.print_ = print_

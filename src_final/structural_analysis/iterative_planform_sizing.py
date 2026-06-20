@@ -49,10 +49,6 @@ def find_planform_thickness(planform:Planform, thicknesses:list[float], fuselage
             moments=bending_moment
         )
 
-        # crushing_pressure = wing_model.step_crushing_pressure(
-        #     moments=bending_moment
-        # )
-
         shear_stress = wing_model.step_shear_stress_total(
             debug=False,
             plot=plot_1
@@ -85,13 +81,6 @@ def find_planform_mass_cg(planform:Planform, thickness:float, density_core:float
     crossec_area_full = np.pi * chord_stations**2 * planform.thickness_to_chord / 4
     crossec_area_cfrp = crossec_area_full - crossec_area_stations
 
-    # ael = (chord_stations - thickness)/2
-    # bel = (chord_stations * planform.thickness_to_chord - thickness)/2
-    # crossec_perimeter_stations = np.pi * (3* (ael+bel) - np.sqrt((3*ael+bel) * (ael+3*bel)))
-
-    # # h_ellipse = ((chord_stations * (1 - planform.thickness_to_chord) - 2 * thickness) / (chord_stations * (1 + planform.thickness_to_chord) - 2 * thickness))**2
-    # # crossec_perimeter_stations = np.pi * (chord_stations * (1 + planform.thickness_to_chord) - 2 * thickness) * (1 + 3 * h_ellipse / (10 + np.sqrt(4 - 3 * h_ellipse))) /2
-
     masses_core_stations = crossec_area_stations * dy * density_core
     masses_skin_stations = crossec_area_cfrp * dy * density_skin
     masses_tot_stations = (masses_core_stations + masses_skin_stations) * safety_factor
@@ -110,6 +99,8 @@ def size_planform(planform:Planform, thicknesses:list[float], fuselage_diameter:
 
 
 if __name__ == "__main__":
+    #NOTE: mass estimation checked by comparison with onshape
+
     planform = Planform(
             aspect_ratio=27.0,
             span=2.67,

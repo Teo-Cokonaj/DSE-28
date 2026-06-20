@@ -7,7 +7,6 @@ from Aircraft.Aircraft import Aircraft
 
 
 class MassReq(Requirement):
-    #TODO: test the code
 
     def __init__(self, mtow_max):
         self.mtow_max = mtow_max

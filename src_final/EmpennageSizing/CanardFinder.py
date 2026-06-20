@@ -29,7 +29,7 @@ class CanardFinder(EmpennageFinder):
 
             x_cg_mac_min = self._x_cg([main_wing, canard, vertical_tail], [self.fixed.x_LE_tail, self.fixed.x_LE_tail, x_LE_vertical_tail])
             Sh_S_new = abs((x_cg_mac_min - ac_term) / (CL_c * l_c_mac / main_wing.positive_C_L_max))
-            #NOTE Canard may need to provide negative lift in some unstable cases
+            #NOTE Canard may need to provide negative lift in some unstable cases, that's why controllability is abs-ed
 
             diff = abs(Sh_S_new - Sh_S) / Sh_S_new
             if  diff < tolerance:
@@ -61,10 +61,11 @@ class CanardFinder(EmpennageFinder):
                 flap=False
             )
         
+        n_limit = 6.
         load_ratio = canard.positive_C_L_max / main_wing.positive_C_L_max * Sh_S
-        size_planform(canard, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, 6*load_ratio)
+        size_planform(canard, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, n_limit*load_ratio)
 
-        vertical_surface = 2 * self.Sv_S * main_wing.wing_area #NOTE: 2 as rudder is only 1 sided
+        vertical_surface = 2 * self.Sv_S * main_wing.wing_area #NOTE: the vertical stabilizer is asymmetric and we use a symmetric planform to create it - will be accounded for later
         vertical_span = np.sqrt(vertical_surface*self.AR_v)
         vertical_tail = Planform(
             aspect_ratio=self.AR_v, 
@@ -73,14 +74,13 @@ class CanardFinder(EmpennageFinder):
             sweep_quarter_deg=np.rad2deg(main_wing.sweep_quarter_rad),
             thickness_to_chord=0.12,
             cm_quarter_chord=0.,
-            wetted_surface_ratio=1.05 / 2, #NOTE: to account for half the drag
+            wetted_surface_ratio=1.05 / 2, #NOTE: accounted for here - the wetted surface is actually a half of what we declare
             interference_factor=1.04,
             clmax=.35 * self.AR_c**(1/3) / .9 / np.cos(main_wing.sweep_quarter_rad),
             flap=False
         )
-        vertical_tail.x_cg_cache = vertical_tail.x_MAC + vertical_tail.MAC / 3 #TODO: rough assumption revise
-        vertical_tail.mass_cache = 0.3 #TODO actually conduct the structural analysishere
-        size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, 6*load_ratio)
+
+        size_planform(vertical_tail, self.thicknesses, 1e-2, self.material, self.core_density, self.number_of_sections, self.safety_factor, n_limit*load_ratio)
 
 
         return canard, vertical_tail
