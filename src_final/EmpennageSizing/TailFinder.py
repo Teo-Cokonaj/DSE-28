@@ -123,7 +123,7 @@ class TailFinder(EmpennageFinder):
     l_h:float,
     vertical_tail:Planform
     ):
-        #NOTE: converted to code from Slingerland 2005 using an LLM. The entire tail/canard analysis was later cross-verified with Flow 5
+        #NOTE: converted to code from Slingerland 2005 using GPT-5. The entire tail/canard analysis was later cross-verified with Flow 5
         """
         Compute wing downwash gradient dε/dα using the Slingerland correlation.
 
