@@ -34,7 +34,29 @@ airfoil = asb.Airfoil(
 
 # Check if coords are loaded correctly
 print(coords_fixed)
-print(coords_fixed.shape)
+c_root = 0.1937 # m
+thickness = 0.0025 # m
+
+mid_t_cr = c_root - thickness
+initial_x=coords_fixed[:-1,0]*mid_t_cr
+initial_y=coords_fixed[:-1,1]*mid_t_cr
+shifted_x=coords_fixed[1:,0]*mid_t_cr
+shifted_y=coords_fixed[1:,1]*mid_t_cr
+
+distances = np.sqrt((shifted_x-initial_x)**2+(shifted_y-initial_y)**2)
+y_segments = (shifted_y + initial_y)/2
+
+
+I_xxs = distances * thickness * y_segments**2
+Ixx = I_xxs.sum()
+
+a=c_root / 2
+b=0.12*a
+Ixx_ellipse=np.pi*a*b**3/4 - np.pi*(a-thickness)*(b-thickness)**3/4
+
+# print(coords_fixed.shape)
+print('Airfoil AMOI: ',Ixx)
+print('Ellipse AMOI: ',Ixx_ellipse)
 
 #Finding tc max
 tc_max_location = 0.
@@ -54,7 +76,6 @@ for i in range(len(upper)):
         max_camber = camber
         max_camber_location = (upper[i, 0] + lower[i, 0]) / 2
 
-print()
 print(f"Maximum thickness to chord: {tc_max} @ (x/c)={tc_max_location}")
 print(f"Maximum camber: {max_camber} @ (x/c)={max_camber_location}")
 
