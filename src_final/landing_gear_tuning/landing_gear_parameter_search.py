@@ -40,14 +40,8 @@ def _add_contours(ax, C_grid, K_grid, data_grid, levels, color, linestyle, fmt, 
     """Helper to add labelled contour lines, silently skipping if data is too sparse."""
     masked = np.ma.masked_invalid(data_grid)
     try:
-        cs = ax.contour(C_grid, K_grid, masked, levels=levels,
+        ax.contour(C_grid, K_grid, masked, levels=levels,
                         colors=color, linewidths=0.9, linestyles=linestyle)
-        # labels = ax.clabel(cs, fmt=fmt, colors=color, fontsize=fontsize, inline=False)
-
-        # for txt in labels:
-        #     txt.set_bbox(dict(facecolor=ax.get_facecolor(),
-        #                     edgecolor='none',
-        #                     pad=0.4))
     except Exception:
         pass
 
@@ -126,7 +120,7 @@ def plot_parameter_space(c_min: float = 1e-3,
             result_grid[ki, ci] = 1 if peak_disp < displacement_constraint_compression else 0
 
     # ------------------------------------------------------------------ #
-    #  Contour level arrays                                               #
+    #  Contour level arrays                                              #
     # ------------------------------------------------------------------ #
 
     g_max   = np.nanmax(total_gs_grid)
@@ -146,14 +140,11 @@ def plot_parameter_space(c_min: float = 1e-3,
     D_STYLE    = ':'
 
     # ------------------------------------------------------------------ #
-    #  Plot setup  — 4 panels                                             #
+    #  Plot setup  of the constraint map                                 #
     # ------------------------------------------------------------------ #
 
     fig, axes = plt.subplots(1, 1, figsize=(6, 6))
     fig.patch.set_facecolor('#0f1117')
-    # axflat = axes.flatten()
-    # for ax in axflat:
-    #     ax.set_facecolor('#1a1d27')
     axes.set_facecolor('#1a1d27')
 
     C_grid, K_grid = np.meshgrid(c_values, k_values)
@@ -173,88 +164,6 @@ def plot_parameter_space(c_min: float = 1e-3,
         """Add g and displacement contours to any axis."""
         _add_contours(ax, C_grid, K_grid, total_gs_grid,
                       g_levels, G_COLOR, G_STYLE, fmt='%.0fg')
-        # _add_contours(ax, C_grid, K_grid, disp_cm_grid,
-        #               disp_levels, D_COLOR, D_STYLE, fmt='%.1fcm')
-
-    # ------------------------------------------------------------------ #
-    #  Plot 1 — Peak displacement heat-map                                #
-    # ------------------------------------------------------------------ #
-
-    # ax1 = axflat[0]
-    # masked_disp = np.ma.masked_invalid(disp_cm_grid)
-
-    # im1 = ax1.pcolormesh(C_grid, K_grid, masked_disp, cmap='plasma', shading='auto')
-    # cbar1 = plt.colorbar(im1, ax=ax1, pad=0.02)
-    # cbar1.set_label('Peak displacement [cm]', color='#c8ccd8', fontsize=9)
-    # cbar1.ax.yaxis.set_tick_params(color='#c8ccd8')
-    # plt.setp(cbar1.ax.yaxis.get_ticklabels(), color='#c8ccd8')
-
-    # # Displacement limit boundary
-    # try:
-    #     ax1.contour(C_grid, K_grid, masked_disp,
-    #                 levels=[displacement_constraint_compression * 100],
-    #                 colors='white', linewidths=1.5, linestyles='--')
-    # except Exception:
-    #     pass
-
-    # _overlay_contours(ax1)
-    # _style_ax(ax1)
-    # ax1.set_title(f'Peak Displacement  (– – limit: {displacement_constraint_compression*100:.2f} cm)',
-    #               color='white', fontsize=11, fontweight='bold')
-
-    # # ------------------------------------------------------------------ #
-    # #  Plot 2 — Peak force heat-map                                       #
-    # # ------------------------------------------------------------------ #
-
-    # ax2 = axflat[1]
-    # force_kN = peak_force_grid / 1000
-    # masked_force = np.ma.masked_invalid(force_kN)
-
-    # im2 = ax2.pcolormesh(C_grid, K_grid, masked_force, cmap='inferno', shading='auto')
-    # cbar2 = plt.colorbar(im2, ax=ax2, pad=0.02)
-    # cbar2.set_label('Peak force [kN]', color='#c8ccd8', fontsize=9)
-    # cbar2.ax.yaxis.set_tick_params(color='#c8ccd8')
-    # plt.setp(cbar2.ax.yaxis.get_ticklabels(), color='#c8ccd8')
-
-    # _overlay_contours(ax2)
-    # _style_ax(ax2)
-    # ax2.set_title('Peak Force [kN]', color='white', fontsize=11, fontweight='bold')
-
-    # # ------------------------------------------------------------------ #
-    # #  Plot 3 — Damping ratio heat-map                                    #
-    # # ------------------------------------------------------------------ #
-
-    # ax3 = axflat[2]
-    # masked_zeta = np.ma.masked_invalid(damping_ratio_grid)
-
-    # im3 = ax3.pcolormesh(C_grid, K_grid, masked_zeta,
-    #                       cmap='coolwarm', shading='auto', vmin=0, vmax=1)
-    # cbar3 = plt.colorbar(im3, ax=ax3, pad=0.02)
-    # cbar3.set_label('Damping ratio  ζ  [-]', color='#c8ccd8', fontsize=9)
-    # cbar3.ax.yaxis.set_tick_params(color='#c8ccd8')
-    # plt.setp(cbar3.ax.yaxis.get_ticklabels(), color='#c8ccd8')
-
-    # # ζ = 1 and ζ = 0.5 reference contours
-    # try:
-    #     ax3.contour(C_grid, K_grid, masked_zeta,
-    #                 levels=[1.0], colors='white', linewidths=1.5, linestyles='--')
-    # except Exception:
-    #     pass
-    # try:
-    #     cs05 = ax3.contour(C_grid, K_grid, masked_zeta,
-    #                        levels=[0.5], colors='#aaaaaa', linewidths=1.0, linestyles=':')
-    #     ax3.clabel(cs05, fmt='ζ=0.5', colors='#aaaaaa', fontsize=7)
-    # except Exception:
-    #     pass
-
-    # _overlay_contours(ax3)
-    # _style_ax(ax3)
-    # ax3.set_title('Damping Ratio  ζ  (– – ζ=1 critical)',
-    #               color='white', fontsize=11, fontweight='bold')
-
-    # ------------------------------------------------------------------ #
-    #  Plot 4 — Constraint satisfaction map                               #
-    # ------------------------------------------------------------------ #
 
     cmap_cat = ListedColormap(['#3a3a4a', '#e05252', '#52c97a'])
     norm_cat  = mcolors.BoundaryNorm([-1.5, -0.5, 0.5, 1.5], cmap_cat.N)
@@ -276,20 +185,6 @@ def plot_parameter_space(c_min: float = 1e-3,
                facecolor='#1a1d27', edgecolor='#3a3d50',
                labelcolor='white', fontsize=8)
 
-    # ------------------------------------------------------------------ #
-    #  Shared legend for overlay contours (bottom of figure)             #
-    # ------------------------------------------------------------------ #
-
-    contour_legend = [
-        mpatches.Patch(color=G_COLOR, label=f'g-load contours (step {g_contour_step} g)'),
-        mpatches.Patch(color=D_COLOR, label=f'Displacement contours (step {disp_contour_step_cm} cm)'),
-    ]
-    fig.legend(handles=contour_legend, loc='lower center', ncol=2,
-               facecolor='#1a1d27', edgecolor='#3a3d50',
-               labelcolor='white', fontsize=9, bbox_to_anchor=(0.5, -0.04))
-
-    # fig.suptitle('Landing Gear Parameter Space  ·  c vs k sweep',
-    #              color='white', fontsize=14, fontweight='bold', y=1.01)
 
     plt.tight_layout()
 
